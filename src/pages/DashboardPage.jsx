@@ -7,6 +7,7 @@ import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
 import PlanSummary from "../components/PlanSummary";
 import SelfieVerificationPanel from "../components/SelfieVerificationPanel";
 import TriggerSimulationPanel from "../components/TriggerSimulationPanel";
+import LanguageToggle from "../components/LanguageToggle";
 import activityData from "../data/activityData.json";
 import fraudScores from "../data/fraudScores.json";
 import planDetails from "../data/planDetails.json";
@@ -14,7 +15,8 @@ import triggerEvents from "../data/triggerEvents.json";
 import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
 import { calculateWeeklyPremium } from "../utils/pricing";
-import { languageModes, selectLabel } from "../utils/i18n";
+import { selectLabel } from "../utils/i18n";
+import { useSiteLanguage } from "../utils/siteLanguage";
 import { getRiskLevelFromScore, requiresVerification } from "../utils/fraud";
 import {
   applyTriggerToEarnings,
@@ -160,7 +162,7 @@ function DashboardPage() {
   const [lastActiveTime, setLastActiveTime] = useState(
     activityData.lastActiveTime,
   );
-  const [languageMode, setLanguageMode] = useState(languageModes.BOTH);
+  const { languageMode, setLanguageMode } = useSiteLanguage();
   const hasAutoTriggeredRef = useRef(false);
 
   const activeFraudProfile = fraudScores[activePersonaKey] ?? fraudScores.normal;
@@ -293,41 +295,10 @@ function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="board-soft flex items-center gap-1 p-1">
-                <button
-                  type="button"
-                  onClick={() => setLanguageMode(languageModes.ENGLISH)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    languageMode === languageModes.ENGLISH
-                      ? "bg-coal-900 text-white"
-                      : "text-coal-700"
-                  }`}
-                >
-                  {selectLabel(languageMode, "English", "अंग्रेजी")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLanguageMode(languageModes.HINDI)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    languageMode === languageModes.HINDI
-                      ? "bg-coal-900 text-white"
-                      : "text-coal-700"
-                  }`}
-                >
-                  {selectLabel(languageMode, "Hindi", "हिंदी")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLanguageMode(languageModes.BOTH)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    languageMode === languageModes.BOTH
-                      ? "bg-coal-900 text-white"
-                      : "text-coal-700"
-                  }`}
-                >
-                  {selectLabel(languageMode, "Both", "दोनों")}
-                </button>
-              </div>
+              <LanguageToggle
+                languageMode={languageMode}
+                setLanguageMode={setLanguageMode}
+              />
               <span
                 className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                   coverageActive

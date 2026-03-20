@@ -1,16 +1,19 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import LanguageToggle from "../components/LanguageToggle";
 import planDetails from "../data/planDetails.json";
 import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
+import { selectLabel } from "../utils/i18n";
 import {
   calculateWeeklyPremium,
   supportedRiskLevels,
 } from "../utils/pricing";
+import { useSiteLanguage } from "../utils/siteLanguage";
 import { saveSession } from "../utils/session";
 import { supabase } from "../utils/supabase";
 
-const platformOptions = ["Zomato", "Swiggy", "Blinkit", "Zepto", "Uber"];
+const platformOptions = ["Zomato", "Swiggy", "Blinkit", "Zepto"];
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const validPlanIds = new Set(planDetails.map((plan) => plan.id));
 
@@ -30,6 +33,7 @@ function createPremiumHistoryEntry({ reason, breakdown }) {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { languageMode, setLanguageMode } = useSiteLanguage();
   const [searchParams] = useSearchParams();
   const requestedPlanId = searchParams.get("plan");
   const requestedRiskLevel = searchParams.get("risk");
@@ -61,8 +65,11 @@ function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const submitLabel = useMemo(
-    () => (mode === "signin" ? "Sign In to GigShield" : "Create GigShield Account"),
-    [mode],
+    () =>
+      mode === "signin"
+        ? selectLabel(languageMode, "Sign In to GigShield", "GigShield में साइन इन करें")
+        : selectLabel(languageMode, "Create GigShield Account", "GigShield खाता बनाएं"),
+    [languageMode, mode],
   );
   const selectedPlan =
     planDetails.find((plan) => plan.id === selectedPlanId) ?? planDetails[0];
@@ -73,7 +80,7 @@ function AuthPage() {
   });
   const [premiumHistory, setPremiumHistory] = useState(() => [
     createPremiumHistoryEntry({
-      reason: "Initial premium setup",
+      reason: selectLabel(languageMode, "Initial premium setup", "प्रारंभिक प्रीमियम सेटअप"),
       breakdown: premiumBreakdown,
     }),
   ]);
@@ -192,7 +199,11 @@ function AuthPage() {
     <main className="frame-shell flex min-h-screen items-center py-6 sm:py-8">
       <section className="board animate-enter w-full overflow-hidden">
         <div className="top-strip">
-          Link your delivery platforms once and switch between protected accounts instantly.
+          {selectLabel(
+            languageMode,
+            "Link your delivery platforms once and switch between protected accounts instantly.",
+            "अपने डिलीवरी प्लेटफॉर्म एक बार जोड़ें और सुरक्षित खातों के बीच तुरंत बदलें।",
+          )}
         </div>
 
         <header className="flex items-center justify-between border-b border-coal-200 px-4 py-4 sm:px-6">
@@ -201,22 +212,29 @@ function AuthPage() {
               GIGSHIELD.
             </p>
           </div>
+          <LanguageToggle
+            languageMode={languageMode}
+            setLanguageMode={setLanguageMode}
+          />
           <Link to="/" className="secondary-btn">
-            Back to Landing
+            {selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}
           </Link>
         </header>
 
         <div className="grid gap-4 px-4 py-6 sm:px-6 lg:grid-cols-5 lg:gap-6">
           <article className="board-soft p-4 lg:col-span-2">
-            <p className="kicker">Unified Access</p>
+            <p className="kicker">{selectLabel(languageMode, "Unified Access", "एकीकृत एक्सेस")}</p>
             <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-              Sign in once.
+              {selectLabel(languageMode, "Sign in once.", "एक बार साइन इन करें।")}
               <br />
-              Protect all gigs.
+              {selectLabel(languageMode, "Protect all gigs.", "सभी गिग्स सुरक्षित करें।")}
             </h1>
             <p className="mt-4 text-sm text-coal-600">
-              Use one GigShield account to manage workers who operate on multiple platforms like
-              Zomato, Swiggy, and Blinkit.
+              {selectLabel(
+                languageMode,
+                "Use one GigShield account to manage workers who operate on multiple platforms like Zomato, Swiggy, and Blinkit.",
+                "एक GigShield खाते से Zomato, Swiggy और Blinkit जैसे कई प्लेटफॉर्म पर काम करने वाले वर्कर्स को मैनेज करें।",
+              )}
             </p>
 
             <div className="mt-6 space-y-2">
@@ -235,7 +253,9 @@ function AuthPage() {
                   >
                     <span>{platform}</span>
                     <span className="text-xs uppercase tracking-[0.15em]">
-                      {selected ? "Linked" : "Add"}
+                      {selected
+                        ? selectLabel(languageMode, "Linked", "जुड़ा")
+                        : selectLabel(languageMode, "Add", "जोड़ें")}
                     </span>
                   </button>
                 );
@@ -254,7 +274,7 @@ function AuthPage() {
                     : "text-coal-600 hover:bg-coal-100"
                 }`}
               >
-                Sign In
+                {selectLabel(languageMode, "Sign In", "साइन इन")}
               </button>
               <button
                 type="button"
@@ -265,7 +285,7 @@ function AuthPage() {
                     : "text-coal-600 hover:bg-coal-100"
                 }`}
               >
-                Sign Up
+                {selectLabel(languageMode, "Sign Up", "साइन अप")}
               </button>
             </div>
 
@@ -276,14 +296,16 @@ function AuthPage() {
                 </div>
               )}
               <div className="board p-4">
-                <p className="kicker">Dynamic Premium</p>
+                <p className="kicker">{selectLabel(languageMode, "Dynamic Premium", "डायनेमिक प्रीमियम")}</p>
                 <p className="mt-2 text-2xl font-bold text-coal-900">
                   {formatCurrency(premiumBreakdown.adjustedPremium)} / week
                 </p>
                 <p className="mt-1 text-xs text-coal-600">
-                  Base {formatCurrency(premiumBreakdown.basePremium)} + platform load{" "}
-                  {formatCurrency(premiumBreakdown.platformLoadFee)}, risk x
-                  {premiumBreakdown.riskMultiplier.toFixed(2)}
+                  {selectLabel(
+                    languageMode,
+                    `Base ${formatCurrency(premiumBreakdown.basePremium)} + platform load ${formatCurrency(premiumBreakdown.platformLoadFee)}, risk x${premiumBreakdown.riskMultiplier.toFixed(2)}`,
+                    `बेस ${formatCurrency(premiumBreakdown.basePremium)} + प्लेटफॉर्म शुल्क ${formatCurrency(premiumBreakdown.platformLoadFee)}, जोखिम x${premiumBreakdown.riskMultiplier.toFixed(2)}`,
+                  )}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {supportedRiskLevels.map((level) => (
@@ -297,7 +319,7 @@ function AuthPage() {
                           : "border border-coal-300 bg-white text-coal-700 hover:bg-coal-100"
                       }`}
                     >
-                      {level} risk
+                      {selectLabel(languageMode, `${level} risk`, `${level} जोखिम`)}
                     </button>
                   ))}
                 </div>
@@ -306,32 +328,32 @@ function AuthPage() {
               {mode === "signup" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="text-sm font-medium text-coal-700">
-                    Full Name
+                    {selectLabel(languageMode, "Full Name", "पूरा नाम")}
                     <input
                       name="fullName"
                       value={formValues.fullName}
                       onChange={handleChange}
                       required
                       className="mt-1 w-full rounded-xl border border-coal-300 bg-white px-3 py-2 text-coal-900 outline-none ring-electric-500 focus:ring-2"
-                      placeholder="Rider full name"
+                      placeholder={selectLabel(languageMode, "Rider full name", "राइडर का पूरा नाम")}
                     />
                   </label>
                   <label className="text-sm font-medium text-coal-700">
-                    City
+                    {selectLabel(languageMode, "City", "शहर")}
                     <input
                       name="city"
                       value={formValues.city}
                       onChange={handleChange}
                       required
                       className="mt-1 w-full rounded-xl border border-coal-300 bg-white px-3 py-2 text-coal-900 outline-none ring-electric-500 focus:ring-2"
-                      placeholder="Mumbai"
+                      placeholder={selectLabel(languageMode, "Mumbai", "मुंबई")}
                     />
                   </label>
                 </div>
               ) : null}
 
               <label className="block text-sm font-medium text-coal-700">
-                Email
+                {selectLabel(languageMode, "Email", "ईमेल")}
                 <input
                   type="email"
                   name="email"
@@ -339,25 +361,25 @@ function AuthPage() {
                   onChange={handleChange}
                   required
                   className="mt-1 w-full rounded-xl border border-coal-300 bg-white px-3 py-2 text-coal-900 outline-none ring-electric-500 focus:ring-2"
-                  placeholder="you@example.com"
+                  placeholder={selectLabel(languageMode, "you@example.com", "you@example.com")}
                 />
               </label>
 
               <label className="block text-sm font-medium text-coal-700">
-                Worker ID
+                {selectLabel(languageMode, "Worker ID", "वर्कर आईडी")}
                 <input
                   name="workerId"
                   value={formValues.workerId}
                   onChange={handleChange}
                   required
                   className="mt-1 w-full rounded-xl border border-coal-300 bg-white px-3 py-2 text-coal-900 outline-none ring-electric-500 focus:ring-2"
-                  placeholder="Platform rider ID"
+                  placeholder={selectLabel(languageMode, "Platform rider ID", "प्लेटफॉर्म राइडर आईडी")}
                 />
               </label>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="text-sm font-medium text-coal-700">
-                  Password
+                  {selectLabel(languageMode, "Password", "पासवर्ड")}
                   <input
                     type="password"
                     name="password"
@@ -371,7 +393,7 @@ function AuthPage() {
 
                 {mode === "signup" ? (
                   <label className="text-sm font-medium text-coal-700">
-                    Confirm Password
+                    {selectLabel(languageMode, "Confirm Password", "पासवर्ड पुष्टि करें")}
                     <input
                       type="password"
                       name="confirmPassword"
@@ -386,15 +408,15 @@ function AuthPage() {
               </div>
 
               <div className="board mt-2 p-4">
-                <p className="kicker">Selected Plan</p>
+                <p className="kicker">{selectLabel(languageMode, "Selected Plan", "चयनित योजना")}</p>
                 <p className="mt-2 text-sm font-semibold text-coal-900">
                   {selectedPlan.name} | {selectedPlan.coverageHours}
                 </p>
-                <p className="kicker">Linked Platforms</p>
+                <p className="kicker">{selectLabel(languageMode, "Linked Platforms", "जुड़े प्लेटफॉर्म")}</p>
                 <p className="mt-2 text-sm font-semibold text-coal-900">
                   {selectedPlatforms.length > 0
                     ? selectedPlatforms.join(", ")
-                    : "Select at least one platform account"}
+                    : selectLabel(languageMode, "Select at least one platform account", "कम से कम एक प्लेटफॉर्म खाता चुनें")}
                 </p>
               </div>
 
@@ -424,7 +446,7 @@ function AuthPage() {
                   }}
                   className="secondary-btn"
                 >
-                  Continue as Demo User
+                  {selectLabel(languageMode, "Continue as Demo User", "डेमो उपयोगकर्ता के रूप में जारी रखें")}
                 </Link>
               </div>
             </form>

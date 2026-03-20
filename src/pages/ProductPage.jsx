@@ -1,4 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import LanguageToggle from "../components/LanguageToggle";
+import { selectLabel } from "../utils/i18n";
+import { useSiteLanguage } from "../utils/siteLanguage";
 
 const protectionSituations = [
   {
@@ -52,12 +55,17 @@ const featureHighlights = [
 
 function ProductPage() {
   const navigate = useNavigate();
+  const { languageMode, setLanguageMode } = useSiteLanguage();
 
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
       <section className="board animate-enter overflow-hidden">
         <div className="top-strip">
-          GigShield protects delivery income during disruption events through trigger-based payouts.
+          {selectLabel(
+            languageMode,
+            "GigShield protects delivery income during disruption events through trigger-based payouts.",
+            "GigShield व्यवधान की स्थिति में ट्रिगर-आधारित भुगतान के जरिए डिलीवरी आय की सुरक्षा करता है।",
+          )}
         </div>
 
         <header className="border-b border-coal-200 px-4 py-6 sm:px-6">
@@ -69,47 +77,52 @@ function ProductPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              <LanguageToggle
+                languageMode={languageMode}
+                setLanguageMode={setLanguageMode}
+              />
               <button
                 type="button"
                 onClick={() => navigate("/")}
                 className="secondary-btn"
               >
-                Back to Landing
+                {selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/pricing")}
                 className="secondary-btn"
               >
-                View Pricing
+                {selectLabel(languageMode, "View Pricing", "कीमत देखें")}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/auth")}
                 className="primary-btn"
               >
-                Get Protected
+                {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}
               </button>
             </div>
           </div>
 
-          <p className="kicker mt-6">Product Overview</p>
+          <p className="kicker mt-6">{selectLabel(languageMode, "Product Overview", "उत्पाद अवलोकन")}</p>
           <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl lg:text-6xl">
-            How GigShield works
+            {selectLabel(languageMode, "How GigShield works", "GigShield कैसे काम करता है")}
             <br />
-            for delivery workers.
+            {selectLabel(languageMode, "for delivery workers.", "डिलीवरी वर्कर्स के लिए।")}
           </h1>
           <p className="mt-4 max-w-3xl text-base text-coal-600 sm:text-lg">
-            GigShield is built to protect gig worker earnings when real-world events
-            interrupt normal delivery flow. It does this by watching verified
-            triggers and releasing support payout quickly, with fraud controls to
-            keep the system fair.
+            {selectLabel(
+              languageMode,
+              "GigShield is built to protect gig worker earnings when real-world events interrupt normal delivery flow. It does this by watching verified triggers and releasing support payout quickly, with fraud controls to keep the system fair.",
+              "GigShield गिग वर्कर्स की कमाई की सुरक्षा के लिए बनाया गया है, जब वास्तविक घटनाएं सामान्य डिलीवरी को प्रभावित करती हैं। यह सत्यापित ट्रिगर्स देखकर जल्दी सहायता भुगतान जारी करता है और निष्पक्षता के लिए फ्रॉड नियंत्रण लागू करता है।",
+            )}
           </p>
         </header>
 
         <div className="grid gap-4 px-4 py-6 sm:px-6">
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">How To Use</p>
+            <p className="kicker">{selectLabel(languageMode, "How To Use", "कैसे उपयोग करें")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <article className="rounded-lg border border-coal-200 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">Step 1</p>
@@ -135,7 +148,7 @@ function ProductPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Key Features</p>
+            <p className="kicker">{selectLabel(languageMode, "Key Features", "मुख्य विशेषताएं")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {featureHighlights.map((feature) => (
                 <article key={feature.title} className="rounded-lg border border-coal-200 bg-white p-3">
@@ -147,7 +160,7 @@ function ProductPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Protection In Real Situations</p>
+            <p className="kicker">{selectLabel(languageMode, "Protection In Real Situations", "वास्तविक स्थितियों में सुरक्षा")}</p>
             <div className="mt-3 grid gap-3">
               {protectionSituations.map((situation) => (
                 <article key={situation.trigger} className="rounded-lg border border-coal-200 bg-white p-4">
@@ -169,7 +182,7 @@ function ProductPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Why It Helps Workers</p>
+            <p className="kicker">{selectLabel(languageMode, "Why It Helps Workers", "यह वर्कर्स की कैसे मदद करता है")}</p>
             <ul className="mt-3 grid gap-2 text-sm text-coal-700 sm:grid-cols-2">
               <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">Less income shock on bad weather or outage days</li>
               <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">No complex paperwork for every event</li>

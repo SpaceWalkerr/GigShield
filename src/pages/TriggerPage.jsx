@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import LanguageToggle from "../components/LanguageToggle";
 import triggerEvents from "../data/triggerEvents.json";
 import { formatCurrency } from "../utils/format";
+import { selectLabel } from "../utils/i18n";
+import { useSiteLanguage } from "../utils/siteLanguage";
 
 const triggerSources = [
   {
@@ -25,40 +28,53 @@ const payoutRules = [
 ];
 
 function TriggerPage() {
+  const { languageMode, setLanguageMode } = useSiteLanguage();
+
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
       <section className="board animate-enter overflow-hidden">
         <div className="top-strip">
-          Triggers power automatic payout decisions so workers get support during real disruptions.
+          {selectLabel(
+            languageMode,
+            "Triggers power automatic payout decisions so workers get support during real disruptions.",
+            "ट्रिगर्स स्वतः भुगतान निर्णय चलाते हैं ताकि असली व्यवधान में वर्कर्स को सहायता मिले।",
+          )}
         </div>
 
         <header className="border-b border-coal-200 px-4 py-5 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="kicker">Trigger System</p>
+              <p className="kicker">{selectLabel(languageMode, "Trigger System", "ट्रिगर सिस्टम")}</p>
               <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                How trigger payouts
+                {selectLabel(languageMode, "How trigger payouts", "ट्रिगर भुगतान कैसे")}
                 <br />
-                work in GigShield.
+                {selectLabel(languageMode, "work in GigShield.", "GigShield में काम करते हैं।")}
               </h1>
               <p className="mt-3 max-w-3xl text-sm text-coal-500 sm:text-base">
-                A trigger is a verified disruption event. When one happens, GigShield checks
-                plan rules and risk controls, then applies payout instantly if conditions match.
+                {selectLabel(
+                  languageMode,
+                  "A trigger is a verified disruption event. When one happens, GigShield checks plan rules and risk controls, then applies payout instantly if conditions match.",
+                  "ट्रिगर एक सत्यापित व्यवधान घटना है। घटना होने पर GigShield योजना नियम और जोखिम नियंत्रण जांचता है, और शर्तें मिलने पर तुरंत भुगतान लागू करता है।",
+                )}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Link to="/" className="secondary-btn">Back to Landing</Link>
-              <Link to="/product" className="secondary-btn">Product</Link>
-              <Link to="/pricing" className="secondary-btn">Pricing</Link>
-              <Link to="/auth" className="primary-btn">Get Protected</Link>
+              <LanguageToggle
+                languageMode={languageMode}
+                setLanguageMode={setLanguageMode}
+              />
+              <Link to="/" className="secondary-btn">{selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}</Link>
+              <Link to="/product" className="secondary-btn">{selectLabel(languageMode, "Product", "उत्पाद")}</Link>
+              <Link to="/pricing" className="secondary-btn">{selectLabel(languageMode, "Pricing", "कीमत")}</Link>
+              <Link to="/auth" className="primary-btn">{selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}</Link>
             </div>
           </div>
         </header>
 
         <div className="grid gap-4 px-4 py-6 sm:px-6">
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Where Triggers Come From</p>
+            <p className="kicker">{selectLabel(languageMode, "Where Triggers Come From", "ट्रिगर्स कहां से आते हैं")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {triggerSources.map((source) => (
                 <article key={source.name} className="rounded-lg border border-coal-200 bg-white p-3">
@@ -70,12 +86,12 @@ function TriggerPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Available Trigger Events</p>
+            <p className="kicker">{selectLabel(languageMode, "Available Trigger Events", "उपलब्ध ट्रिगर इवेंट्स")}</p>
             <div className="mt-3 overflow-x-auto">
               <table className="w-full min-w-[620px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-coal-200 text-coal-600">
-                    <th className="py-2 pr-3 font-semibold">Trigger</th>
+                    <th className="py-2 pr-3 font-semibold">{selectLabel(languageMode, "Trigger", "ट्रिगर")}</th>
                     <th className="py-2 pr-3 font-semibold">Basic</th>
                     <th className="py-2 pr-3 font-semibold">Standard</th>
                     <th className="py-2 pr-3 font-semibold">Pro</th>
@@ -96,7 +112,7 @@ function TriggerPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Payout Decision Rules</p>
+            <p className="kicker">{selectLabel(languageMode, "Payout Decision Rules", "भुगतान निर्णय नियम")}</p>
             <ul className="mt-3 grid gap-2 text-sm text-coal-700 sm:grid-cols-2">
               {payoutRules.map((rule) => (
                 <li key={rule} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
@@ -107,9 +123,9 @@ function TriggerPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Try Trigger Demo</p>
+            <p className="kicker">{selectLabel(languageMode, "Try Trigger Demo", "ट्रिगर डेमो आज़माएं")}</p>
             <p className="mt-2 text-sm text-coal-600">
-              Open dashboard with a preselected trigger event to test the live payout flow instantly.
+              {selectLabel(languageMode, "Open dashboard with a preselected trigger event to test the live payout flow instantly.", "लाइव भुगतान फ्लो को तुरंत टेस्ट करने के लिए प्री-सेलेक्टेड ट्रिगर इवेंट के साथ डैशबोर्ड खोलें।")}
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {triggerEvents.map((event) => (
@@ -118,18 +134,20 @@ function TriggerPage() {
                   to={`/dashboard?plan=standard&trigger=${event.id}`}
                   className="rounded-lg border border-coal-200 bg-white px-3 py-2 text-sm font-semibold text-coal-900 transition hover:bg-coal-100"
                 >
-                  Run {event.label} Demo
+                  {selectLabel(languageMode, `Run ${event.label} Demo`, `${event.label} डेमो चलाएं`)}
                 </Link>
               ))}
             </div>
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Worker Protection Outcome</p>
+            <p className="kicker">{selectLabel(languageMode, "Worker Protection Outcome", "वर्कर सुरक्षा परिणाम")}</p>
             <p className="mt-2 text-sm text-coal-700">
-              Instead of waiting for manual claim approvals, workers receive support when
-              disruption events are verified. This reduces income shock, keeps payout logic
-              transparent, and uses fraud checks so honest workers are protected consistently.
+              {selectLabel(
+                languageMode,
+                "Instead of waiting for manual claim approvals, workers receive support when disruption events are verified. This reduces income shock, keeps payout logic transparent, and uses fraud checks so honest workers are protected consistently.",
+                "मैनुअल क्लेम अनुमोदन का इंतज़ार करने के बजाय, व्यवधान इवेंट सत्यापित होते ही वर्कर्स को सहायता मिलती है। इससे आय का झटका कम होता है, भुगतान नियम पारदर्शी रहते हैं और फ्रॉड जांच से ईमानदार वर्कर्स की लगातार सुरक्षा होती है।",
+              )}
             </p>
           </section>
         </div>

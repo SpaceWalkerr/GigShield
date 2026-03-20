@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import LanguageToggle from "../components/LanguageToggle";
+import { selectLabel } from "../utils/i18n";
+import { useSiteLanguage } from "../utils/siteLanguage";
 
 const fraudSignals = [
   {
@@ -50,41 +53,53 @@ const guardSteps = [
 ];
 
 function FraudGuardPage() {
+  const { languageMode, setLanguageMode } = useSiteLanguage();
+
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
       <section className="board animate-enter overflow-hidden">
         <div className="top-strip">
-          Fraud Guard keeps payouts fast for genuine workers and blocked for suspicious behavior.
+          {selectLabel(
+            languageMode,
+            "Fraud Guard keeps payouts fast for genuine workers and blocked for suspicious behavior.",
+            "Fraud Guard सही वर्कर्स के लिए भुगतान तेज रखता है और संदिग्ध व्यवहार को रोकता है।",
+          )}
         </div>
 
         <header className="border-b border-coal-200 px-4 py-5 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="kicker">Fraud Protection Layer</p>
+              <p className="kicker">{selectLabel(languageMode, "Fraud Protection Layer", "फ्रॉड सुरक्षा लेयर")}</p>
               <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                How Fraud Guard
+                {selectLabel(languageMode, "How Fraud Guard", "Fraud Guard कैसे")}
                 <br />
-                protects GigShield.
+                {selectLabel(languageMode, "protects GigShield.", "GigShield की सुरक्षा करता है।")}
               </h1>
               <p className="mt-3 max-w-3xl text-sm text-coal-500 sm:text-base">
-                Fraud Guard is the trust layer in GigShield. It uses risk scoring,
-                verification gates, and decision checks so payouts go to real delivery
-                workers during real disruptions.
+                {selectLabel(
+                  languageMode,
+                  "Fraud Guard is the trust layer in GigShield. It uses risk scoring, verification gates, and decision checks so payouts go to real delivery workers during real disruptions.",
+                  "Fraud Guard GigShield की भरोसेमंद लेयर है। यह जोखिम स्कोरिंग, सत्यापन गेट और निर्णय जांच का उपयोग करता है ताकि वास्तविक व्यवधान में भुगतान सही डिलीवरी वर्कर्स तक पहुंचे।",
+                )}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Link to="/" className="secondary-btn">Back to Landing</Link>
-              <Link to="/product" className="secondary-btn">Product</Link>
-              <Link to="/triggers" className="secondary-btn">Triggers</Link>
-              <Link to="/auth" className="primary-btn">Get Protected</Link>
+              <LanguageToggle
+                languageMode={languageMode}
+                setLanguageMode={setLanguageMode}
+              />
+              <Link to="/" className="secondary-btn">{selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}</Link>
+              <Link to="/product" className="secondary-btn">{selectLabel(languageMode, "Product", "उत्पाद")}</Link>
+              <Link to="/triggers" className="secondary-btn">{selectLabel(languageMode, "Triggers", "ट्रिगर्स")}</Link>
+              <Link to="/auth" className="primary-btn">{selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}</Link>
             </div>
           </div>
         </header>
 
         <div className="grid gap-4 px-4 py-6 sm:px-6">
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Fraud Guard Signals</p>
+            <p className="kicker">{selectLabel(languageMode, "Fraud Guard Signals", "Fraud Guard संकेत")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {fraudSignals.map((signal) => (
                 <article key={signal.name} className="rounded-lg border border-coal-200 bg-white p-3">
@@ -96,7 +111,7 @@ function FraudGuardPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Decision Flow</p>
+            <p className="kicker">{selectLabel(languageMode, "Decision Flow", "निर्णय प्रवाह")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {guardSteps.map((item) => (
                 <article key={item.step} className="rounded-lg border border-coal-200 bg-white p-3">
@@ -109,7 +124,7 @@ function FraudGuardPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Why This Protects Delivery Workers</p>
+            <p className="kicker">{selectLabel(languageMode, "Why This Protects Delivery Workers", "यह डिलीवरी वर्कर्स की सुरक्षा कैसे करता है")}</p>
             <ul className="mt-3 grid gap-2 text-sm text-coal-700 sm:grid-cols-2">
               {protectionBenefits.map((benefit) => (
                 <li key={benefit} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
@@ -120,13 +135,13 @@ function FraudGuardPage() {
           </section>
 
           <section className="board-soft p-4 sm:p-5">
-            <p className="kicker">Try Fraud Guard Demo</p>
+            <p className="kicker">{selectLabel(languageMode, "Try Fraud Guard Demo", "Fraud Guard डेमो आज़माएं")}</p>
             <p className="mt-2 text-sm text-coal-600">
-              Use dashboard personas to test how Fraud Guard responds to safe and suspicious sessions.
+              {selectLabel(languageMode, "Use dashboard personas to test how Fraud Guard responds to safe and suspicious sessions.", "डैशबोर्ड पर्सोना का उपयोग करके देखें कि Fraud Guard सुरक्षित और संदिग्ध सेशन्स पर कैसे प्रतिक्रिया देता है।")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link to="/dashboard" className="secondary-btn">Open Dashboard</Link>
-              <Link to="/dashboard?trigger=heavy-rain" className="secondary-btn">Open with Rain Trigger</Link>
+              <Link to="/dashboard" className="secondary-btn">{selectLabel(languageMode, "Open Dashboard", "डैशबोर्ड खोलें")}</Link>
+              <Link to="/dashboard?trigger=heavy-rain" className="secondary-btn">{selectLabel(languageMode, "Open with Rain Trigger", "बारिश ट्रिगर के साथ खोलें")}</Link>
             </div>
           </section>
         </div>
