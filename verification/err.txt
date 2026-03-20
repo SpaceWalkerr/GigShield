@@ -1,0 +1,150 @@
+﻿python : 2026-03-20 
+07:34:34.036326: I tensorflow
+/core/util/port.cc:153] 
+oneDNN custom operations are 
+on. You may see slightly 
+different numerical results 
+due to floating-point 
+round-off errors from 
+different computation 
+orders. To turn them off, 
+set the environment variable 
+`TF_ENABLE_ONEDNN_OPTS=0`.
+At line:1 char:1
++ python test.py *> error.log
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (2026-03  
+  -20 07:3...ONEDNN_OPTS=0   
+ `.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Traceback (most recent call 
+last):
+  File "C:\Users\Rishabh\OneD
+rive\Desktop\shubu\verificati
+on\test.py", line 1, in 
+<module>
+    import mediapipe
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\__ini
+t__.py", line 17, in <module>
+    import 
+mediapipe.tasks.python as 
+tasks
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\tasks
+\python\__init__.py", line 
+17, in <module>
+    from . import audio
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\tasks
+\python\audio\__init__.py", 
+line 18, in <module>
+    import mediapipe.tasks.py
+thon.audio.audio_classifier
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\tasks
+\python\audio\audio_classifie
+r.py", line 26, in <module>
+    from mediapipe.tasks.pyth
+on.audio.core import 
+base_audio_task_api
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\tasks
+\python\audio\core\base_audio
+_task_api.py", line 25, in 
+<module>
+    from mediapipe.tasks.pyth
+on.core.optional_dependencies
+ import doc_controls
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\mediapipe\tasks
+\python\core\optional_depende
+ncies.py", line 20, in 
+<module>
+    from 
+tensorflow.tools.docs import 
+doc_controls
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\__in
+it__.py", line 49, in 
+<module>
+    from tensorflow._api.v2 
+import __internal__
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\_api
+\v2\__internal__\__init__.py"
+, line 8, in <module>
+    from tensorflow._api.v2._
+_internal__ import autograph
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\_api
+\v2\__internal__\autograph\__
+init__.py", line 8, in 
+<module>
+    from tensorflow.python.au
+tograph.core.ag_ctx import 
+control_status_ctx # line: 34
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\pyth
+on\autograph\core\ag_ctx.py",
+ line 21, in <module>
+    from tensorflow.python.au
+tograph.utils import 
+ag_logging
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\pyth
+on\autograph\utils\__init__.p
+y", line 17, in <module>
+    from tensorflow.python.au
+tograph.utils.context_manager
+s import 
+control_dependency_on_returns
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\pyth
+on\autograph\utils\context_ma
+nagers.py", line 19, in 
+<module>
+    from 
+tensorflow.python.framework 
+import ops
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\pyth
+on\framework\ops.py", line 
+33, in <module>
+    from 
+tensorflow.core.framework 
+import attr_value_pb2
+  File "C:\Users\Rishabh\AppD
+ata\Roaming\Python\Python312\
+site-packages\tensorflow\core
+\framework\attr_value_pb2.py"
+, line 9, in <module>
+    from google.protobuf 
+import runtime_version as 
+_runtime_version
+ImportError: cannot import 
+name 'runtime_version' from 
+'google.protobuf' (C:\Users\R
+ishabh\AppData\Roaming\Python
+\Python312\site-packages\goog
+le\protobuf\__init__.py)
