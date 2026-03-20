@@ -6,7 +6,7 @@ import { selectLabel } from "../utils/i18n";
  * Represents worker-side operational telemetry used by GigShield signals.
  * The panel is static mock data but keeps the demo tied to rider activity context.
  */
-function ActivityPanel({ activity, lastActiveTime, isEasyMode, languageMode }) {
+function ActivityPanel({ activity, lastActiveTime, languageMode }) {
   const movementClasses =
     activity.movementStatus === "Active"
       ? "bg-moss-100 text-moss-600"
@@ -14,24 +14,19 @@ function ActivityPanel({ activity, lastActiveTime, isEasyMode, languageMode }) {
 
   return (
     <Card
+      icon="activity"
       languageMode={languageMode}
       title={
-        isEasyMode
-          ? selectLabel(languageMode, "Work Activity", "Kaam ki gatividhi")
-          : selectLabel(languageMode, "Activity Panel", "Gatividhi panel")
+        selectLabel(languageMode, "Work Activity", "काम की गतिविधि")
       }
       subtitle={
-        isEasyMode
-          ? selectLabel(languageMode, "Simple daily work summary", "Roz ka kaam ek nazar mein")
-          : selectLabel(languageMode, "Mock rider operations data for demo context", "Demo ke liye rider data")
+        selectLabel(languageMode, "Simple daily work summary", "रोज़ का काम एक नज़र में")
       }
     >
       <dl className="space-y-3 text-sm">
         <div className="board-soft flex items-center justify-between px-4 py-3">
           <dt className="text-coal-500">
-            {isEasyMode
-              ? selectLabel(languageMode, "Orders done today", "Aaj ke orders")
-              : selectLabel(languageMode, "Orders completed today", "Aaj poore orders")}
+            {selectLabel(languageMode, "Orders done today", "आज के ऑर्डर")}
           </dt>
           <dd className="font-bold text-coal-900">
             {activity.ordersCompletedToday}
@@ -40,9 +35,7 @@ function ActivityPanel({ activity, lastActiveTime, isEasyMode, languageMode }) {
 
         <div className="board-soft flex items-center justify-between px-4 py-3">
           <dt className="text-coal-500">
-            {isEasyMode
-              ? selectLabel(languageMode, "Last working time", "Aakhri kaam ka samay")
-              : selectLabel(languageMode, "Last active time", "Aakhri active samay")}
+            {selectLabel(languageMode, "Last working time", "आखिरी काम का समय")}
           </dt>
           <dd className="font-bold text-coal-900">
             {formatTime(lastActiveTime)}
@@ -51,9 +44,7 @@ function ActivityPanel({ activity, lastActiveTime, isEasyMode, languageMode }) {
 
         <div className="board-soft flex items-center justify-between px-4 py-3">
           <dt className="text-coal-500">
-            {isEasyMode
-              ? selectLabel(languageMode, "Current movement", "Abhi ki movement")
-              : selectLabel(languageMode, "Movement status", "Movement sthiti")}
+            {selectLabel(languageMode, "Current movement", "अभी की गतिविधि")}
           </dt>
           <dd>
             <span

@@ -14,7 +14,6 @@ function FraudDetectionIndicator({
   fraudProfiles,
   activePersonaKey,
   onPersonaChange,
-  isEasyMode,
   languageMode,
 }) {
   const activeProfile = fraudProfiles[activePersonaKey];
@@ -23,24 +22,17 @@ function FraudDetectionIndicator({
 
   return (
     <Card
+      icon="risk"
       languageMode={languageMode}
       title={
-        isEasyMode
-          ? selectLabel(languageMode, "Safety Check", "Suraksha jaanch")
-          : selectLabel(languageMode, "Fraud Detection Indicator", "Fraud sanket")
+        selectLabel(languageMode, "Safety Check", "सुरक्षा जांच")
       }
       subtitle={
-        isEasyMode
-          ? selectLabel(
-              languageMode,
-              "Choose Normal or Suspicious to test payout safety lock",
-              "Normal ya Suspicious chun kar payout lock test karein",
-            )
-          : selectLabel(
-              languageMode,
-              "Switch persona to simulate low and high risk behavior",
-              "Alag risk behavior ka demo",
-            )
+        selectLabel(
+          languageMode,
+          "Choose Normal or Suspicious to test payout safety lock",
+          "सामान्य या संदिग्ध चुनकर भुगतान लॉक टेस्ट करें",
+        )
       }
     >
       <div className="mb-4 grid gap-2 sm:grid-cols-2">
@@ -57,11 +49,9 @@ function FraudDetectionIndicator({
                   : "border-coal-200 bg-coal-50 text-coal-600 hover:bg-coal-100"
               }`}
             >
-              {isEasyMode
-                ? personaKey === "normal"
-                  ? selectLabel(languageMode, "Normal (Safe)", "Normal (Surakshit)")
-                  : selectLabel(languageMode, "Suspicious (Check Needed)", "Suspicious (Jaanch zaroori)")
-                : profile.personaLabel}
+              {personaKey === "normal"
+                ? selectLabel(languageMode, "Normal (Safe)", "सामान्य (सुरक्षित)")
+                : selectLabel(languageMode, "Suspicious (Check Needed)", "संदिग्ध (जांच ज़रूरी)")}
             </button>
           );
         })}
@@ -70,9 +60,7 @@ function FraudDetectionIndicator({
       <div className="board-soft p-4">
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-coal-500">
-            {isEasyMode
-              ? selectLabel(languageMode, "Safety score", "Suraksha score")
-              : selectLabel(languageMode, "Risk score", "Jokhim score")}
+            {selectLabel(languageMode, "Safety score", "सुरक्षा स्कोर")}
           </p>
           <span className="text-3xl font-bold text-coal-900">
             {activeProfile.score}/100
@@ -86,15 +74,11 @@ function FraudDetectionIndicator({
 
         {showVerification ? (
           <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
-            {isEasyMode
-              ? selectLabel(languageMode, "Selfie check required before payout", "Payout se pehle selfie jaanch zaroori")
-              : selectLabel(languageMode, "Verification Required", "Jaanch zaroori")}
+            {selectLabel(languageMode, "Selfie check required before payout", "भुगतान से पहले सेल्फी जांच ज़रूरी")}
           </p>
         ) : (
           <p className="mt-3 text-sm text-coal-500">
-            {isEasyMode
-              ? selectLabel(languageMode, "All good. Instant payout is allowed.", "Sab theek hai. Turant payout milega.")
-              : selectLabel(languageMode, "Behavior pattern looks normal. Auto payouts are allowed.", "Vyavahar normal hai, auto payout allowed hai.")}
+            {selectLabel(languageMode, "All good. Instant payout is allowed.", "सब ठीक है। तुरंत भुगतान मिलेगा।")}
           </p>
         )}
       </div>

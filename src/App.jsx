@@ -3,6 +3,9 @@ import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import LandingPage from "./pages/LandingPage";
 import PricingPage from "./pages/PricingPage";
+import ProductPage from "./pages/ProductPage";
+import TriggerPage from "./pages/TriggerPage";
+import FraudGuardPage from "./pages/FraudGuardPage";
 import { isSessionActive } from "./utils/session";
 
 function ProtectedRoute({ children }) {
@@ -18,6 +21,9 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/product" element={<ProductPage />} />
+        <Route path="/triggers" element={<TriggerPage />} />
+        <Route path="/fraud-guard" element={<FraudGuardPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route
           path="/dashboard"

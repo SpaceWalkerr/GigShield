@@ -9,37 +9,27 @@ import { selectLabel } from "../utils/i18n";
 function EarningsSnapshot({
   earningsProtectedThisWeek,
   lastPayoutAmount,
-  isEasyMode,
   languageMode,
 }) {
   return (
     <Card
+      icon="money"
       languageMode={languageMode}
       title={
-        isEasyMode
-          ? selectLabel(languageMode, "Money Status", "Paise ki sthiti")
-          : selectLabel(languageMode, "Payout Snapshot", "Payout jhalak")
+        selectLabel(languageMode, "Money Status", "पैसों की स्थिति")
       }
       subtitle={
-        isEasyMode
-          ? selectLabel(
-              languageMode,
-              "Shows protected money and latest support payment",
-              "Surakshit paisa aur naya bhugtan dikhata hai",
-            )
-          : selectLabel(
-              languageMode,
-              "Live values updated by trigger simulations",
-              "Trigger par amount turant update hota hai",
-            )
+        selectLabel(
+          languageMode,
+          "Shows protected money and latest support payment",
+          "सुरक्षित पैसे और नया भुगतान दिखाता है",
+        )
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <article className="rounded-xl border border-electric-600 bg-electric-500 p-5 text-white shadow-chip">
           <p className="text-xs uppercase tracking-[0.18em] text-electric-100">
-            {isEasyMode
-              ? selectLabel(languageMode, "Money protected this week", "Is hafte ka surakshit paisa")
-              : selectLabel(languageMode, "Earnings protected this week", "Is hafte ki surakshit kamai")}
+            {selectLabel(languageMode, "Money protected this week", "इस हफ्ते के सुरक्षित पैसे")}
           </p>
           <p className="mt-2 text-3xl font-bold text-white">
             {formatCurrency(earningsProtectedThisWeek)}
@@ -48,9 +38,7 @@ function EarningsSnapshot({
 
         <article className="rounded-xl border border-signal-600 bg-signal-500 p-5 text-coal-900 shadow-chip">
           <p className="text-xs uppercase tracking-[0.18em] text-coal-700">
-            {isEasyMode
-              ? selectLabel(languageMode, "Last support payment", "Pichla sahayata bhugtan")
-              : selectLabel(languageMode, "Last payout amount", "Aakhri payout rashi")}
+            {selectLabel(languageMode, "Last support payment", "पिछला सहायता भुगतान")}
           </p>
           <p className="mt-2 text-3xl font-bold text-coal-900">
             {formatCurrency(lastPayoutAmount)}

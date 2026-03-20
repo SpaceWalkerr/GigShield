@@ -27,7 +27,6 @@ function SelfieVerificationPanel({
   onGenerateChallenge,
   onApproveVerification,
   onResetVerification,
-  isEasyMode,
   languageMode,
 }) {
   const videoRef = useRef(null);
@@ -89,47 +88,36 @@ function SelfieVerificationPanel({
 
   return (
     <Card
+      icon="camera"
       languageMode={languageMode}
       title={
-        isEasyMode
-          ? selectLabel(languageMode, "Selfie Check", "Selfie jaanch")
-          : selectLabel(languageMode, "Selfie Gesture Verification", "Selfie gesture jaanch")
+        selectLabel(languageMode, "Selfie Check", "सेल्फी जांच")
       }
       subtitle={
-        isEasyMode
-          ? selectLabel(
-              languageMode,
-              "Simple face + gesture check before high-risk payout",
-              "High-risk payout se pehle seedhi selfie jaanch",
-            )
-          : selectLabel(
-              languageMode,
-              "Random challenge to reduce GPS spoofing and coordinated fraud rings",
-              "Fraud rokne ke liye random challenge",
-            )
+        selectLabel(
+          languageMode,
+          "Simple face + gesture check before high-risk payout",
+          "उच्च जोखिम भुगतान से पहले सरल सेल्फी जांच",
+        )
       }
     >
       <div className="space-y-3 text-sm">
         <div className="board-soft p-3">
-          <p className="kicker">{selectLabel(languageMode, "Verification Gate", "Jaanch gate")}</p>
+          <p className="kicker">{selectLabel(languageMode, "Verification Gate", "जांच गेट")}</p>
           <p className="mt-2 font-semibold text-coal-900">
             {requiresVerification
-              ? isEasyMode
-                ? "High risk found. Complete selfie check to get payout."
-                : "High-risk profile detected. Gesture selfie is mandatory before payout."
-              : isEasyMode
-                ? "Risk is normal. Selfie check is optional right now."
-                : "Risk profile is normal. Selfie verification is currently optional."}
+              ? "High risk found. Complete selfie check to get payout."
+              : "Risk is normal. Selfie check is optional right now."}
           </p>
         </div>
 
         <div className="board-soft p-3">
-          <p className="kicker">{selectLabel(languageMode, "Current Challenge", "Abhi ka challenge")}</p>
+          <p className="kicker">{selectLabel(languageMode, "Current Challenge", "मौजूदा चुनौती")}</p>
           <p className="mt-2 font-semibold text-coal-900">
-            {verificationState.gesture || (isEasyMode ? "Tap new gesture to start" : "Generate a random gesture to begin.")}
+            {verificationState.gesture || "Tap new gesture to start"}
           </p>
           <p className="mt-1 text-xs text-coal-600">
-            {selectLabel(languageMode, "Last successful verification", "Aakhri safal jaanch")}: {formatRelativeTime(verificationState.verifiedAt)}
+            {selectLabel(languageMode, "Last successful verification", "आखिरी सफल जांच")}: {formatRelativeTime(verificationState.verifiedAt)}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -137,36 +125,28 @@ function SelfieVerificationPanel({
               onClick={onGenerateChallenge}
               className="secondary-btn"
             >
-              {isEasyMode
-                ? selectLabel(languageMode, "New Gesture", "Naya gesture")
-                : selectLabel(languageMode, "New Random Gesture", "Naya random gesture")}
+              {selectLabel(languageMode, "New Gesture", "नया जेस्चर")}
             </button>
             <button
               type="button"
               onClick={onResetVerification}
               className="secondary-btn"
             >
-              {isEasyMode
-                ? selectLabel(languageMode, "Clear", "Saaf karein")
-                : selectLabel(languageMode, "Reset", "Reset")}
+              {selectLabel(languageMode, "Clear", "साफ करें")}
             </button>
           </div>
         </div>
 
         <div className="board-soft p-3">
-          <p className="kicker">{selectLabel(languageMode, "Selfie Capture", "Selfie lena")}</p>
+          <p className="kicker">{selectLabel(languageMode, "Selfie Capture", "सेल्फी लें")}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {!cameraEnabled ? (
               <button type="button" onClick={startCamera} className="primary-btn">
-                {isEasyMode
-                  ? selectLabel(languageMode, "Start Camera", "Camera chalu")
-                  : selectLabel(languageMode, "Enable Camera", "Camera on karein")}
+                {selectLabel(languageMode, "Start Camera", "कैमरा चालू करें")}
               </button>
             ) : (
               <button type="button" onClick={stopCamera} className="secondary-btn">
-                {isEasyMode
-                  ? selectLabel(languageMode, "Stop Camera", "Camera band")
-                  : selectLabel(languageMode, "Stop Camera", "Camera band karein")}
+                {selectLabel(languageMode, "Stop Camera", "कैमरा बंद करें")}
               </button>
             )}
             <button
@@ -175,9 +155,7 @@ function SelfieVerificationPanel({
               disabled={!cameraEnabled}
               className="secondary-btn"
             >
-              {isEasyMode
-                ? selectLabel(languageMode, "Take Selfie", "Selfie lein")
-                : selectLabel(languageMode, "Capture Selfie", "Selfie capture karein")}
+              {selectLabel(languageMode, "Take Selfie", "सेल्फी लें")}
             </button>
           </div>
 
@@ -210,9 +188,7 @@ function SelfieVerificationPanel({
                 onClick={() => onApproveVerification(capturedSelfie)}
                 className="primary-btn mt-3"
               >
-                {isEasyMode
-                  ? selectLabel(languageMode, "Approve and Continue", "Manzoor karke aage badhein")
-                  : selectLabel(languageMode, "Approve Gesture Verification", "Gesture jaanch manzoor")}
+                {selectLabel(languageMode, "Approve and Continue", "मंज़ूर करें और आगे बढ़ें")}
               </button>
             </div>
           ) : null}
@@ -220,9 +196,7 @@ function SelfieVerificationPanel({
 
         {isVerified ? (
           <p className="rounded-lg border border-moss-200 bg-moss-50 px-3 py-2 text-xs font-semibold text-moss-600">
-            {isEasyMode
-              ? "Verified. High-risk payout is now unlocked for a short time."
-              : "Verification is active. High-risk payouts are unlocked for the current session window."}
+            {"Verified. High-risk payout is now unlocked for a short time."}
           </p>
         ) : null}
       </div>

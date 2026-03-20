@@ -16,7 +16,6 @@ function TriggerSimulationPanel({
   paidTodayAmount,
   dailyPayoutCap,
   onSimulateTrigger,
-  isEasyMode,
   languageMode,
 }) {
   const statusStyles = {
@@ -28,26 +27,29 @@ function TriggerSimulationPanel({
     "invalid-trigger": "border-red-300 bg-red-50 text-red-800",
   };
 
+  const hindiEventLabelById = {
+    "heavy-rain": "तेज बारिश",
+    heatwave: "भीषण गर्मी",
+    "aqi-spike": "AQI बढ़ोतरी",
+    "platform-outage": "प्लेटफॉर्म बंद",
+  };
+
+  const getLocalizedEventLabel = (event) =>
+    selectLabel(languageMode, event.label, hindiEventLabelById[event.id] ?? event.label);
+
   return (
     <Card
+      icon="trigger"
       languageMode={languageMode}
       title={
-        isEasyMode
-          ? selectLabel(languageMode, "Problem Buttons | Instant Help", "Samasya button | Turant madad")
-          : selectLabel(languageMode, "Trigger Simulation", "Trigger demo")
+        selectLabel(languageMode, "Problem Buttons | Instant Help", "समस्या बटन | तुरंत मदद")
       }
       subtitle={
-        isEasyMode
-          ? selectLabel(
-              languageMode,
-              `Tap any button to test support payout for ${selectedPlanName} plan`,
-              "Kisi bhi button par tap karke payout test karein",
-            )
-          : selectLabel(
-              languageMode,
-              `Trigger payouts for the ${selectedPlanName} plan`,
-              `${selectedPlanName} plan ke liye trigger payout`,
-            )
+        selectLabel(
+          languageMode,
+          `Tap any button to test support payout for ${selectedPlanName} plan`,
+          "किसी भी बटन पर टैप करके भुगतान टेस्ट करें",
+        )
       }
       className="lg:col-span-2"
     >
@@ -57,24 +59,18 @@ function TriggerSimulationPanel({
             key={event.id}
             type="button"
             onClick={() => onSimulateTrigger(event.id)}
-            className={`group board-soft px-4 py-3 text-left font-semibold text-coal-900 transition hover:-translate-y-0.5 hover:bg-coal-900 hover:text-white ${
-              isEasyMode ? "text-base" : "text-sm"
-            }`}
+            className="group board-soft px-4 py-3 text-left text-base font-semibold text-coal-900 transition hover:-translate-y-0.5 hover:bg-coal-900 hover:text-white"
           >
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-electric-500 transition group-hover:bg-signal-500" />
-              {isEasyMode
-                ? selectLabel(languageMode, `Tap: ${event.label}`, `Dabayein: ${event.label}`)
-                : selectLabel(languageMode, event.buttonLabel, `${event.label} demo`)}
+              {selectLabel(languageMode, `Tap: ${event.label}`, `टैप करें: ${getLocalizedEventLabel(event)}`)}
             </span>
           </button>
         ))}
       </div>
 
       <p className="mt-4 text-xs font-semibold uppercase tracking-[0.15em] text-coal-500">
-        {isEasyMode
-          ? selectLabel(languageMode, "Today's help paid", "Aaj ka diya gaya payout")
-          : selectLabel(languageMode, "Paid today", "Aaj ka payout")}
+        {selectLabel(languageMode, "Today's help paid", "आज का दिया गया भुगतान")}
         : {formatCurrency(paidTodayAmount)} / {formatCurrency(dailyPayoutCap)}
       </p>
 
@@ -86,20 +82,24 @@ function TriggerSimulationPanel({
           }`}
         >
           <p className="font-bold tracking-wide">
-            {selectLabel(languageMode, "Trigger Activated", "Trigger chalu")}
+            {selectLabel(languageMode, "Trigger Activated", "ट्रिगर चालू")}
           </p>
           {latestPayoutMeta.status === "paid" ? (
             <p className="mt-1">
-              {isEasyMode
-                ? `Success: ${latestTrigger.label} support paid = ${formatCurrency(latestPayout)}`
-                : `${latestTrigger.label} payout applied for ${selectedPlanName}: ${formatCurrency(latestPayout)}`}
+              {selectLabel(
+                languageMode,
+                `Success: ${latestTrigger.label} support paid = ${formatCurrency(latestPayout)}`,
+                `सफल: ${hindiEventLabelById[latestTrigger.id] ?? latestTrigger.label} के लिए भुगतान = ${formatCurrency(latestPayout)}`,
+              )}
             </p>
           ) : null}
           {latestPayoutMeta.status === "capped" ? (
             <p className="mt-1">
-              {isEasyMode
-                ? `Partial payment: ${formatCurrency(latestPayout)}. Daily limit is almost full.`
-                : `${latestTrigger.label} payout partially applied: ${formatCurrency(latestPayout)} out of ${formatCurrency(latestPayoutMeta.basePayout)} because the daily cap is nearly reached.`}
+              {selectLabel(
+                languageMode,
+                `Partial payment: ${formatCurrency(latestPayout)}. Daily limit is almost full.`,
+                `आंशिक भुगतान: ${formatCurrency(latestPayout)}। दैनिक सीमा लगभग पूरी है।`,
+              )}
             </p>
           ) : null}
           {latestPayoutMeta.status === "blocked-cap" ||
@@ -108,9 +108,9 @@ function TriggerSimulationPanel({
             <p className="mt-1">{latestPayoutMeta.reason}</p>
           ) : null}
           <p className="mt-1 text-xs text-coal-700">
-            {selectLabel(languageMode, "Event reference", "Event ID")}: {latestTrigger.id} | {" "}
-            {selectLabel(languageMode, "Plan", "Yojana")}: {selectedPlanId} | {" "}
-            {selectLabel(languageMode, "Remaining cap before event", "Event se pehle bachi limit")}: {" "}
+            {selectLabel(languageMode, "Event reference", "घटना संदर्भ")}: {latestTrigger.id} | {" "}
+            {selectLabel(languageMode, "Plan", "योजना")}: {selectedPlanId} | {" "}
+            {selectLabel(languageMode, "Remaining cap before event", "इवेंट से पहले बची सीमा")}: {" "}
             {formatCurrency(latestPayoutMeta.remainingCap)}
           </p>
         </div>

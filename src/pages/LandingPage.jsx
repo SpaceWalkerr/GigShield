@@ -25,11 +25,21 @@ function LandingPage() {
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-coal-500 lg:flex">
             {navItems.map((item) =>
-              item === "Pricing" ? (
+              item === "Pricing" || item === "Product" || item === "Triggers" || item === "Fraud Guard" ? (
                 <button
                   key={item}
                   type="button"
-                  onClick={() => navigate("/pricing")}
+                  onClick={() =>
+                    navigate(
+                      item === "Pricing"
+                        ? "/pricing"
+                        : item === "Product"
+                          ? "/product"
+                          : item === "Triggers"
+                            ? "/triggers"
+                            : "/fraud-guard",
+                    )
+                  }
                   className="underline-offset-4 transition hover:text-coal-900 hover:underline"
                 >
                   {item}
@@ -78,6 +88,27 @@ function LandingPage() {
               className="secondary-btn"
             >
               View Pricing
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/product")}
+              className="secondary-btn"
+            >
+              Explore Product
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/triggers")}
+              className="secondary-btn"
+            >
+              Explore Triggers
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/fraud-guard")}
+              className="secondary-btn"
+            >
+              Explore Fraud Guard
             </button>
             <button
               type="button"

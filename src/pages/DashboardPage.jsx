@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ActivityPanel from "../components/ActivityPanel";
 import EarningsSnapshot from "../components/EarningsSnapshot";
@@ -83,6 +83,7 @@ function DashboardPage() {
   const [searchParams] = useSearchParams();
   const session = getSession();
   const planIdFromUrl = searchParams.get("plan");
+  const triggerIdFromUrl = searchParams.get("trigger");
   const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
   const resolvedPlanId =
     planIdFromUrl ||
@@ -159,8 +160,8 @@ function DashboardPage() {
   const [lastActiveTime, setLastActiveTime] = useState(
     activityData.lastActiveTime,
   );
-  const [isEasyMode, setIsEasyMode] = useState(true);
   const [languageMode, setLanguageMode] = useState(languageModes.BOTH);
+  const hasAutoTriggeredRef = useRef(false);
 
   const activeFraudProfile = fraudScores[activePersonaKey] ?? fraudScores.normal;
   const activeRiskLevel = getRiskLevelFromScore(activeFraudProfile.score);
@@ -251,6 +252,20 @@ function DashboardPage() {
     setLastActiveTime(now.toISOString());
   };
 
+  useEffect(() => {
+    if (!triggerIdFromUrl || hasAutoTriggeredRef.current) {
+      return;
+    }
+
+    const triggerExists = triggerEvents.some((event) => event.id === triggerIdFromUrl);
+    if (!triggerExists) {
+      return;
+    }
+
+    hasAutoTriggeredRef.current = true;
+    handleSimulateTrigger(triggerIdFromUrl);
+  }, [triggerIdFromUrl]);
+
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
       <header className="board animate-enter mb-5 overflow-hidden">
@@ -258,7 +273,7 @@ function DashboardPage() {
           {selectLabel(
             languageMode,
             "Easy Demo: press weather/problem buttons and see instant support payout.",
-            "Saral Demo: mausam/samasya button dabayein aur turant payout dekhein.",
+            "सरल डेमो: मौसम/समस्या बटन दबाएं और तुरंत भुगतान देखें।",
           )}
         </div>
 
@@ -266,25 +281,18 @@ function DashboardPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="kicker">
-                {selectLabel(languageMode, "Worker Dashboard", "Worker dashboard")}
+                {selectLabel(languageMode, "Worker Dashboard", "वर्कर डैशबोर्ड")}
               </p>
               <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                {selectLabel(languageMode, "Hello", "Namaste")} {displayName}
+                {selectLabel(languageMode, "Hello", "नमस्ते")} {displayName}
               </h1>
               <p className="mt-3 text-sm text-coal-500">
-                {selectLabel(languageMode, "Apps", "Apps")}: {displayPlatforms.join(", ")} | {" "}
-                {selectLabel(languageMode, "City", "Shehar")}: {displayCity}
+                {selectLabel(languageMode, "Apps", "ऐप्स")}: {displayPlatforms.join(", ")} | {" "}
+                {selectLabel(languageMode, "City", "शहर")}: {displayCity}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsEasyMode((current) => !current)}
-                className="primary-btn"
-              >
-                {selectLabel(languageMode, "Easy Mode", "Saral Mode")}: {isEasyMode ? "ON" : "OFF"}
-              </button>
               <div className="board-soft flex items-center gap-1 p-1">
                 <button
                   type="button"
@@ -295,7 +303,7 @@ function DashboardPage() {
                       : "text-coal-700"
                   }`}
                 >
-                  English
+                  {selectLabel(languageMode, "English", "अंग्रेजी")}
                 </button>
                 <button
                   type="button"
@@ -306,7 +314,7 @@ function DashboardPage() {
                       : "text-coal-700"
                   }`}
                 >
-                  Hindi
+                  {selectLabel(languageMode, "Hindi", "हिंदी")}
                 </button>
                 <button
                   type="button"
@@ -317,7 +325,7 @@ function DashboardPage() {
                       : "text-coal-700"
                   }`}
                 >
-                  Both
+                  {selectLabel(languageMode, "Both", "दोनों")}
                 </button>
               </div>
               <span
@@ -328,11 +336,11 @@ function DashboardPage() {
                 }`}
               >
                 {coverageActive
-                  ? selectLabel(languageMode, "Coverage Active", "Coverage chalu")
-                  : selectLabel(languageMode, "Coverage Paused", "Coverage ruka")}
+                  ? selectLabel(languageMode, "Coverage Active", "कवरेज चालू")
+                  : selectLabel(languageMode, "Coverage Paused", "कवरेज रुका")}
               </span>
               <Link to="/" className="secondary-btn">
-                {selectLabel(languageMode, "Back to Landing", "Home par jao")}
+                {selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}
               </Link>
               <button
                 type="button"
@@ -342,39 +350,41 @@ function DashboardPage() {
                 }}
                 className="secondary-btn"
               >
-                {selectLabel(languageMode, "Sign Out", "Bahar niklein")}
+                {selectLabel(languageMode, "Sign Out", "लॉग आउट")}
               </button>
             </div>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-4">
             <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Current Plan", "Maujooda yojana")}</p>
+              <p className="kicker">{selectLabel(languageMode, "Current Plan", "मौजूदा योजना")}</p>
               <p className="mt-1 text-lg font-semibold text-coal-900">
                 {selectedPlan.name}
               </p>
             </article>
             <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Weekly Premium", "Hafte ka premium")}</p>
+              <p className="kicker">{selectLabel(languageMode, "Weekly Premium", "साप्ताहिक प्रीमियम")}</p>
               <p className="mt-1 text-lg font-semibold text-coal-900">
                 {formatCurrency(displayWeeklyPremium)}
               </p>
             </article>
             <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Coverage Hours", "Coverage samay")}</p>
+              <p className="kicker">{selectLabel(languageMode, "Coverage Hours", "कवरेज समय")}</p>
               <p className="mt-1 text-lg font-semibold text-coal-900">
                 {selectedPlan.coverageHours}
               </p>
             </article>
             <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Premium Logic", "Premium ka hisaab")}</p>
+              <p className="kicker">{selectLabel(languageMode, "Premium Logic", "प्रीमियम का हिसाब")}</p>
               <p className="mt-1 text-sm font-semibold text-coal-900">
-                Base {formatCurrency(displayPremiumBreakdown.basePremium)} + load{" "}
+                {selectLabel(languageMode, "Base", "मूल")}
+                {" "}
+                {formatCurrency(displayPremiumBreakdown.basePremium)} + {selectLabel(languageMode, "load", "लोड")}{" "}
                 {formatCurrency(displayPremiumBreakdown.platformLoadFee)}
               </p>
               <p className="mt-1 text-xs text-coal-600">
-                {displayPremiumBreakdown.platformCount} {selectLabel(languageMode, "platforms", "apps")} | {" "}
-                {selectLabel(languageMode, "Risk", "Jokhim")} {displayPremiumBreakdown.riskLevel} x
+                {displayPremiumBreakdown.platformCount} {selectLabel(languageMode, "platforms", "ऐप्स")} | {" "}
+                {selectLabel(languageMode, "Risk", "जोखिम")} {displayPremiumBreakdown.riskLevel} x
                 {displayPremiumBreakdown.riskMultiplier.toFixed(2)}
               </p>
             </article>
@@ -382,13 +392,13 @@ function DashboardPage() {
 
           <article className="board-soft mt-4 p-4">
             <p className="kicker">
-              {selectLabel(languageMode, "Why Premium Changed", "Premium kyun badla")}
+              {selectLabel(languageMode, "Why Premium Changed", "प्रीमियम क्यों बदला")}
             </p>
             <p className="mt-1 text-xs text-coal-600">
               {selectLabel(
                 languageMode,
                 "Each event logs what changed and how much it moved the weekly premium.",
-                "Har event batata hai premium kitna badla.",
+                "हर इवेंट बताता है कि प्रीमियम कितना बदला।",
               )}
             </p>
             <div className="mt-3 space-y-2">
@@ -419,39 +429,34 @@ function DashboardPage() {
             </div>
           </article>
 
-          {isEasyMode ? (
-            <article className="board-soft mt-4 p-4">
-              <p className="kicker">How To Use | Kaise Use Karein</p>
-              <div className="mt-2 grid gap-2 text-sm text-coal-800 sm:grid-cols-3">
-                <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                  1. Press a problem button (Rain / Heat / AQI / Outage)
-                </p>
-                <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                  2. If risk is high, do selfie gesture verification
-                </p>
-                <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                  3. Check payout and protected money update instantly
-                </p>
-              </div>
-            </article>
-          ) : null}
+          <article className="board-soft mt-4 p-4">
+            <p className="kicker">{selectLabel(languageMode, "How To Use", "कैसे उपयोग करें")}</p>
+            <div className="mt-2 grid gap-2 text-sm text-coal-800 sm:grid-cols-3">
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
+                {selectLabel(
+                  languageMode,
+                  "1. Press a problem button (Rain / Heat / AQI / Outage)",
+                  "1. समस्या बटन दबाएं (बारिश / गर्मी / AQI / प्लेटफॉर्म बंद)",
+                )}
+              </p>
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
+                {selectLabel(
+                  languageMode,
+                  "2. If risk is high, do selfie gesture verification",
+                  "2. जोखिम अधिक हो तो सेल्फी जेस्चर सत्यापन करें",
+                )}
+              </p>
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
+                {selectLabel(
+                  languageMode,
+                  "3. Check payout and protected money update instantly",
+                  "3. भुगतान और सुरक्षित राशि का तुरंत अपडेट देखें",
+                )}
+              </p>
+            </div>
+          </article>
         </div>
       </header>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <PlanSummary
-          selectedPlan={selectedPlan}
-          coverageActive={coverageActive}
-          isEasyMode={isEasyMode}
-          languageMode={languageMode}
-        />
-        <EarningsSnapshot
-          earningsProtectedThisWeek={earningsProtectedThisWeek}
-          lastPayoutAmount={lastPayoutAmount}
-          isEasyMode={isEasyMode}
-          languageMode={languageMode}
-        />
-      </section>
 
       <section className="mt-4 grid gap-4 lg:grid-cols-3">
         <TriggerSimulationPanel
@@ -464,20 +469,30 @@ function DashboardPage() {
           paidTodayAmount={paidTodayAmount}
           dailyPayoutCap={dailyPayoutCap}
           onSimulateTrigger={handleSimulateTrigger}
-          isEasyMode={isEasyMode}
+          languageMode={languageMode}
+        />
+        <EarningsSnapshot
+          earningsProtectedThisWeek={earningsProtectedThisWeek}
+          lastPayoutAmount={lastPayoutAmount}
+          languageMode={languageMode}
+        />
+      </section>
+
+      <section className="mt-4 grid gap-4 lg:grid-cols-3">
+        <PlanSummary
+          selectedPlan={selectedPlan}
+          coverageActive={coverageActive}
+          languageMode={languageMode}
+        />
+        <ActivityPanel
+          activity={activityData}
+          lastActiveTime={lastActiveTime}
           languageMode={languageMode}
         />
         <FraudDetectionIndicator
           fraudProfiles={fraudScores}
           activePersonaKey={activePersonaKey}
           onPersonaChange={setActivePersonaKey}
-          isEasyMode={isEasyMode}
-          languageMode={languageMode}
-        />
-        <ActivityPanel
-          activity={activityData}
-          lastActiveTime={lastActiveTime}
-          isEasyMode={isEasyMode}
           languageMode={languageMode}
         />
       </section>
@@ -489,7 +504,6 @@ function DashboardPage() {
           onGenerateChallenge={handleGenerateChallenge}
           onApproveVerification={handleApproveVerification}
           onResetVerification={handleResetVerification}
-          isEasyMode={isEasyMode}
           languageMode={languageMode}
         />
       </section>
