@@ -144,6 +144,8 @@ function AuthPage() {
     const workerIdValue = formValues.workerId.trim();
 
     try {
+      let authUser;
+      
       if (mode === "signup") {
         if (formValues.password !== formValues.confirmPassword) {
           throw new Error("Passwords do not match");
@@ -162,21 +164,25 @@ function AuthPage() {
         });
         
         if (error) throw error;
+        authUser = data.user;
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: emailValue,
           password: formValues.password
         });
         if (error) throw error;
+        authUser = data.user;
       }
+
+      const userMeta = authUser?.user_metadata || {};
 
       saveSession({
         isAuthenticated: true,
         mode,
-        name: fullNameValue || userProfile.name,
-        email: emailValue,
-        city: cityValue || userProfile.city,
-        workerId: workerIdValue,
+        name: userMeta.full_name || fullNameValue || userProfile.name,
+        email: authUser?.email || emailValue,
+        city: userMeta.city || cityValue || userProfile.city,
+        workerId: userMeta.worker_id || workerIdValue,
         platforms: selectedPlatforms,
         selectedPlanId,
         riskLevel,
