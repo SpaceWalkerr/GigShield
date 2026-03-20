@@ -41,13 +41,15 @@ export async function fetchWeatherReliability({ lat, lon }) {
 }
 
 async function fetchOpenMeteo(lat, lon) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 2500);
   try {
     const url = new URL("https://api.open-meteo.com/v1/forecast");
     url.searchParams.set("latitude", String(lat));
     url.searchParams.set("longitude", String(lon));
     url.searchParams.set("current", "temperature_2m,wind_speed_10m");
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), { signal: controller.signal });
     if (!response.ok) {
       return { ok: false, source: "open-meteo", error: `HTTP ${response.status}` };
     }
@@ -61,12 +63,18 @@ async function fetchOpenMeteo(lat, lon) {
     };
   } catch {
     return { ok: false, source: "open-meteo", error: "Fetch failed" };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
 async function fetchWttr(lat, lon) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 2500);
   try {
-    const response = await fetch(`https://wttr.in/${lat},${lon}?format=j1`);
+    const response = await fetch(`https://wttr.in/${lat},${lon}?format=j1`, {
+      signal: controller.signal,
+    });
     if (!response.ok) {
       return { ok: false, source: "wttr", error: `HTTP ${response.status}` };
     }
@@ -81,6 +89,8 @@ async function fetchWttr(lat, lon) {
     };
   } catch {
     return { ok: false, source: "wttr", error: "Fetch failed" };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 

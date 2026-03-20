@@ -84,7 +84,38 @@ function upsertHistoryRecord(receipt) {
     return bTime - aTime;
   });
 
-  localStorage.setItem(payoutHistoryStorageKey, JSON.stringify(history));
+  localStorage.setItem(payoutHistoryStorageKey, JSON.stringify(history.slice(0, 300)));
+}
+
+function sanitizeVerificationEvidence(evidence) {
+  if (!evidence || typeof evidence !== "object") {
+    return evidence;
+  }
+
+  const next = { ...evidence };
+  if (typeof next.selfieDataUrl === "string" && next.selfieDataUrl.length > 0) {
+    // Avoid storing large base64 payloads in localStorage; keep metadata only.
+    next.selfieDataUrl = "";
+    next.selfieStored = false;
+  }
+
+  return next;
+}
+
+function sanitizeReceiptForStorage(receipt) {
+  if (!receipt || typeof receipt !== "object") {
+    return receipt;
+  }
+
+  const timeline = Array.isArray(receipt.lifecycleTimeline)
+    ? receipt.lifecycleTimeline.slice(-25)
+    : receipt.lifecycleTimeline;
+
+  return {
+    ...receipt,
+    lifecycleTimeline: timeline,
+    receivedWithVerification: sanitizeVerificationEvidence(receipt.receivedWithVerification),
+  };
 }
 
 export function createPayoutReceipt(baseReceipt) {
@@ -135,10 +166,11 @@ export function savePayoutReceipt(receipt) {
   if (!receipt || typeof receipt !== "object") {
     return;
   }
-  persistWorkerState(payoutReceiptStorageKey, receipt, () => {
-    localStorage.setItem(payoutReceiptStorageKey, JSON.stringify(receipt));
+  const sanitized = sanitizeReceiptForStorage(receipt);
+  persistWorkerState(payoutReceiptStorageKey, sanitized, () => {
+    localStorage.setItem(payoutReceiptStorageKey, JSON.stringify(sanitized));
   });
-  upsertHistoryRecord(receipt);
+  upsertHistoryRecord(sanitized);
 }
 
 export function getPayoutReceipt() {

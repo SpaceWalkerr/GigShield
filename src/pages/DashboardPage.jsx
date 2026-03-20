@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ActivityPanel from "../components/ActivityPanel";
 import EarningsSnapshot from "../components/EarningsSnapshot";
@@ -27,22 +27,14 @@ import { createPayoutReceipt, getPayoutHistory, savePayoutReceipt } from "../uti
 import {
   appendTriggerAuditEvent,
   evaluateTriggerRules,
-  fetchWeatherReliability,
   getTriggerAuditEvents,
   getTriggerConfidenceScore,
 } from "../utils/triggerEngine";
 import { pushNotification } from "../utils/notifications";
 import { trackEvent } from "../utils/observability";
-import { startRealtimeTriggerMonitor } from "../utils/realtimeMonitor";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const onboardingStorageKey = "gigshieldOnboardingCompleted";
-const cityCoordinates = {
-  Bengaluru: { lat: 12.9716, lon: 77.5946 },
-  Mumbai: { lat: 19.076, lon: 72.8777 },
-  Delhi: { lat: 28.6139, lon: 77.209 },
-  Hyderabad: { lat: 17.385, lon: 78.4867 },
-};
 
 function formatRelativeTime(isoDate) {
   const diffMs = Date.now() - new Date(isoDate).getTime();
@@ -133,7 +125,7 @@ function getWeeklyTrend(history) {
 function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const session = getSession();
+  const [session] = useState(() => getSession());
   const planIdFromUrl = searchParams.get("plan");
   const triggerIdFromUrl = searchParams.get("trigger");
   const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
@@ -148,42 +140,53 @@ function DashboardPage() {
   const selectedPlan =
     planDetails.find((plan) => plan.id === resolvedPlanId) ??
     planDetails[0];
-  const derivedPremiumBreakdown = calculateWeeklyPremium({
-    basePremium: selectedPlan.weeklyPremium,
-    platformCount: displayPlatforms.length,
-    riskLevel: session?.riskLevel || "Medium",
-  });
+  const derivedPremiumBreakdown = useMemo(
+    () =>
+      calculateWeeklyPremium({
+        basePremium: selectedPlan.weeklyPremium,
+        platformCount: displayPlatforms.length,
+        riskLevel: session?.riskLevel || "Medium",
+      }),
+    [selectedPlan.weeklyPremium, displayPlatforms.length, session?.riskLevel],
+  );
   const displayPremiumBreakdown =
     session?.premiumBreakdown || derivedPremiumBreakdown;
   const displayWeeklyPremium = displayPremiumBreakdown.adjustedPremium;
-  const premiumHistory =
-    session?.premiumHistory && session.premiumHistory.length > 0
-      ? session.premiumHistory
-      : [
-          {
-            id: "fallback",
-            reason: "Initial premium setup",
-            changedAt: session?.signedInAt || new Date().toISOString(),
-            premium: displayPremiumBreakdown.adjustedPremium,
-            platformCount: displayPremiumBreakdown.platformCount,
-            riskLevel: displayPremiumBreakdown.riskLevel,
-            basePremium: displayPremiumBreakdown.basePremium,
-            platformLoadFee: displayPremiumBreakdown.platformLoadFee,
-            riskMultiplier: displayPremiumBreakdown.riskMultiplier,
-          },
-        ];
-  const timelineEntries = premiumHistory.slice(0, 5).map((entry, index) => {
-    const previousEntry = premiumHistory[index + 1];
-    const previousPremium = previousEntry?.premium ?? entry.premium;
-    const deltaAmount = entry.premium - previousPremium;
+  const premiumHistory = useMemo(
+    () =>
+      session?.premiumHistory && session.premiumHistory.length > 0
+        ? session.premiumHistory
+        : [
+            {
+              id: "fallback",
+              reason: "Initial premium setup",
+              changedAt: session?.signedInAt || new Date().toISOString(),
+              premium: displayPremiumBreakdown.adjustedPremium,
+              platformCount: displayPremiumBreakdown.platformCount,
+              riskLevel: displayPremiumBreakdown.riskLevel,
+              basePremium: displayPremiumBreakdown.basePremium,
+              platformLoadFee: displayPremiumBreakdown.platformLoadFee,
+              riskMultiplier: displayPremiumBreakdown.riskMultiplier,
+            },
+          ],
+    [session?.premiumHistory, session?.signedInAt, displayPremiumBreakdown],
+  );
+  const timelineEntries = useMemo(
+    () =>
+      premiumHistory.slice(0, 5).map((entry, index) => {
+        const previousEntry = premiumHistory[index + 1];
+        const previousPremium = previousEntry?.premium ?? entry.premium;
+        const deltaAmount = entry.premium - previousPremium;
 
-    return {
-      ...entry,
-      deltaAmount,
-      deltaMeta: getDeltaMeta(deltaAmount),
-      relativeTime: formatRelativeTime(entry.changedAt),
-    };
-  });
+        return {
+          ...entry,
+          deltaAmount,
+          deltaMeta: getDeltaMeta(deltaAmount),
+          relativeTime: formatRelativeTime(entry.changedAt),
+        };
+      }),
+    [premiumHistory],
+  );
 
   const [coverageActive] = useState(userProfile.coverageActive);
   const [earningsProtectedThisWeek, setEarningsProtectedThisWeek] = useState(
@@ -213,7 +216,6 @@ function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(
     () => localStorage.getItem(onboardingStorageKey) !== "done",
   );
-  const [liveSignals, setLiveSignals] = useState(null);
   const { languageMode, setLanguageMode } = useSiteLanguage();
   const hasAutoTriggeredRef = useRef(false);
 
@@ -225,32 +227,43 @@ function DashboardPage() {
   const latestTriggerDomain = latestTrigger?.domain || "";
   const dailyPayoutCap = getDailyPayoutCap(selectedPlan.id);
 
-  const simulationPlan = planDetails.find((plan) => plan.id === simulationPlanId) || selectedPlan;
-  const simulationResult = simulationTriggerId
-    ? getPayoutForTrigger(triggerEvents, simulationTriggerId, simulationPlan.id, {
-        coverageHours: simulationPlan.coverageHours,
-        paidTodayAmount,
-        atTime: new Date(),
-      })
-    : null;
+  const simulationPlan = useMemo(
+    () => planDetails.find((plan) => plan.id === simulationPlanId) || selectedPlan,
+    [simulationPlanId, selectedPlan],
+  );
+  const simulationResult = useMemo(
+    () =>
+      simulationTriggerId
+        ? getPayoutForTrigger(triggerEvents, simulationTriggerId, simulationPlan.id, {
+            coverageHours: simulationPlan.coverageHours,
+            paidTodayAmount,
+            atTime: new Date(),
+          })
+        : null,
+    [simulationTriggerId, simulationPlan.id, simulationPlan.coverageHours, paidTodayAmount],
+  );
 
-  const planRecommendation = planDetails
-    .filter((plan) => plan.id !== selectedPlan.id)
-    .map((plan) => {
-      const comparisonPremium = calculateWeeklyPremium({
-        basePremium: plan.weeklyPremium,
-        platformCount: displayPlatforms.length,
-        riskLevel: session?.riskLevel || "Medium",
-      }).adjustedPremium;
+  const planRecommendation = useMemo(
+    () =>
+      planDetails
+        .filter((plan) => plan.id !== selectedPlan.id)
+        .map((plan) => {
+          const comparisonPremium = calculateWeeklyPremium({
+            basePremium: plan.weeklyPremium,
+            platformCount: displayPlatforms.length,
+            riskLevel: session?.riskLevel || "Medium",
+          }).adjustedPremium;
 
-      return {
-        ...plan,
-        comparisonPremium,
-        premiumDelta: displayWeeklyPremium - comparisonPremium,
-        capDelta: getDailyPayoutCap(plan.id) - getDailyPayoutCap(selectedPlan.id),
-      };
-    })
-    .sort((a, b) => b.premiumDelta - a.premiumDelta)[0];
+          return {
+            ...plan,
+            comparisonPremium,
+            premiumDelta: displayWeeklyPremium - comparisonPremium,
+            capDelta: getDailyPayoutCap(plan.id) - getDailyPayoutCap(selectedPlan.id),
+          };
+        })
+        .sort((a, b) => b.premiumDelta - a.premiumDelta)[0],
+    [selectedPlan.id, displayPlatforms.length, session?.riskLevel, displayWeeklyPremium],
+  );
 
   const closeOnboarding = () => {
     localStorage.setItem(onboardingStorageKey, "done");
@@ -302,7 +315,7 @@ function DashboardPage() {
         reason: blockedReason,
         basePayout: 0,
         remainingCap: Math.max(0, dailyPayoutCap - paidTodayAmount),
-        dailyCap,
+        dailyCap: dailyPayoutCap,
         triggerConfidenceScore: 0,
       });
       setLatestTriggerId(triggerId);
@@ -316,8 +329,12 @@ function DashboardPage() {
       return;
     }
 
-    const cityCoord = cityCoordinates[displayCity] || cityCoordinates.Bengaluru;
-    const weatherReliability = await fetchWeatherReliability(cityCoord);
+    // Real-time weather simulation is temporarily disabled to keep UI responsive.
+    const weatherReliability = {
+      primary: null,
+      sources: [],
+      confidence: 0.5,
+    };
     const triggerConfidence = getTriggerConfidenceScore({
       triggerId,
       weatherReliability,
@@ -400,6 +417,11 @@ function DashboardPage() {
       title: payoutAmount > 0 ? "Payout approved" : "Payout blocked",
       message: payoutResult.reason,
     });
+
+    if (payoutAmount > 0 && (payoutResult.status === "paid" || payoutResult.status === "capped")) {
+      navigate("/payout");
+    }
+
     trackEvent("trigger_processed", {
       triggerId,
       payoutStatus: payoutResult.status,
@@ -429,20 +451,6 @@ function DashboardPage() {
     // handleSimulateTrigger has broad state deps; keep this effect URL-driven only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerIdFromUrl]);
-
-  useEffect(() => {
-    const stop = startRealtimeTriggerMonitor({
-      city: displayCity,
-      platforms: displayPlatforms,
-      onSnapshot: (snapshot) => {
-        setLiveSignals(snapshot);
-      },
-    });
-
-    return () => {
-      stop();
-    };
-  }, [displayCity, displayPlatforms]);
 
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
@@ -784,22 +792,13 @@ function DashboardPage() {
       <section className="mt-4">
         <article className="board-soft p-4">
           <p className="kicker">{selectLabel(languageMode, "Live signal health", "लाइव सिग्नल स्वास्थ्य")}</p>
-          {!liveSignals ? (
-            <p className="mt-2 text-xs text-coal-600">{selectLabel(languageMode, "Waiting for snapshots...", "स्नैपशॉट का इंतज़ार...")}</p>
-          ) : (
-            <div className="mt-2 grid gap-2 text-xs text-coal-700 sm:grid-cols-3">
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                {selectLabel(languageMode, "Traffic congestion", "ट्रैफिक भीड़")}:
-                {" "}{liveSignals.traffic?.congestion ?? "-"}%
-              </p>
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                {selectLabel(languageMode, "Platforms degraded", "प्रभावित प्लेटफॉर्म")}: {liveSignals.degradedCount}
-              </p>
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                {selectLabel(languageMode, "Signal reliability", "सिग्नल भरोसा")}: {(Number(liveSignals.reliability || 0) * 100).toFixed(0)}%
-              </p>
-            </div>
-          )}
+          <p className="mt-2 text-xs text-coal-600">
+            {selectLabel(
+              languageMode,
+              "Real-time signal simulation is temporarily disabled for stability.",
+              "स्थिरता के लिए रियल-टाइम सिग्नल सिमुलेशन अस्थायी रूप से बंद है।",
+            )}
+          </p>
         </article>
       </section>
 
