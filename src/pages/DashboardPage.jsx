@@ -24,15 +24,23 @@ import {
   getPayoutForTrigger,
 } from "../utils/payout";
 import { clearSession, getSession } from "../utils/session";
+import { savePayoutReceipt } from "../utils/payoutReceipt";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const verificationWindowMs = 10 * 60 * 1000;
 const gestureOptions = [
-  "Raise your right hand",
-  "Thumbs up with left hand",
-  "Touch your chin with index finger",
-  "Show peace sign near your shoulder",
-  "Look left and blink once",
+  { key: "open_palm", label: "Show an open palm (hold 3 seconds)" },
+  { key: "fist", label: "Show a closed fist (hold 3 seconds)" },
+  { key: "thumbs_up", label: "Show a thumbs up (hold 3 seconds)" },
+  { key: "peace", label: "Show a peace sign (hold 3 seconds)" },
+  { key: "point_up", label: "Point up with index finger (hold 3 seconds)" },
+  { key: "ok", label: "Make an OK sign (hold 3 seconds)" },
+  { key: "three", label: "Show three fingers (hold 3 seconds)" },
+  { key: "four", label: "Show four fingers (hold 3 seconds)" },
+  { key: "both_hands", label: "Hold both hands in frame (hold 3 seconds)" },
+  { key: "wave", label: "Wave (move left-right twice, then hold)" },
+  { key: "move_closer", label: "Move hand closer to camera, then hold" },
+  { key: "move_farther", label: "Move hand farther from camera, then hold" },
 ];
 
 function formatRelativeTime(isoDate) {
@@ -156,8 +164,10 @@ function DashboardPage() {
   const [verificationState, setVerificationState] = useState({
     status: "idle",
     gesture: "",
+    gestureKey: "",
     issuedAt: "",
     verifiedAt: "",
+    evidence: null,
   });
   const [lastActiveTime, setLastActiveTime] = useState(
     activityData.lastActiveTime,
@@ -174,21 +184,23 @@ function DashboardPage() {
   const dailyPayoutCap = getDailyPayoutCap(selectedPlan.id);
 
   const handleGenerateChallenge = () => {
-    const randomGesture =
-      gestureOptions[Math.floor(Math.random() * gestureOptions.length)];
+    const randomGesture = gestureOptions[Math.floor(Math.random() * gestureOptions.length)];
     setVerificationState({
       status: "pending",
-      gesture: randomGesture,
+      gesture: randomGesture.label,
+      gestureKey: randomGesture.key,
       issuedAt: new Date().toISOString(),
       verifiedAt: "",
+      evidence: null,
     });
   };
 
-  const handleApproveVerification = () => {
+  const handleApproveVerification = (evidence) => {
     setVerificationState((current) => ({
       ...current,
       status: "verified",
       verifiedAt: new Date().toISOString(),
+      evidence: evidence ?? null,
     }));
   };
 
@@ -196,8 +208,10 @@ function DashboardPage() {
     setVerificationState({
       status: "idle",
       gesture: "",
+      gestureKey: "",
       issuedAt: "",
       verifiedAt: "",
+      evidence: null,
     });
   };
 
@@ -209,6 +223,15 @@ function DashboardPage() {
       now.getTime() - new Date(verificationState.verifiedAt).getTime() <= verificationWindowMs;
 
     if (verificationRequired && !verificationFresh) {
+      savePayoutReceipt({
+        createdAt: now.toISOString(),
+        status: "blocked-verification",
+        reason:
+          "Selfie gesture verification required for high-risk profile. Complete challenge to proceed.",
+        triggerId,
+        planId: selectedPlan.id,
+        payoutAmount: 0,
+      });
       setLatestTriggerId(triggerId);
       setLastPayoutAmount(0);
       setLatestPayoutMeta({
@@ -242,6 +265,22 @@ function DashboardPage() {
     );
     const payoutAmount = payoutResult.payoutAmount;
 
+    savePayoutReceipt({
+      createdAt: now.toISOString(),
+      status: payoutResult.status,
+      reason: payoutResult.reason,
+      triggerId,
+      triggerLabel: triggerEvents.find((event) => event.id === triggerId)?.label ?? triggerId,
+      planId: selectedPlan.id,
+      planName: selectedPlan.name,
+      payoutAmount,
+      basePayout: payoutResult.basePayout,
+      dailyCap: payoutResult.dailyCap,
+      remainingCap: payoutResult.remainingCap,
+      isCoveredNow: payoutResult.isCoveredNow,
+      coverageHours: payoutResult.coverageHours,
+    });
+
     setLastPayoutAmount(payoutAmount);
     if (payoutAmount > 0) {
       setEarningsProtectedThisWeek((currentAmount) =>
@@ -265,7 +304,15 @@ function DashboardPage() {
     }
 
     hasAutoTriggeredRef.current = true;
-    handleSimulateTrigger(triggerIdFromUrl);
+    const timeoutId = window.setTimeout(() => {
+      handleSimulateTrigger(triggerIdFromUrl);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+    // handleSimulateTrigger has broad state deps; keep this effect URL-driven only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerIdFromUrl]);
 
   return (

@@ -1,6 +1,7 @@
 import Card from "./Card";
 import { formatCurrency } from "../utils/format";
 import { selectLabel } from "../utils/i18n";
+import { Link } from "react-router-dom";
 
 /*
  * Demo control panel that mimics external trigger ingestion (weather, AQI, outage signals).
@@ -113,6 +114,14 @@ function TriggerSimulationPanel({
             {selectLabel(languageMode, "Remaining cap before event", "इवेंट से पहले बची सीमा")}: {" "}
             {formatCurrency(latestPayoutMeta.remainingCap)}
           </p>
+
+          {latestPayoutMeta.status === "paid" || latestPayoutMeta.status === "capped" ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link to="/payout" className="primary-btn">
+                {selectLabel(languageMode, "Receive payout", "भुगतान प्राप्त करें")}
+              </Link>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </Card>

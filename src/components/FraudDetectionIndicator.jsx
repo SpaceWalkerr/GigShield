@@ -36,7 +36,7 @@ function FraudDetectionIndicator({
       }
     >
       <div className="mb-4 grid gap-2 sm:grid-cols-2">
-        {Object.entries(fraudProfiles).map(([personaKey, profile]) => {
+        {Object.entries(fraudProfiles).map(([personaKey]) => {
           const isSelected = personaKey === activePersonaKey;
           return (
             <button

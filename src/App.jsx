@@ -6,6 +6,7 @@ import PricingPage from "./pages/PricingPage";
 import ProductPage from "./pages/ProductPage";
 import TriggerPage from "./pages/TriggerPage";
 import FraudGuardPage from "./pages/FraudGuardPage";
+import PayoutPage from "./pages/PayoutPage";
 import { isSessionActive } from "./utils/session";
 
 function ProtectedRoute({ children }) {
@@ -30,6 +31,14 @@ function App() {
           element={(
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/payout"
+          element={(
+            <ProtectedRoute>
+              <PayoutPage />
             </ProtectedRoute>
           )}
         />
