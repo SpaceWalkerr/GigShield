@@ -5,51 +5,51 @@ import { useSiteLanguage } from "../utils/siteLanguage";
 
 const protectionSituations = [
   {
-    trigger: "Heavy Rain",
-    issue: "Orders drop and riders lose active earning hours",
-    response: "GigShield detects the rain trigger and releases payout automatically.",
+    trigger: { en: "Heavy Rain", hi: "तेज़ बारिश" },
+    issue: { en: "Orders drop and riders lose active earning hours", hi: "ऑर्डर कम हो जाते हैं और राइडर्स काम के घंटे खो देते हैं" },
+    response: { en: "GigShield detects the rain trigger and releases payout automatically.", hi: "GigShield बारिश को डिटेक्ट करता है और अपने आप भुगतान कर देता है।" },
   },
   {
-    trigger: "Heatwave",
-    issue: "Unsafe working conditions reduce delivery efficiency",
-    response: "Riders receive support payout so income loss is reduced.",
+    trigger: { en: "Heatwave", hi: "लू / तेज़ गर्मी" },
+    issue: { en: "Unsafe working conditions reduce delivery efficiency", hi: "असुरक्षित काम करने की स्थितियां डिलीवरी की गति कम करती हैं" },
+    response: { en: "Riders receive support payout so income loss is reduced.", hi: "राइडर्स को सहायता भुगतान मिलता है जिससे आय का नुकसान कम होता है।" },
   },
   {
-    trigger: "AQI Spike",
-    issue: "Pollution risk forces shorter shifts or slow movement",
-    response: "Trigger payout protects daily earning consistency.",
+    trigger: { en: "AQI Spike", hi: "खतरनाक घनी हवा (AQI)" },
+    issue: { en: "Pollution risk forces shorter shifts or slow movement", hi: "प्रदूषण का जोखिम कम शिफ्ट या धीमी गति को मजबूर करता है" },
+    response: { en: "Trigger payout protects daily earning consistency.", hi: "ट्रिगर भुगतान दैनिक कमाई की स्थिरता को बचाता है।" },
   },
   {
-    trigger: "Platform Outage",
-    issue: "Order flow stops even when riders are ready to work",
-    response: "Outage trigger starts payout without claim paperwork.",
+    trigger: { en: "Platform Outage", hi: "प्लेटफ़ॉर्म डाउन होना" },
+    issue: { en: "Order flow stops even when riders are ready to work", hi: "राइडर्स तैयार होने पर भी ऑर्डर आना बंद हो जाता है" },
+    response: { en: "Outage trigger starts payout without claim paperwork.", hi: "आउटेज होने पर बिना कागजी कार्रवाई के भुगतान शुरू हो जाता है।" },
   },
 ];
 
 const featureHighlights = [
   {
-    title: "Automatic Trigger Payouts",
-    detail: "No manual claim process. If trigger conditions match, payout is calculated instantly.",
+    title: { en: "Automatic Trigger Payouts", hi: "स्वचालित ट्रिगर भुगतान" },
+    detail: { en: "No manual claim process. If trigger conditions match, payout is calculated instantly.", hi: "कोई मैन्युअल क्लेम प्रक्रिया नहीं। अगर ट्रिगर शर्तें मेल खाती हैं, तो भुगतान तुरंत गिना जाता है।" },
   },
   {
-    title: "Plan-Based Protection",
-    detail: "Basic, Standard, and Pro plans define payout amount, coverage window, and daily cap.",
+    title: { en: "Plan-Based Protection", hi: "योजना-आधारित सुरक्षा" },
+    detail: { en: "Basic, Standard, and Pro plans define payout amount, coverage window, and daily cap.", hi: "बेसिक, स्टैंडर्ड, और प्रो योजनाएं भुगतान राशि, कवरेज विंडो और दैनिक सीमा तय करती हैं।" },
   },
   {
-    title: "Fraud Guard Layer",
-    detail: "Risk scoring detects suspicious behavior and can require verification before payout.",
+    title: { en: "Fraud Guard Layer", hi: "धोखाधड़ी सुरक्षा परत" },
+    detail: { en: "Risk scoring detects suspicious behavior and can require verification before payout.", hi: "जोखिम स्कोरिंग संदिग्ध व्यवहार का पता लगाता है और भुगतान से पहले सत्यापन की आवश्यकता हो सकती है।" },
   },
   {
-    title: "Selfie Verification Gate",
-    detail: "High-risk sessions are verified through a random selfie gesture challenge.",
+    title: { en: "Selfie Verification Gate", hi: "सेल्फी सत्यापन द्वार" },
+    detail: { en: "High-risk sessions are verified through a random selfie gesture challenge.", hi: "उच्च-जोखिम वाले सत्रों को यादृच्छिक सेल्फी जेस्चर चुनौती के माध्यम से जाँचा जाता है।" },
   },
   {
-    title: "Transparent Dashboard",
-    detail: "Workers can see payouts, active plan, risk state, and premium history in one place.",
+    title: { en: "Transparent Dashboard", hi: "पारदर्शी डैशबोर्ड" },
+    detail: { en: "Workers can see payouts, active plan, risk state, and premium history in one place.", hi: "वर्कर्स एक ही जगह पर भुगतान, सक्रिय योजना, जोखिम स्थिति और प्रीमियम का इतिहास देख सकते हैं।" },
   },
   {
-    title: "Fast Demo-to-Real Flow",
-    detail: "The same dashboard flow demonstrates practical worker protection decisions end to end.",
+    title: { en: "Fast Demo-to-Real Flow", hi: "तेज़ डेमो-से-वास्तविक प्रवाह" },
+    detail: { en: "The same dashboard flow demonstrates practical worker protection decisions end to end.", hi: "यही डैशबोर्ड प्रवाह अंत से अंत तक व्यावहारिक वर्कर सुरक्षा निर्णयों को प्रदर्शित करता है।" },
   },
 ];
 
@@ -125,24 +125,24 @@ function ProductPage() {
             <p className="kicker">{selectLabel(languageMode, "How To Use", "कैसे उपयोग करें")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <article className="rounded-lg border border-coal-200 bg-white p-3">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">Step 1</p>
-                <p className="mt-1 text-sm font-semibold text-coal-900">Choose your plan</p>
-                <p className="mt-1 text-sm text-coal-600">Select Basic, Standard, or Pro based on your work hours and risk coverage needs.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">{selectLabel(languageMode, "Step 1", "चरण 1")}</p>
+                <p className="mt-1 text-sm font-semibold text-coal-900">{selectLabel(languageMode, "Choose your plan", "अपनी योजना चुनें")}</p>
+                <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, "Select Basic, Standard, or Pro based on your work hours and risk coverage needs.", "काम के घंटों और जोखिम कवरेज की जरूरतों के आधार पर बेसिक, स्टैंडर्ड, या प्रो चुनें।")}</p>
               </article>
               <article className="rounded-lg border border-coal-200 bg-white p-3">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">Step 2</p>
-                <p className="mt-1 text-sm font-semibold text-coal-900">Keep coverage active</p>
-                <p className="mt-1 text-sm text-coal-600">When coverage is active, trigger events are evaluated for payout eligibility.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">{selectLabel(languageMode, "Step 2", "चरण 2")}</p>
+                <p className="mt-1 text-sm font-semibold text-coal-900">{selectLabel(languageMode, "Keep coverage active", "कवरेज सक्रिय रखें")}</p>
+                <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, "When coverage is active, trigger events are evaluated for payout eligibility.", "जब कवरेज सक्रिय होता है, तो पेआउट के लिए ट्रिगर इवेंट का मूल्यांकन किया जाता है।")}</p>
               </article>
               <article className="rounded-lg border border-coal-200 bg-white p-3">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">Step 3</p>
-                <p className="mt-1 text-sm font-semibold text-coal-900">Trigger event occurs</p>
-                <p className="mt-1 text-sm text-coal-600">Rain, heat, AQI, or outage triggers are checked against your plan and daily cap.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">{selectLabel(languageMode, "Step 3", "चरण 3")}</p>
+                <p className="mt-1 text-sm font-semibold text-coal-900">{selectLabel(languageMode, "Trigger event occurs", "ट्रिगर इवेंट होता है")}</p>
+                <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, "Rain, heat, AQI, or outage triggers are checked against your plan and daily cap.", "बारिश, गर्मी, AQI, या आउटेज ट्रिगर की जाँच आपकी योजना और दैनिक सीमा के आधार पर की जाती है।")}</p>
               </article>
               <article className="rounded-lg border border-coal-200 bg-white p-3">
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">Step 4</p>
-                <p className="mt-1 text-sm font-semibold text-coal-900">Receive payout</p>
-                <p className="mt-1 text-sm text-coal-600">If rules match, payout is applied instantly. High-risk sessions may require selfie verification.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-coal-500">{selectLabel(languageMode, "Step 4", "चरण 4")}</p>
+                <p className="mt-1 text-sm font-semibold text-coal-900">{selectLabel(languageMode, "Receive payout", "भुगतान प्राप्त करें")}</p>
+                <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, "If rules match, payout is applied instantly. High-risk sessions may require selfie verification.", "अगर नियम मेल खाते हैं, तो भुगतान तुरंत लागू होता है। उच्च-जोखिम सत्रों के लिए सेल्फी सत्यापन की आवश्यकता हो सकती है।")}</p>
               </article>
             </div>
           </section>
@@ -151,9 +151,9 @@ function ProductPage() {
             <p className="kicker">{selectLabel(languageMode, "Key Features", "मुख्य विशेषताएं")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {featureHighlights.map((feature) => (
-                <article key={feature.title} className="rounded-lg border border-coal-200 bg-white p-3">
-                  <p className="text-base font-semibold text-coal-900">{feature.title}</p>
-                  <p className="mt-1 text-sm text-coal-600">{feature.detail}</p>
+                <article key={feature.title.en} className="rounded-lg border border-coal-200 bg-white p-3">
+                  <p className="text-base font-semibold text-coal-900">{selectLabel(languageMode, feature.title.en, feature.title.hi)}</p>
+                  <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, feature.detail.en, feature.detail.hi)}</p>
                 </article>
               ))}
             </div>
@@ -163,18 +163,18 @@ function ProductPage() {
             <p className="kicker">{selectLabel(languageMode, "Protection In Real Situations", "वास्तविक स्थितियों में सुरक्षा")}</p>
             <div className="mt-3 grid gap-3">
               {protectionSituations.map((situation) => (
-                <article key={situation.trigger} className="rounded-lg border border-coal-200 bg-white p-4">
+                <article key={situation.trigger.en} className="rounded-lg border border-coal-200 bg-white p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-base font-semibold text-coal-900">{situation.trigger}</p>
+                    <p className="text-base font-semibold text-coal-900">{selectLabel(languageMode, situation.trigger.en, situation.trigger.hi)}</p>
                     <span className="rounded-full bg-coal-100 px-3 py-1 text-xs font-semibold text-coal-700">
-                      Worker protection event
+                      {selectLabel(languageMode, "Worker protection event", "वर्कर सुरक्षा इवेंट")}
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-coal-600">
-                    <strong className="text-coal-900">Situation:</strong> {situation.issue}
+                    <strong className="text-coal-900">{selectLabel(languageMode, "Situation:", "स्थिति:")}</strong> {selectLabel(languageMode, situation.issue.en, situation.issue.hi)}
                   </p>
                   <p className="mt-1 text-sm text-coal-600">
-                    <strong className="text-coal-900">GigShield response:</strong> {situation.response}
+                    <strong className="text-coal-900">{selectLabel(languageMode, "GigShield response:", "GigShield प्रतिक्रिया:")}</strong> {selectLabel(languageMode, situation.response.en, situation.response.hi)}
                   </p>
                 </article>
               ))}
@@ -184,10 +184,10 @@ function ProductPage() {
           <section className="board-soft p-4 sm:p-5">
             <p className="kicker">{selectLabel(languageMode, "Why It Helps Workers", "यह वर्कर्स की कैसे मदद करता है")}</p>
             <ul className="mt-3 grid gap-2 text-sm text-coal-700 sm:grid-cols-2">
-              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">Less income shock on bad weather or outage days</li>
-              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">No complex paperwork for every event</li>
-              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">Fast visibility of payout decisions and history</li>
-              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">Fraud controls keep honest worker payouts sustainable</li>
+              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">{selectLabel(languageMode, "Less income shock on bad weather or outage days", "खराब मौसम या आउटेज के दिनों में आय का कम नुकसान")}</li>
+              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">{selectLabel(languageMode, "No complex paperwork for every event", "हर मामले के लिए कोई जटिल कागजी कार्रवाई नहीं")}</li>
+              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">{selectLabel(languageMode, "Fast visibility of payout decisions and history", "भुगतान के फैसलों और इतिहास की स्पष्ट जानकारी")}</li>
+              <li className="rounded-lg border border-coal-200 bg-white px-3 py-2">{selectLabel(languageMode, "Fraud controls keep honest worker payouts sustainable", "धोखाधड़ी नियंत्रण ईमानदार वर्कर्स के भुगतान को सुरक्षित रखता है")}</li>
             </ul>
           </section>
         </div>

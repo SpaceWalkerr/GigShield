@@ -7,24 +7,24 @@ import { useSiteLanguage } from "../utils/siteLanguage";
 
 const triggerSources = [
   {
-    name: "Weather signals",
-    detail: "Heavy rain and heatwave alerts from external weather feeds.",
+    name: { en: "Weather signals", hi: "मौसम के संकेत" },
+    detail: { en: "Heavy rain and heatwave alerts from external weather feeds.", hi: "बाहरी मौसम फ़ीड से भारी बारिश और लू के अलर्ट।" },
   },
   {
-    name: "Air quality signals",
-    detail: "AQI spike conditions that reduce safe outdoor work.",
+    name: { en: "Air quality signals", hi: "वायु गुणवत्ता (AQI) संकेत" },
+    detail: { en: "AQI spike conditions that reduce safe outdoor work.", hi: "AQI बढ़ने की स्थिति जो सुरक्षित बाहरी काम को कम करती है।" },
   },
   {
-    name: "Platform status",
-    detail: "Outage or downtime events that stop order flow.",
+    name: { en: "Platform status", hi: "प्लेटफ़ॉर्म की स्थिति" },
+    detail: { en: "Outage or downtime events that stop order flow.", hi: "आउटेज या डाउनटाइम घटनाएँ जो ऑर्डर के प्रवाह को रोकती हैं।" },
   },
 ];
 
 const payoutRules = [
-  "Trigger must be valid for selected plan",
-  "Coverage time window must be active",
-  "Daily payout cap must have remaining balance",
-  "If risk is high, selfie verification may be required",
+  { en: "Trigger must be valid for selected plan", hi: "ट्रिगर चयनित योजना के लिए मान्य होना चाहिए" },
+  { en: "Coverage time window must be active", hi: "कवरेज समय विंडो सक्रिय होनी चाहिए" },
+  { en: "Daily payout cap must have remaining balance", hi: "दैनिक भुगतान सीमा में शेष राशि होनी चाहिए" },
+  { en: "If risk is high, selfie verification may be required", hi: "यदि जोखिम अधिक है, तो सेल्फी सत्यापन की आवश्यकता हो सकती है" },
 ];
 
 function TriggerPage() {
@@ -77,9 +77,9 @@ function TriggerPage() {
             <p className="kicker">{selectLabel(languageMode, "Where Triggers Come From", "ट्रिगर्स कहां से आते हैं")}</p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               {triggerSources.map((source) => (
-                <article key={source.name} className="rounded-lg border border-coal-200 bg-white p-3">
-                  <p className="text-base font-semibold text-coal-900">{source.name}</p>
-                  <p className="mt-1 text-sm text-coal-600">{source.detail}</p>
+                <article key={source.name.en} className="rounded-lg border border-coal-200 bg-white p-3">
+                  <p className="text-base font-semibold text-coal-900">{selectLabel(languageMode, source.name.en, source.name.hi)}</p>
+                  <p className="mt-1 text-sm text-coal-600">{selectLabel(languageMode, source.detail.en, source.detail.hi)}</p>
                 </article>
               ))}
             </div>
@@ -115,8 +115,8 @@ function TriggerPage() {
             <p className="kicker">{selectLabel(languageMode, "Payout Decision Rules", "भुगतान निर्णय नियम")}</p>
             <ul className="mt-3 grid gap-2 text-sm text-coal-700 sm:grid-cols-2">
               {payoutRules.map((rule) => (
-                <li key={rule} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                  {rule}
+                <li key={rule.en} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
+                  {selectLabel(languageMode, rule.en, rule.hi)}
                 </li>
               ))}
             </ul>
