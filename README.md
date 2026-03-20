@@ -2,7 +2,8 @@
 
 AI-powered parametric income insurance for food delivery workers. Protect your earnings against unexpected events with instant payouts triggered by real-world conditions.
 
-**[🚀 Live Demo](https://gigshield-demo.vercel.app)** | **[📖 Repository](https://github.com/Avisav24/GigShield)**
+**[🚀 Live Demo](https://gigshield-demo.vercel.app)** | 
+**[📖 Repository](https://github.com/Avisav24/GigShield)**
 
 ---
 
@@ -129,6 +130,52 @@ src/
 - **Heatwave**: ₹200-600 depending on plan
 - **Air Quality Index Spike**: ₹150-500 depending on plan
 - **Platform Outage**: ₹300-1000 depending on plan
+
+---
+
+## Adversarial Defense & Anti-Spoofing Strategy
+
+GigShield now includes a dedicated anti-spoofing verification flow designed for coordinated fraud-ring attacks (for example, mass GPS spoofing from organized groups).
+
+### 1. The Differentiation
+
+Our architecture separates genuine distress from spoofing by combining trigger eligibility with risk-adaptive identity checks:
+
+- **Step A: Trigger + policy check**
+	Payouts are first checked against plan rules (coverage hours, daily cap, trigger validity).
+- **Step B: Behavioral risk scoring**
+	Suspicious behavior profiles are classified into risk bands.
+- **Step C: Adaptive proof-of-presence challenge**
+	If risk is high, payout is paused until the partner completes a **randomized selfie gesture challenge** in-session.
+
+This random gesture requirement raises attack cost because fraud actors must produce a live, context-specific response instead of replaying static proofs.
+
+### 2. The Data
+
+Beyond raw GPS coordinates, the defense strategy analyzes a multi-signal profile:
+
+- **Risk persona and behavior score** from fraud scoring logic
+- **Coverage and payout pattern** (frequency, cap exhaustion speed, trigger clustering)
+- **Platform linkage footprint** (cross-platform account patterns)
+- **Session continuity signals** (login context, recent activity cadence)
+- **Challenge telemetry** from selfie verification flow:
+	- challenge generated time
+	- challenge completion time
+	- challenge type (random gesture prompt)
+	- verification status and freshness window
+
+These combined signals help detect synchronized spoofing campaigns where many accounts attempt similar payouts in compressed time windows.
+
+### 3. The UX Balance
+
+To avoid penalizing honest workers in bad weather or unstable networks, GigShield uses a progressive workflow:
+
+- **Low/Medium risk**: payouts continue without extra friction.
+- **High risk**: payout is temporarily held with a clear reason and a guided verification path.
+- **Fast re-approval window**: once verified, the session remains approved for a time window, so workers are not repeatedly challenged.
+- **Transparent status messaging**: users see exactly why a payout was blocked (coverage, cap, or verification) and what action unblocks it.
+
+This maintains fraud resilience while preserving fairness and speed for legitimate delivery partners.
 
 ---
 

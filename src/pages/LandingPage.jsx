@@ -24,14 +24,25 @@ function LandingPage() {
           </div>
 
           <nav className="hidden items-center gap-5 text-sm font-medium text-coal-500 lg:flex">
-            {navItems.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
+            {navItems.map((item) =>
+              item === "Pricing" ? (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => navigate("/pricing")}
+                  className="underline-offset-4 transition hover:text-coal-900 hover:underline"
+                >
+                  {item}
+                </button>
+              ) : (
+                <span key={item}>{item}</span>
+              ),
+            )}
           </nav>
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/auth")}
             className="primary-btn"
           >
             Get Protected
@@ -56,10 +67,17 @@ function LandingPage() {
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/auth")}
               className="primary-btn"
             >
               Get Protected
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/pricing")}
+              className="secondary-btn"
+            >
+              View Pricing
             </button>
             <button
               type="button"

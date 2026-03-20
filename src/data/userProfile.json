@@ -2,7 +2,7 @@
   "id": "worker-001",
   "name": "Ravi Kumar",
   "city": "Bengaluru",
-  "platforms": ["Zomato", "Swiggy"],
+  "platforms": ["Zomato", "Swiggy" , "Blink-It", "Zepto", "Dunzo Daily", "BigBasket"],
   "selectedPlanId": "standard",
   "coverageActive": true,
   "earningsProtectedThisWeek": 4200,
