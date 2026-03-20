@@ -2,6 +2,7 @@
   {
     "id": "heavy-rain",
     "label": "Heavy Rain",
+    "domain": "environmental",
     "buttonLabel": "Simulate Heavy Rain",
     "payoutByPlan": {
       "basic": 280,
@@ -12,6 +13,7 @@
   {
     "id": "heatwave",
     "label": "Heatwave",
+    "domain": "environmental",
     "buttonLabel": "Simulate Heatwave",
     "payoutByPlan": {
       "basic": 240,
@@ -22,6 +24,7 @@
   {
     "id": "aqi-spike",
     "label": "AQI Spike",
+    "domain": "environmental",
     "buttonLabel": "Simulate AQI Spike",
     "payoutByPlan": {
       "basic": 260,
@@ -32,11 +35,45 @@
   {
     "id": "platform-outage",
     "label": "Platform Outage",
+    "domain": "platform",
     "buttonLabel": "Simulate Platform Outage",
     "payoutByPlan": {
       "basic": 300,
       "standard": 470,
       "pro": 700
+    }
+  },
+  {
+    "id": "curfew-lockdown",
+    "label": "Unplanned Curfew",
+    "domain": "social",
+    "buttonLabel": "Simulate Curfew",
+    "payoutByPlan": {
+      "basic": 270,
+      "standard": 420,
+      "pro": 610
+    }
+  },
+  {
+    "id": "local-strike",
+    "label": "Local Strike",
+    "domain": "social",
+    "buttonLabel": "Simulate Strike",
+    "payoutByPlan": {
+      "basic": 230,
+      "standard": 360,
+      "pro": 540
+    }
+  },
+  {
+    "id": "zone-closure",
+    "label": "Zone Closure",
+    "domain": "social",
+    "buttonLabel": "Simulate Zone Closure",
+    "payoutByPlan": {
+      "basic": 250,
+      "standard": 390,
+      "pro": 580
     }
   }
 ]

@@ -25,6 +25,7 @@ function TriggerSimulationPanel({
     "blocked-cap": "border-red-300 bg-red-50 text-red-800",
     "blocked-coverage": "border-red-300 bg-red-50 text-red-800",
     "blocked-verification": "border-red-300 bg-red-50 text-red-800",
+    "blocked-policy": "border-red-300 bg-red-50 text-red-800",
     "blocked-cooldown": "border-red-300 bg-red-50 text-red-800",
     "blocked-dedup": "border-red-300 bg-red-50 text-red-800",
     "invalid-trigger": "border-red-300 bg-red-50 text-red-800",
@@ -108,6 +109,7 @@ function TriggerSimulationPanel({
           {latestPayoutMeta.status === "blocked-cap" ||
           latestPayoutMeta.status === "blocked-coverage" ||
           latestPayoutMeta.status === "blocked-verification" ||
+          latestPayoutMeta.status === "blocked-policy" ||
           latestPayoutMeta.status === "blocked-cooldown" ||
           latestPayoutMeta.status === "blocked-dedup" ? (
             <p className="mt-1">{latestPayoutMeta.reason}</p>

@@ -18,6 +18,10 @@ const triggerSources = [
     name: { en: "Platform status", hi: "प्लेटफ़ॉर्म की स्थिति" },
     detail: { en: "Outage or downtime events that stop order flow.", hi: "आउटेज या डाउनटाइम घटनाएँ जो ऑर्डर के प्रवाह को रोकती हैं।" },
   },
+  {
+    name: { en: "Social disruptions", hi: "सामाजिक व्यवधान" },
+    detail: { en: "Curfews, local strikes, and zone closures impacting pickup/drop access.", hi: "कर्फ्यू, स्थानीय हड़ताल, और ज़ोन बंद जो पिकअप/ड्रॉप पहुंच को प्रभावित करते हैं।" },
+  },
 ];
 
 const payoutRules = [
@@ -25,6 +29,7 @@ const payoutRules = [
   { en: "Coverage time window must be active", hi: "कवरेज समय विंडो सक्रिय होनी चाहिए" },
   { en: "Daily payout cap must have remaining balance", hi: "दैनिक भुगतान सीमा में शेष राशि होनी चाहिए" },
   { en: "If risk is high, selfie verification may be required", hi: "यदि जोखिम अधिक है, तो सेल्फी सत्यापन की आवश्यकता हो सकती है" },
+  { en: "Policy excludes health, life, accidents, and vehicle repairs", hi: "पॉलिसी में स्वास्थ्य, जीवन, दुर्घटना और वाहन मरम्मत शामिल नहीं हैं" },
 ];
 
 function TriggerPage() {

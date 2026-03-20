@@ -6,7 +6,7 @@ import SelfieVerificationPanel from "../components/SelfieVerificationPanel";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
-import { getSession } from "../utils/session";
+import { getAuthToken, getSession } from "../utils/session";
 import userProfile from "../data/userProfile.json";
 import { runPayoutSecurityChecks } from "../utils/payoutSecurity";
 import { pushNotification } from "../utils/notifications";
@@ -47,6 +47,7 @@ function getStatusStyles(status) {
     "blocked-cap": "border-red-300 bg-red-50 text-red-800",
     "blocked-coverage": "border-red-300 bg-red-50 text-red-800",
     "blocked-verification": "border-red-300 bg-red-50 text-red-800",
+    "blocked-policy": "border-red-300 bg-red-50 text-red-800",
     "invalid-trigger": "border-red-300 bg-red-50 text-red-800",
   };
 
@@ -57,7 +58,18 @@ function PayoutPage() {
   const navigate = useNavigate();
   const { languageMode, setLanguageMode } = useSiteLanguage();
   const session = getSession();
+  const strictTokenDefault = import.meta.env.VITE_STRICT_TOKEN_ENFORCEMENT === "true";
   const workerCity = session?.city || userProfile.city;
+  const [strictTokenEnforcement, setStrictTokenEnforcement] = useState(() => {
+    const stored = localStorage.getItem("gigshieldStrictTokenEnforced");
+    if (stored === "true") {
+      return true;
+    }
+    if (stored === "false") {
+      return false;
+    }
+    return strictTokenDefault;
+  });
   const [receiptState, setReceiptState] = useState(() => getPayoutReceipt());
   const [verificationState, setVerificationState] = useState(() => {
     const initialReceipt = getPayoutReceipt();
@@ -251,6 +263,26 @@ function PayoutPage() {
       return;
     }
 
+    if (strictTokenEnforcement && !getAuthToken()) {
+      const tokenBlockedReceipt = transitionPayoutLifecycle(
+        receipt,
+        "failed",
+        "Payout request blocked: missing auth token",
+        {
+          failureReasonCode: payoutFailureReasonCodes.AUTH_TOKEN_REQUIRED,
+          failureReason: getFailureReasonLabel(payoutFailureReasonCodes.AUTH_TOKEN_REQUIRED),
+        },
+      );
+      savePayoutReceipt(tokenBlockedReceipt);
+      setReceiptState(tokenBlockedReceipt);
+      pushNotification({
+        type: "error",
+        title: "Payout blocked",
+        message: "Enable session authentication token before payout request.",
+      });
+      return;
+    }
+
     const securityResult = runPayoutSecurityChecks({
       evidence: verificationState.evidence || receipt.receivedWithVerification || null,
       workerCity,
@@ -386,6 +418,34 @@ function PayoutPage() {
           ) : (
             <>
               <section className="rounded-xl border border-coal-200 bg-white p-4 sm:p-5">
+                <p className="kicker">{selectLabel(languageMode, "Payout request security", "भुगतान अनुरोध सुरक्षा")}</p>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-coal-600">
+                    {selectLabel(
+                      languageMode,
+                      "Optional strict mode blocks payout requests without auth token.",
+                      "वैकल्पिक सख्त मोड बिना ऑथ टोकन के भुगतान अनुरोध रोकता है।",
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      strictTokenEnforcement ? "bg-coal-900 text-white" : "bg-coal-100 text-coal-700"
+                    }`}
+                    onClick={() => {
+                      const next = !strictTokenEnforcement;
+                      setStrictTokenEnforcement(next);
+                      localStorage.setItem("gigshieldStrictTokenEnforced", next ? "true" : "false");
+                    }}
+                  >
+                    {strictTokenEnforcement
+                      ? selectLabel(languageMode, "Strict token mode: ON", "सख्त टोकन मोड: चालू")
+                      : selectLabel(languageMode, "Strict token mode: OFF", "सख्त टोकन मोड: बंद")}
+                  </button>
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-coal-200 bg-white p-4 sm:p-5">
                 <p className="kicker">{selectLabel(languageMode, "Payout Lifecycle", "भुगतान जीवनचक्र")}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {lifecycleFlow.map((step) => {
@@ -488,6 +548,11 @@ function PayoutPage() {
                       <span className="font-semibold">{selectLabel(languageMode, "Failure reason", "विफलता कारण")}</span>: {" "}
                       {receipt.failureReasonCode ? getFailureReasonLabel(receipt.failureReasonCode) : "-"}
                     </p>
+                    {receipt.failureReasonCode?.startsWith("POLICY_") ? (
+                      <p className="mt-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
+                        {selectLabel(languageMode, "Policy exclusion", "पॉलिसी अपवाद")}
+                      </p>
+                    ) : null}
                     <p>
                       <span className="font-semibold">{selectLabel(languageMode, "Created", "बनाया गया")}</span>: {" "}
                       {receipt.createdAt ? new Date(receipt.createdAt).toLocaleString() : ""}

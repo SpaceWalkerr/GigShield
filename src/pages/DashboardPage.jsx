@@ -33,6 +33,7 @@ import {
 } from "../utils/triggerEngine";
 import { pushNotification } from "../utils/notifications";
 import { trackEvent } from "../utils/observability";
+import { startRealtimeTriggerMonitor } from "../utils/realtimeMonitor";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const onboardingStorageKey = "gigshieldOnboardingCompleted";
@@ -212,6 +213,7 @@ function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(
     () => localStorage.getItem(onboardingStorageKey) !== "done",
   );
+  const [liveSignals, setLiveSignals] = useState(null);
   const { languageMode, setLanguageMode } = useSiteLanguage();
   const hasAutoTriggeredRef = useRef(false);
 
@@ -220,6 +222,7 @@ function DashboardPage() {
 
   const latestTrigger =
     triggerEvents.find((event) => event.id === latestTriggerId) ?? null;
+  const latestTriggerDomain = latestTrigger?.domain || "";
   const dailyPayoutCap = getDailyPayoutCap(selectedPlan.id);
 
   const simulationPlan = planDetails.find((plan) => plan.id === simulationPlanId) || selectedPlan;
@@ -426,6 +429,20 @@ function DashboardPage() {
     // handleSimulateTrigger has broad state deps; keep this effect URL-driven only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerIdFromUrl]);
+
+  useEffect(() => {
+    const stop = startRealtimeTriggerMonitor({
+      city: displayCity,
+      platforms: displayPlatforms,
+      onSnapshot: (snapshot) => {
+        setLiveSignals(snapshot);
+      },
+    });
+
+    return () => {
+      stop();
+    };
+  }, [displayCity, displayPlatforms]);
 
   return (
     <main className="frame-shell min-h-screen py-6 sm:py-8">
@@ -645,6 +662,15 @@ function DashboardPage() {
           <p className="mt-2 text-xs text-coal-600">
             {selectLabel(languageMode, "Trigger confidence", "ट्रिगर भरोसा")}: {latestPayoutMeta.triggerConfidenceScore || 0}% ({latestPayoutMeta.triggerConfidenceLabel || "-"})
           </p>
+          {latestTriggerDomain === "social" ? (
+            <p className="mt-2 rounded-lg border border-coal-200 bg-white px-3 py-2 text-xs text-coal-700">
+              {selectLabel(
+                languageMode,
+                "Social disruption rationale: payouts are based on zone access loss, expected shift interruption, and plan coverage constraints.",
+                "सामाजिक व्यवधान कारण: भुगतान ज़ोन पहुंच हानि, शिफ्ट बाधा अनुमान और योजना कवरेज सीमाओं पर आधारित है।",
+              )}
+            </p>
+          ) : null}
         </article>
 
         <article className="board-soft p-4">
@@ -752,6 +778,28 @@ function DashboardPage() {
               ))
             )}
           </div>
+        </article>
+      </section>
+
+      <section className="mt-4">
+        <article className="board-soft p-4">
+          <p className="kicker">{selectLabel(languageMode, "Live signal health", "लाइव सिग्नल स्वास्थ्य")}</p>
+          {!liveSignals ? (
+            <p className="mt-2 text-xs text-coal-600">{selectLabel(languageMode, "Waiting for snapshots...", "स्नैपशॉट का इंतज़ार...")}</p>
+          ) : (
+            <div className="mt-2 grid gap-2 text-xs text-coal-700 sm:grid-cols-3">
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
+                {selectLabel(languageMode, "Traffic congestion", "ट्रैफिक भीड़")}:
+                {" "}{liveSignals.traffic?.congestion ?? "-"}%
+              </p>
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
+                {selectLabel(languageMode, "Platforms degraded", "प्रभावित प्लेटफॉर्म")}: {liveSignals.degradedCount}
+              </p>
+              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2">
+                {selectLabel(languageMode, "Signal reliability", "सिग्नल भरोसा")}: {(Number(liveSignals.reliability || 0) * 100).toFixed(0)}%
+              </p>
+            </div>
+          )}
         </article>
       </section>
 

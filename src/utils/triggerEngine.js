@@ -118,6 +118,9 @@ export function getTriggerConfidenceScore({ triggerId, weatherReliability, perso
     heatwave: 0.84,
     "aqi-spike": 0.78,
     "platform-outage": 0.9,
+    "curfew-lockdown": 0.82,
+    "local-strike": 0.8,
+    "zone-closure": 0.83,
   };
 
   const riskPenalty = personaRiskLevel === "High" ? 0.12 : personaRiskLevel === "Medium" ? 0.05 : 0;

@@ -5,6 +5,7 @@ const triggerEvents = [
   {
     id: "heavy-rain",
     label: "Heavy Rain",
+    domain: "environmental",
     payoutByPlan: {
       basic: 200,
       standard: 300,

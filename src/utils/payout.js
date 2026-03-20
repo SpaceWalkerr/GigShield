@@ -1,3 +1,5 @@
+import { validateCoverageDomain } from "./policy";
+
 const dailyPayoutCapByPlan = {
   basic: 300,
   standard: 650,
@@ -47,6 +49,21 @@ export function getPayoutForTrigger(triggerEvents, triggerId, planId, options = 
       remainingCap: 0,
       status: "invalid-trigger",
       reason: "Trigger is not supported for this plan.",
+      isCoveredNow: false,
+      coverageHours,
+    };
+  }
+
+  const policyValidation = validateCoverageDomain(triggerEvent.domain);
+  if (!policyValidation.ok) {
+    return {
+      payoutAmount: 0,
+      basePayout: 0,
+      dailyCap: getDailyPayoutCap(planId),
+      remainingCap: Math.max(0, getDailyPayoutCap(planId) - paidTodayAmount),
+      status: "blocked-policy",
+      reason: policyValidation.reason,
+      reasonCode: policyValidation.reasonCode,
       isCoveredNow: false,
       coverageHours,
     };

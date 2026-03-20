@@ -6,6 +6,10 @@ const payableStatuses = new Set(["paid", "capped"]);
 
 export const payoutFailureReasonCodes = {
   TRIGGER_BLOCKED: "TRIGGER_BLOCKED",
+  POLICY_EXCLUSION: "POLICY_EXCLUSION",
+  POLICY_DOMAIN_MISSING: "POLICY_DOMAIN_MISSING",
+  POLICY_DOMAIN_UNSUPPORTED: "POLICY_DOMAIN_UNSUPPORTED",
+  AUTH_TOKEN_REQUIRED: "AUTH_TOKEN_REQUIRED",
   CAP_REACHED: "CAP_REACHED",
   COVERAGE_INACTIVE: "COVERAGE_INACTIVE",
   VERIFICATION_REQUIRED: "VERIFICATION_REQUIRED",
@@ -18,6 +22,7 @@ export const payoutFailureReasonCodes = {
 };
 
 const statusToReasonCode = {
+  "blocked-policy": payoutFailureReasonCodes.POLICY_EXCLUSION,
   "blocked-cap": payoutFailureReasonCodes.CAP_REACHED,
   "blocked-coverage": payoutFailureReasonCodes.COVERAGE_INACTIVE,
   "blocked-verification": payoutFailureReasonCodes.VERIFICATION_REQUIRED,
@@ -169,6 +174,10 @@ export function getPayoutById(payoutId) {
 export function getFailureReasonLabel(code) {
   const labels = {
     [payoutFailureReasonCodes.TRIGGER_BLOCKED]: "Trigger not eligible for payout",
+    [payoutFailureReasonCodes.POLICY_EXCLUSION]: "Policy excludes this disruption type",
+    [payoutFailureReasonCodes.POLICY_DOMAIN_MISSING]: "Trigger domain metadata is missing",
+    [payoutFailureReasonCodes.POLICY_DOMAIN_UNSUPPORTED]: "Trigger domain is unsupported by policy",
+    [payoutFailureReasonCodes.AUTH_TOKEN_REQUIRED]: "Authenticated token is required for payout requests",
     [payoutFailureReasonCodes.CAP_REACHED]: "Daily payout cap reached",
     [payoutFailureReasonCodes.COVERAGE_INACTIVE]: "Coverage window is not active",
     [payoutFailureReasonCodes.VERIFICATION_REQUIRED]: "Verification is required",

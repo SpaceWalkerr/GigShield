@@ -152,9 +152,16 @@ function PayoutHistoryPage() {
                       <p className="kicker">{item.payoutId || "-"}</p>
                       <p className="mt-1 text-lg font-semibold text-coal-900">{formatCurrency(item.payoutAmount || 0)}</p>
                     </div>
-                    <span className="rounded-full border border-coal-200 bg-coal-50 px-3 py-1 text-xs font-semibold text-coal-700">
-                      {item.lifecycleStatus || "-"}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full border border-coal-200 bg-coal-50 px-3 py-1 text-xs font-semibold text-coal-700">
+                        {item.lifecycleStatus || "-"}
+                      </span>
+                      {item.failureReasonCode?.startsWith("POLICY_") ? (
+                        <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                          {selectLabel(languageMode, "Policy exclusion", "पॉलिसी अपवाद")}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-3 grid gap-2 text-xs text-coal-700 sm:grid-cols-2">

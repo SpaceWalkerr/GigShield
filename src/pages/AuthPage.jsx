@@ -16,6 +16,10 @@ import { supabase } from "../utils/supabase";
 const platformOptions = ["Zomato", "Swiggy", "Blinkit", "Zepto"];
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const validPlanIds = new Set(planDetails.map((plan) => plan.id));
+const adminEmailAllowlist = (import.meta.env.VITE_ADMIN_EMAILS || "")
+  .split(",")
+  .map((value) => value.trim().toLowerCase())
+  .filter(Boolean);
 
 function createPremiumHistoryEntry({ reason, breakdown }) {
   return {
@@ -145,6 +149,7 @@ function AuthPage() {
 
     try {
       let authUser;
+      let authSession;
       
       if (mode === "signup") {
         if (formValues.password !== formValues.confirmPassword) {
@@ -159,12 +164,14 @@ function AuthPage() {
               full_name: fullNameValue,
               city: cityValue,
               worker_id: workerIdValue,
+              role: "worker",
             }
           }
         });
         
         if (error) throw error;
         authUser = data.user;
+        authSession = data.session;
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: emailValue,
@@ -172,15 +179,21 @@ function AuthPage() {
         });
         if (error) throw error;
         authUser = data.user;
+        authSession = data.session;
       }
 
       const userMeta = authUser?.user_metadata || {};
+      const resolvedRole =
+        userMeta.role === "admin" || adminEmailAllowlist.includes((authUser?.email || "").toLowerCase())
+          ? "admin"
+          : "worker";
+      const token = authSession?.access_token || "";
 
       saveSession({
         isAuthenticated: true,
         mode,
-        role: authUser?.email?.includes("admin") ? "admin" : "worker",
-        authToken: authUser?.id || "",
+        role: resolvedRole,
+        authToken: token,
         name: userMeta.full_name || fullNameValue || userProfile.name,
         email: authUser?.email || emailValue,
         city: userMeta.city || cityValue || userProfile.city,
