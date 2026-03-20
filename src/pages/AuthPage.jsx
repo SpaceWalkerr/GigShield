@@ -8,6 +8,7 @@ import {
   supportedRiskLevels,
 } from "../utils/pricing";
 import { saveSession } from "../utils/session";
+import { supabase } from "../utils/supabase";
 
 const platformOptions = ["Zomato", "Swiggy", "Blinkit", "Zepto", "Uber"];
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
@@ -56,6 +57,8 @@ function AuthPage() {
     city: "",
     workerId: "",
   });
+  const [authError, setAuthError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const submitLabel = useMemo(
     () => (mode === "signin" ? "Sign In to GigShield" : "Create GigShield Account"),
@@ -123,31 +126,66 @@ function AuthPage() {
     ].slice(0, 10));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setAuthError(null);
+    setIsLoading(true);
 
     const fullNameValue = formValues.fullName.trim();
     const cityValue = formValues.city.trim();
     const emailValue = formValues.email.trim();
+    const workerIdValue = formValues.workerId.trim();
 
-    saveSession({
-      isAuthenticated: true,
-      mode,
-      name: fullNameValue || userProfile.name,
-      email: emailValue,
-      city: cityValue || userProfile.city,
-      workerId: formValues.workerId.trim(),
-      platforms: selectedPlatforms,
-      selectedPlanId,
-      riskLevel,
-      calculatedWeeklyPremium: premiumBreakdown.adjustedPremium,
-      premiumBreakdown,
-      premiumHistory,
-      signedInAt: new Date().toISOString(),
-    });
+    try {
+      if (mode === "signup") {
+        if (formValues.password !== formValues.confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+        
+        const { data, error } = await supabase.auth.signUp({
+          email: emailValue,
+          password: formValues.password,
+          options: {
+            data: {
+              full_name: fullNameValue,
+              city: cityValue,
+              worker_id: workerIdValue,
+            }
+          }
+        });
+        
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailValue,
+          password: formValues.password
+        });
+        if (error) throw error;
+      }
 
-    localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
-    navigate(`/dashboard?plan=${selectedPlanId}`);
+      saveSession({
+        isAuthenticated: true,
+        mode,
+        name: fullNameValue || userProfile.name,
+        email: emailValue,
+        city: cityValue || userProfile.city,
+        workerId: workerIdValue,
+        platforms: selectedPlatforms,
+        selectedPlanId,
+        riskLevel,
+        calculatedWeeklyPremium: premiumBreakdown.adjustedPremium,
+        premiumBreakdown,
+        premiumHistory,
+        signedInAt: new Date().toISOString(),
+      });
+
+      localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
+      navigate(`/dashboard?plan=${selectedPlanId}`);
+    } catch (err) {
+      setAuthError(err.message || "An authentication error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -232,6 +270,11 @@ function AuthPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
+              {authError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {authError}
+                </div>
+              )}
               <div className="board p-4">
                 <p className="kicker">Dynamic Premium</p>
                 <p className="mt-2 text-2xl font-bold text-coal-900">
@@ -356,8 +399,8 @@ function AuthPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button type="submit" className="primary-btn" disabled={selectedPlatforms.length === 0}>
-                  {submitLabel}
+                <button type="submit" className="primary-btn" disabled={selectedPlatforms.length === 0 || isLoading}>
+                  {isLoading ? "Please wait..." : submitLabel}
                 </button>
                 <Link
                   to={`/dashboard?plan=${selectedPlanId}`}
