@@ -14,6 +14,7 @@ const PayoutPage = lazy(() => import("./pages/PayoutPage"));
 const PayoutReceivedPage = lazy(() => import("./pages/PayoutReceivedPage"));
 const PayoutHistoryPage = lazy(() => import("./pages/PayoutHistoryPage"));
 const AdminOperationsPage = lazy(() => import("./pages/AdminOperationsPage"));
+const GetProtected = lazy(() => import("./pages/GetProtected"));
 
 function ProtectedRoute({ children }) {
   if (!isSessionActive()) {
@@ -42,6 +43,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/get-protected" element={<GetProtected />} />
           <Route path="/product" element={<ProductPage />} />
           <Route path="/triggers" element={<TriggerPage />} />
           <Route path="/fraud-guard" element={<FraudGuardPage />} />

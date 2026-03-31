@@ -32,6 +32,7 @@ import {
 } from "../utils/triggerEngine";
 import { pushNotification } from "../utils/notifications";
 import { trackEvent } from "../utils/observability";
+import { supabase } from "../utils/supabase";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const onboardingStorageKey = "gigshieldOnboardingCompleted";
@@ -504,7 +505,8 @@ function DashboardPage() {
               ) : null}
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
+                  await supabase.auth.signOut();
                   clearSession();
                   navigate("/auth");
                 }}

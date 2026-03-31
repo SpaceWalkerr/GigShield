@@ -72,10 +72,17 @@ function LandingPage() {
 
           <button
             type="button"
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/get-protected")}
             className="primary-btn"
           >
             {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/auth")}
+            className="secondary-btn"
+          >
+            {selectLabel(languageMode, "Sign In", "साइन इन")}
           </button>
         </header>
 
