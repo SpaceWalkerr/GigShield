@@ -30,7 +30,9 @@ class ErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError() { return { hasError: true }; }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
   componentDidCatch(error, errorInfo) {
     console.error("ErrorBoundary caught an error", error, errorInfo);
   }
@@ -39,14 +41,30 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="flex min-h-[60vh] flex-col items-center justify-center text-center p-12 bg-white rounded-3xl m-8 shadow-xl border border-gray-100">
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-8 w-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 mb-2">Something went wrong</h2>
-          <p className="text-gray-500 mb-8 max-w-md font-medium">We encountered an unexpected error while loading this page. Our team has been notified.</p>
-          <button 
-            onClick={() => window.location.href = "/"} 
+          <h2 className="text-3xl font-black text-gray-900 mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-gray-500 mb-8 max-w-md font-medium">
+            We encountered an unexpected error while loading this page. Our team
+            has been notified.
+          </p>
+          <button
+            onClick={() => (window.location.href = "/")}
             className="rounded-full bg-[#1a2229] px-8 py-3 text-sm font-bold text-white shadow-xl hover:bg-black transition-all"
           >
             Take Me Home
@@ -81,9 +99,13 @@ function App() {
       <Navbar />
       <div className="pt-24 lg:pt-32 min-h-screen bg-[#f4f5f7]">
         <ErrorBoundary>
-          <Suspense fallback={<div className="min-h-screen bg-[#f4f5f7]/50 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-[#1a2229] border-t-transparent rounded-full animate-spin" />
-          </div>}>
+          <Suspense
+            fallback={
+              <div className="min-h-screen bg-[#f4f5f7]/50 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-[#1a2229] border-t-transparent rounded-full animate-spin" />
+              </div>
+            }
+          >
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/product" element={<ProductPage />} />
@@ -94,15 +116,64 @@ function App() {
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/auth" element={<AuthPage />} />
-              
+
               {/* Protected Routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-              <Route path="/payout" element={<ProtectedRoute><PayoutPage /></ProtectedRoute>} />
-              <Route path="/payout-received" element={<ProtectedRoute><PayoutReceivedPage /></ProtectedRoute>} />
-              <Route path="/payout-history" element={<ProtectedRoute><PayoutHistoryPage /></ProtectedRoute>} />
-              <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
-              <Route path="/admin-ops" element={<ProtectedRoute><AdminOperationsPage /></ProtectedRoute>} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payout"
+                element={
+                  <ProtectedRoute>
+                    <PayoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payout-received"
+                element={
+                  <ProtectedRoute>
+                    <PayoutReceivedPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payout-history"
+                element={
+                  <ProtectedRoute>
+                    <PayoutHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/support"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/dashboard" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/admin-ops" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin-ops"
+                element={
+                  <ProtectedRoute>
+                    <AdminOperationsPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Catch-all redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
