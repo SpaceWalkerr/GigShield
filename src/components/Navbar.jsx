@@ -79,7 +79,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation Bar */}
-      <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 md:px-8 flex-none transition-all duration-300">
+      <nav className="glass-nav mx-auto mt-2 flex w-[min(96%,80rem)] items-center justify-between px-6 py-3.5 md:px-8 flex-none transition-all duration-300">
         <div
           className="cursor-pointer rounded bg-[#f4f5f7]/90 px-3 py-1 text-xl md:text-2xl font-bold tracking-tight text-gray-900 backdrop-blur-sm shadow-sm border border-white/60"
           onClick={() => navigate("/")}
