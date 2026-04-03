@@ -11,6 +11,26 @@ In plain words:
 
 This project is designed for workers from platforms like Zomato, Swiggy, Zepto, Amazon, Dunzo, and similar models.
 
+## Modernized Dashboard Experience
+
+GigShield has been updated with a **full-screen, minimalist design system** and a **dynamic real-time pricing engine**. The new UI focuses on edge-to-edge visuals, high-contrast typography, and interactive platform management.
+
+### ⚡ Live Dynamic Pricing
+The weekly premium now updates instantly as you select/deselect work apps (Blinkit, Swiggy, Zepto, etc.) and change your risk persona.
+
+![Modernized Dashboard with Dynamic Pricing](public/screenshots/hero_dashboard.png)
+*Behold: 5 platforms active with a High Risk multiplier resulting in a ₹221 adjusted premium.*
+
+### 📊 Flattened Payout Ledger
+The transaction history has been flattened for a cleaner, high-density look, making it easier to track settlements across all your gig platforms.
+
+![Flattened Payout History](public/screenshots/payout_ledger.png)
+
+### 🎨 Premium Aesthetic
+The new design language uses glassmorphism and subtle micro-animations to provide a "private-jet" inspired experience for every delivery rider.
+
+![Inner Pages Modernization](public/screenshots/inner_pages.webp)
+
 ## What Problem It Solves
 
 Delivery workers can lose income during uncontrollable disruptions.
