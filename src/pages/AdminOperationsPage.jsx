@@ -131,86 +131,132 @@ function AdminOperationsPage() {
   };
 
   return (
-    <main className="frame-shell min-h-screen py-6 sm:py-8">
-      <section className="board animate-enter overflow-hidden">
-        <div className="top-strip">Admin Operations | Fraud Analytics | SLA Tracker</div>
+    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
+          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-200">
+            Admin Ops
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
+          <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
+            {selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
+          </Link>
+        </div>
+      </nav>
 
-        <header className="border-b border-coal-200 px-4 py-5 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="kicker">{selectLabel(languageMode, "Admin Console", "एडमिन कंसोल")}</p>
-              <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">Ops Panel</h1>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-              <Link to="/dashboard" className="secondary-btn">Dashboard</Link>
-            </div>
-          </div>
+      <div className="max-w-[1400px] mx-auto px-6 py-10">
+        <header className="mb-10">
+          <p className="kicker mb-2">{selectLabel(languageMode, "Operations Console", "ऑपरेशन्स कंसोल")}</p>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter leading-none mb-6">
+            Ops Panel
+          </h1>
         </header>
 
-        <div className="grid gap-4 px-4 py-6 sm:px-6">
-          <section className="board-soft p-4">
-            <p className="kicker">Flagged claims queue</p>
-            <div className="mt-3 space-y-2">
-              {flaggedQueue.length === 0 ? <p className="text-xs text-coal-600">No flagged claims.</p> : null}
+        <div className="space-y-12">
+          {/* Flagged Queue */}
+          <section>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Flagged claims queue</p>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {flaggedQueue.length === 0 ? <p className="text-xs font-bold text-gray-400 italic">No flagged claims.</p> : null}
               {flaggedQueue.map((item) => (
-                <div key={item.payoutId} className="rounded-lg border border-coal-200 bg-white px-3 py-2 text-xs">
-                  <p className="font-semibold text-coal-900">{item.payoutId}</p>
-                  <p className="text-coal-700">{item.failureReasonCode || "-"} | {item.failureReasonCode ? getFailureReasonLabel(item.failureReasonCode) : item.reason}</p>
-                  <div className="mt-2 flex gap-2">
-                    <button type="button" className="primary-btn" onClick={() => applyOverride(item, "approve")}>Approve</button>
-                    <button type="button" className="secondary-btn" onClick={() => applyOverride(item, "reject")}>Reject</button>
+                <div key={item.payoutId} className="bg-white border-2 border-gray-900 rounded-3xl p-6 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{item.payoutId}</p>
+                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                  </div>
+                  <p className="text-xs font-black mb-4">{item.failureReasonCode || "-"} | {item.failureReasonCode ? getFailureReasonLabel(item.failureReasonCode) : item.reason}</p>
+                  <div className="flex gap-2">
+                    <button type="button" className="primary-btn w-full py-2" onClick={() => applyOverride(item, "approve")}>Approve</button>
+                    <button type="button" className="secondary-btn w-full py-2" onClick={() => applyOverride(item, "reject")}>Reject</button>
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-3">
-            <article className="board-soft p-4 text-sm">
-              <p className="kicker">Fraud analytics</p>
-              <p className="mt-2">Failed: {fraudAnalytics.failedCount}</p>
-              <p>Settled: {fraudAnalytics.settledCount}</p>
-              <p>False positive rate: {fraudAnalytics.falsePositiveRate}%</p>
-              <p>Approval turnaround: {fraudAnalytics.avgTurnaroundSec}s</p>
-            </article>
-
-            <article className="board-soft p-4 text-sm">
-              <p className="kicker">Risk buckets</p>
-              {Object.entries(fraudAnalytics.riskBuckets).map(([key, value]) => (
-                <p key={key}>{key}: {value}</p>
-              ))}
-            </article>
-
-            <article className="board-soft p-4 text-sm">
-              <p className="kicker">SLA tracker</p>
-              <p>Avg verification time: {slaTracker.avgVerificationSec}s</p>
-              <p>Avg settlement time: {slaTracker.avgSettlementSec}s</p>
-            </article>
-          </section>
-
-          <section className="grid gap-4 lg:grid-cols-2">
-            <article className="board-soft p-4 text-xs">
-              <p className="kicker">Manual override logs</p>
-              <div className="mt-3 space-y-2">
-                {overrideLogs.slice(0, 10).map((item) => (
-                  <div key={item.id} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                    <p className="font-semibold">{item.payoutId} | {item.decision}</p>
-                    <p>{item.reasonCode}</p>
-                    <p>{new Date(item.at).toLocaleString()}</p>
+          {/* Analytics Grid */}
+          <section className="grid gap-8 lg:grid-cols-3">
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Fraud Analytics</p>
+              <div className="space-y-4">
+                {[
+                  { label: "Failed Claims", value: fraudAnalytics.failedCount },
+                  { label: "Settled Claims", value: fraudAnalytics.settledCount },
+                  { label: "False Positive Rate", value: `${fraudAnalytics.falsePositiveRate}%` },
+                  { label: "Avg Turnaround", value: `${fraudAnalytics.avgTurnaroundSec}s` }
+                ].map((stat, i) => (
+                  <div key={i} className="flex items-center justify-between border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <span className="text-xs font-bold text-gray-500">{stat.label}</span>
+                    <span className="text-sm font-black text-gray-900">{stat.value}</span>
                   </div>
                 ))}
               </div>
-            </article>
+            </div>
 
-            <article className="board-soft p-4 text-xs">
-              <p className="kicker">Audit + observability</p>
-              <p className="mt-2">Trigger audit events: {triggerAudit.length}</p>
-              <p>Tracked app events: {trackedEvents.length}</p>
-            </article>
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Risk Buckets</p>
+              <div className="space-y-4">
+                {Object.entries(fraudAnalytics.riskBuckets).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <span className="text-xs font-bold text-gray-500">{key}</span>
+                    <span className="text-sm font-black text-gray-900">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">SLA Tracker</p>
+              <div className="space-y-4">
+                {[
+                  { label: "Avg Verification", value: `${slaTracker.avgVerificationSec}s` },
+                  { label: "Avg Settlement", value: `${slaTracker.avgSettlementSec}s` }
+                ].map((stat, i) => (
+                  <div key={i} className="flex items-center justify-between border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <span className="text-xs font-bold text-gray-500">{stat.label}</span>
+                    <span className="text-sm font-black text-gray-900">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Logs */}
+          <section className="grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Manual Override Logs</p>
+              <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden">
+                {overrideLogs.slice(0, 5).map((item, i) => (
+                  <div key={item.id} className="border-b border-gray-50 p-6 last:border-0 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-black">{item.payoutId} — {item.decision}</p>
+                      <span className="text-[10px] font-bold text-gray-400">{new Date(item.at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.reasonCode}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Audit + Observability</p>
+              <div className="space-y-8">
+                <div>
+                  <p className="text-3xl font-black tracking-tighter">{triggerAudit.length}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Trigger audit events</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-black tracking-tighter">{trackedEvents.length}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tracked app events</p>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

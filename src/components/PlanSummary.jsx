@@ -21,51 +21,42 @@ function PlanSummary({ selectedPlan, coverageActive, languageMode }) {
       subtitle={
         selectLabel(
           languageMode,
-          "See your plan, payment, and protection status",
-          "योजना, भुगतान और सुरक्षा स्थिति देखें",
+          "Coverage details",
+          "कवरेज विवरण",
         )
       }
     >
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <div className="board-soft p-4">
-          <dt className="text-coal-500">
-            {selectLabel(languageMode, "Plan name", "योजना का नाम")}
-          </dt>
-          <dd className="mt-1 text-base font-semibold text-coal-900">
-            {selectedPlan.name}
-          </dd>
-        </div>
-        <div className="board-soft p-4">
-          <dt className="text-coal-500">
-            {selectLabel(languageMode, "Weekly payment", "साप्ताहिक भुगतान")}
-          </dt>
-          <dd className="mt-1 text-base font-semibold text-coal-900">
-            {formatCurrency(selectedPlan.weeklyPremium)}
-          </dd>
-        </div>
-        <div className="board-soft p-4">
-          <dt className="text-coal-500">
-            {selectLabel(languageMode, "Active time", "सक्रिय समय")}
-          </dt>
-          <dd className="mt-1 text-base font-semibold text-coal-900">
-            {selectedPlan.coverageHours}
-          </dd>
-        </div>
-        <div className="board-soft p-4">
-          <dt className="text-coal-500">
+      <div className="space-y-6">
+        {[
+          { label: selectLabel(languageMode, "Plan name", "योजना का नाम"), value: selectedPlan.name },
+          { label: selectLabel(languageMode, "Weekly payment", "साप्ताहिक भुगतान"), value: formatCurrency(selectedPlan.weeklyPremium) },
+          { label: selectLabel(languageMode, "Active time", "सक्रिय समय"), value: selectedPlan.coverageHours }
+        ].map((item, i) => (
+          <div key={i} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+            <dt className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              {item.label}
+            </dt>
+            <dd className="text-sm font-black text-gray-900">
+              {item.value}
+            </dd>
+          </div>
+        ))}
+
+        <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+          <dt className="text-[10px] font-black uppercase tracking-widest text-gray-400">
             {selectLabel(languageMode, "Protection status", "सुरक्षा स्थिति")}
           </dt>
-          <dd className="mt-1">
+          <dd>
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClasses}`}
+              className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest ${statusClasses}`}
             >
               {coverageActive
-                ? selectLabel(languageMode, "Coverage Active", "कवरेज चालू")
-                : selectLabel(languageMode, "Coverage Paused", "कवरेज रुका")}
+                ? selectLabel(languageMode, "Active", "चालू")
+                : selectLabel(languageMode, "Paused", "रुका")}
             </span>
           </dd>
         </div>
-      </dl>
+      </div>
     </Card>
   );
 }

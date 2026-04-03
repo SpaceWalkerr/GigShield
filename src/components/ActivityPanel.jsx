@@ -9,8 +9,8 @@ import { selectLabel } from "../utils/i18n";
 function ActivityPanel({ activity, lastActiveTime, languageMode }) {
   const movementClasses =
     activity.movementStatus === "Active"
-      ? "bg-moss-100 text-moss-600"
-      : "bg-coal-100 text-coal-700";
+      ? "bg-green-100 text-green-600 border-green-200"
+      : "bg-gray-100 text-gray-500 border-gray-200";
 
   return (
     <Card
@@ -20,35 +20,31 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
         selectLabel(languageMode, "Work Activity", "काम की गतिविधि")
       }
       subtitle={
-        selectLabel(languageMode, "Simple daily work summary", "रोज़ का काम एक नज़र में")
+        selectLabel(languageMode, "Daily summary", "रोज़ का काम")
       }
     >
-      <dl className="space-y-3 text-sm">
-        <div className="board-soft flex items-center justify-between px-4 py-3">
-          <dt className="text-coal-500">
-            {selectLabel(languageMode, "Orders done today", "आज के ऑर्डर")}
-          </dt>
-          <dd className="font-bold text-coal-900">
-            {activity.ordersCompletedToday}
-          </dd>
-        </div>
+      <dl className="space-y-4">
+        {[
+          { label: selectLabel(languageMode, "Orders done today", "आज के ऑर्डर"), value: activity.ordersCompletedToday },
+          { label: selectLabel(languageMode, "Last active", "आखिरी सक्रिय"), value: formatTime(lastActiveTime) }
+        ].map((item, i) => (
+          <div key={i} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+            <dt className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              {item.label}
+            </dt>
+            <dd className="text-sm font-extrabold text-gray-900">
+              {item.value}
+            </dd>
+          </div>
+        ))}
 
-        <div className="board-soft flex items-center justify-between px-4 py-3">
-          <dt className="text-coal-500">
-            {selectLabel(languageMode, "Last working time", "आखिरी काम का समय")}
-          </dt>
-          <dd className="font-bold text-coal-900">
-            {formatTime(lastActiveTime)}
-          </dd>
-        </div>
-
-        <div className="board-soft flex items-center justify-between px-4 py-3">
-          <dt className="text-coal-500">
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+          <dt className="text-xs font-bold uppercase tracking-widest text-gray-400">
             {selectLabel(languageMode, "Current movement", "अभी की गतिविधि")}
           </dt>
           <dd>
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${movementClasses}`}
+              className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-tighter ${movementClasses}`}
             >
               {activity.movementStatus}
             </span>

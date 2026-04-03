@@ -363,42 +363,41 @@ function PayoutPage() {
   };
 
   return (
-    <main className="frame-shell min-h-screen py-6 sm:py-8">
-      <section className="board animate-enter overflow-hidden">
-        <div className="top-strip">
-          {selectLabel(
-            languageMode,
-            "Receive your support payout after a verified trigger.",
-            "सत्यापित ट्रिगर के बाद अपना सहायता भुगतान प्राप्त करें।",
-          )}
+    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
+      {/* Dynamic Nav */}
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
+          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">
+            Payout
+          </span>
         </div>
+        <div className="flex items-center gap-4">
+          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
+          <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
+            {selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
+          </Link>
+        </div>
+      </nav>
 
-        <header className="border-b border-coal-200 px-4 py-5 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="kicker">{selectLabel(languageMode, "Payout", "भुगतान")}</p>
-              <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                {selectLabel(languageMode, "Receive money", "पैसे प्राप्त करें")}
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm text-coal-500 sm:text-base">
-                {selectLabel(
-                  languageMode,
-                  "This page shows the latest payout calculated on your dashboard.",
-                  "यह पेज डैशबोर्ड पर गणना किया गया नवीनतम भुगतान दिखाता है।",
-                )}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-              <Link to="/dashboard" className="secondary-btn">
-                {selectLabel(languageMode, "Back to Dashboard", "डैशबोर्ड पर वापस")}
-              </Link>
-            </div>
-          </div>
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-20">
+        <header className="mb-12">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">
+            {selectLabel(languageMode, "Settlement Console", "सेटलमेंट कंसोल")}
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter leading-none mb-6">
+            {selectLabel(languageMode, "Receive Funds", "धनराशि प्राप्त करें")}
+          </h1>
+          <p className="text-sm font-bold text-gray-500">
+            {selectLabel(
+              languageMode,
+              "Verify your identity and confirm the payout request.",
+              "अपनी पहचान सत्यापित करें और भुगतान अनुरोध की पुष्टि करें।",
+            )}
+          </p>
         </header>
 
-        <div className="grid gap-4 px-4 py-6 sm:px-6">
+        <div className="space-y-12">
           {!receipt ? (
             <section className="board-soft p-4 sm:p-5">
               <p className="kicker">{selectLabel(languageMode, "No payout yet", "अभी कोई भुगतान नहीं")}</p>
@@ -598,7 +597,7 @@ function PayoutPage() {
             </>
           )}
         </div>
-      </section>
+      </div>
     </main>
   );
 }

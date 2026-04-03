@@ -1,9 +1,15 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import NotificationStack from "./components/NotificationStack";
 import { hasRole, isSessionActive } from "./utils/session";
+import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+gsap.registerPlugin(ScrollTrigger);
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const SignInPage = lazy(() => import("./pages/SignInPage"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
@@ -36,6 +42,22 @@ function AdminRoute({ children }) {
 }
 
 function App() {
+  useEffect(() => {
+    const lenis = new Lenis()
+
+    lenis.on('scroll', ScrollTrigger.update)
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000)
+    })
+
+    gsap.ticker.lagSmoothing(0)
+    
+    return () => {
+      lenis.destroy()
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <NotificationStack />
@@ -43,6 +65,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
           <Route path="/get-protected" element={<GetProtected />} />
           <Route path="/product" element={<ProductPage />} />
           <Route path="/triggers" element={<TriggerPage />} />

@@ -288,7 +288,7 @@ function AuthPage() {
 
   return (
     <main className="frame-shell flex min-h-screen items-center py-6 sm:py-8">
-      <section className="board animate-enter w-full overflow-hidden">
+      <section className="board animate-enter w-full overflow-hidden rounded-3xl">
         <div className="top-strip">
           {selectLabel(
             languageMode,
@@ -355,7 +355,7 @@ function AuthPage() {
           </article>
 
           <section className="board-soft p-4 sm:p-5 lg:col-span-3">
-            <div className="mb-4 inline-flex rounded-full border border-coal-300 bg-white p-1">
+            <div className="mb-4 inline-flex rounded-full border border-gray-200 bg-white/80 p-1">
               <button
                 type="button"
                 onClick={() => setMode("signin")}
@@ -402,7 +402,7 @@ function AuthPage() {
                     setIsLoading(false);
                   }
                 }}
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-coal-300 bg-white px-4 py-2.5 text-sm font-semibold text-coal-700 shadow-chip transition hover:bg-coal-50 hover:shadow-none disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-white disabled:opacity-50"
               >
                 {/* Google logo SVG */}
                 <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

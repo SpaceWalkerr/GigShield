@@ -14,113 +14,79 @@ function PayoutReceivedPage() {
   const receipt = getPayoutReceipt();
 
   return (
-    <main className="frame-shell min-h-screen py-6 sm:py-8">
-      <section className="board animate-enter overflow-hidden">
-        <div className="top-strip">
-          {selectLabel(
-            languageMode,
-            "Payout completed and ready for your records.",
-            "भुगतान पूरा हुआ और आपके रिकॉर्ड के लिए तैयार है।",
-          )}
+    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
+          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">
+            Success
+          </span>
         </div>
+        <div className="flex items-center gap-4">
+          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
+          <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
+            {selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
+          </Link>
+        </div>
+      </nav>
 
-        <header className="border-b border-coal-200 px-4 py-5 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="kicker">{selectLabel(languageMode, "Payout", "भुगतान")}</p>
-              <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                {selectLabel(languageMode, "Payout received", "भुगतान प्राप्त")}
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm text-coal-500 sm:text-base">
-                {selectLabel(
-                  languageMode,
-                  "Your latest payout has been marked as received.",
-                  "आपका नवीनतम भुगतान प्राप्त के रूप में दर्ज हो गया है।",
-                )}
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-20 text-center">
+        {!receipt || !receipt.receivedAt ? (
+           <div className="space-y-6">
+             <h1 className="text-4xl font-black tracking-tighter">No Payment Found</h1>
+             <p className="text-sm font-bold text-gray-500 italic">Please initiate a payout from the dashboard first.</p>
+             <Link to="/dashboard" className="primary-btn">Go to Dashboard</Link>
+           </div>
+        ) : (
+          <>
+            <header className="mb-12">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">
+                {selectLabel(languageMode, "Funds Settled", "धनराशि सेटलमेंट")}
               </p>
+              <h1 className="text-5xl sm:text-6xl font-black tracking-tighter leading-none mb-6">
+                {formatCurrency(receipt.payoutAmount ?? 0)}
+              </h1>
+              <p className="text-sm font-extrabold text-gray-900">
+                {selectLabel(languageMode, "Receipt sent to your registered email.", "रसीद आपके पंजीकृत ईमेल पर भेज दी गई है।")}
+              </p>
+            </header>
+
+            <div className="bg-white border-2 border-gray-900 rounded-3xl p-8 shadow-2xl text-left space-y-6 mb-12">
+               <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Trigger Event", "ट्रिगर इवेंट")}</p>
+                  <p className="text-sm font-black">{receipt.triggerLabel || receipt.triggerId}</p>
+               </div>
+               <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Payout ID", "भुगतान आईडी")}</p>
+                    <p className="text-xs font-bold text-gray-500 font-mono">{receipt.payoutId || "-"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Received At", "प्राप्त समय")}</p>
+                    <p className="text-xs font-bold text-gray-500">{new Date(receipt.receivedAt).toLocaleTimeString()}</p>
+                  </div>
+               </div>
             </div>
 
-            <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-          </div>
-        </header>
-
-        <div className="grid gap-4 px-4 py-6 sm:px-6">
-          {!receipt || !receipt.receivedAt ? (
-            <section className="board-soft p-4 sm:p-5">
-              <p className="kicker">{selectLabel(languageMode, "No received payout", "कोई प्राप्त भुगतान नहीं")}</p>
-              <p className="mt-2 text-sm text-coal-600">
-                {selectLabel(
-                  languageMode,
-                  "Receive a payout first from the payout page.",
-                  "पहले भुगतान पेज से राशि प्राप्त करें।",
-                )}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link to="/payout" className="primary-btn">
-                  {selectLabel(languageMode, "Go to payout", "भुगतान पेज खोलें")}
-                </Link>
-              </div>
-            </section>
-          ) : (
-            <section className="rounded-xl border border-moss-300 bg-moss-50 p-4 text-coal-900 sm:p-5">
-              <p className="kicker">{selectLabel(languageMode, "Receipt confirmation", "रसीद पुष्टि")}</p>
-              <p className="mt-2 text-3xl font-bold">{formatCurrency(receipt.payoutAmount ?? 0)}</p>
-              <p className="mt-2 text-sm text-coal-700">{receipt.reason}</p>
-
-              <div className="mt-4 rounded-lg border border-coal-200 bg-white/70 px-3 py-2 text-xs text-coal-700">
-                <p>
-                  <span className="font-semibold">{selectLabel(languageMode, "Trigger", "ट्रिगर")}</span>: {" "}
-                  {receipt.triggerLabel || receipt.triggerId}
-                </p>
-                <p>
-                  <span className="font-semibold">{selectLabel(languageMode, "Plan", "योजना")}</span>: {" "}
-                  {receipt.planName || receipt.planId}
-                </p>
-                <p>
-                  <span className="font-semibold">{selectLabel(languageMode, "Received at", "प्राप्त समय")}</span>: {" "}
-                  {new Date(receipt.receivedAt).toLocaleString()}
-                </p>
-                <p>
-                  <span className="font-semibold">{selectLabel(languageMode, "Payout ID", "भुगतान आईडी")}</span>: {" "}
-                  {receipt.payoutId || "-"}
-                </p>
-                <p>
-                  <span className="font-semibold">{selectLabel(languageMode, "Created at", "बनाया गया")}</span>: {" "}
-                  {receipt.createdAt ? new Date(receipt.createdAt).toLocaleString() : "-"}
-                </p>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link to="/dashboard" className="primary-btn">
-                  {selectLabel(languageMode, "Back to dashboard", "डैशबोर्ड पर वापस")}
-                </Link>
-                <Link to="/payout" className="secondary-btn">
-                  {selectLabel(languageMode, "View payout page", "भुगतान पेज देखें")}
-                </Link>
-                <Link to="/payout/history" className="secondary-btn">
-                  {selectLabel(languageMode, "View payout history", "भुगतान इतिहास देखें")}
-                </Link>
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => downloadReceiptJson(receipt)}
-                >
-                  {selectLabel(languageMode, "Download JSON", "JSON डाउनलोड करें")}
+            <div className="flex flex-col gap-3">
+              <Link to="/dashboard" className="primary-btn py-4">
+                {selectLabel(languageMode, "Back to dashboard", "डैशबोर्ड पर वापस")}
+              </Link>
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button" className="secondary-btn" onClick={() => downloadReceiptPdf(receipt)}>
+                  PDF Receipt
                 </button>
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => {
-                    downloadReceiptPdf(receipt);
-                  }}
-                >
-                  {selectLabel(languageMode, "Download PDF", "PDF डाउनलोड करें")}
+                <button type="button" className="secondary-btn" onClick={() => downloadReceiptJson(receipt)}>
+                  JSON Data
                 </button>
               </div>
-            </section>
-          )}
-        </div>
-      </section>
+            </div>
+          </>
+        )}
+      </div>
     </main>
   );
 }

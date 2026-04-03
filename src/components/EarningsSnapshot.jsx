@@ -16,34 +16,34 @@ function EarningsSnapshot({
       icon="money"
       languageMode={languageMode}
       title={
-        selectLabel(languageMode, "Money Status", "पैसों की स्थिति")
+        selectLabel(languageMode, "Protected", "सुरक्षित")
       }
       subtitle={
         selectLabel(
           languageMode,
-          "Shows protected money and latest support payment",
-          "सुरक्षित पैसे और नया भुगतान दिखाता है",
+          "Money status",
+          "पेमेंट स्थिति",
         )
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <article className="rounded-xl border border-electric-600 bg-electric-500 p-5 text-white shadow-chip">
-          <p className="text-xs uppercase tracking-[0.18em] text-electric-100">
-            {selectLabel(languageMode, "Money protected this week", "इस हफ्ते के सुरक्षित पैसे")}
+      <div className="grid gap-6">
+        <div className="flex flex-col">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+            {selectLabel(languageMode, "Protected this week", "इस हफ्ते सुरक्षित")}
           </p>
-          <p className="mt-2 text-3xl font-bold text-white">
+          <p className="text-4xl font-black text-gray-900 tracking-tighter">
             {formatCurrency(earningsProtectedThisWeek)}
           </p>
-        </article>
+        </div>
 
-        <article className="rounded-xl border border-signal-600 bg-signal-500 p-5 text-coal-900 shadow-chip">
-          <p className="text-xs uppercase tracking-[0.18em] text-coal-700">
-            {selectLabel(languageMode, "Last support payment", "पिछला सहायता भुगतान")}
+        <div className="flex flex-col border-t border-gray-100 pt-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+            {selectLabel(languageMode, "Last support payment", "पिछला भुगतान")}
           </p>
-          <p className="mt-2 text-3xl font-bold text-coal-900">
+          <p className="text-2xl font-black text-gray-400 tracking-tight">
             {formatCurrency(lastPayoutAmount)}
           </p>
-        </article>
+        </div>
       </div>
     </Card>
   );

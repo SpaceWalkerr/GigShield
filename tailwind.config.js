@@ -33,8 +33,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"Space Grotesk"', '"Segoe UI"', "sans-serif"],
-        display: ['"Archivo"', '"Space Grotesk"', '"Segoe UI"', "sans-serif"],
+        sans: ['"Inter"', '"Space Grotesk"', '"Segoe UI"', "sans-serif"],
+        display: ['"Inter"', '"Archivo"', '"Space Grotesk"', '"Segoe UI"', "sans-serif"],
       },
       boxShadow: {
         edge: "0 24px 40px -32px rgba(18, 18, 16, 0.65), 0 8px 18px -14px rgba(18, 18, 16, 0.36)",
@@ -51,9 +51,18 @@ export default {
             transform: "translateY(0)",
           },
         },
+        marquee: {
+          "0%": {
+            transform: "translateX(-100%)",
+          },
+          "100%": {
+            transform: "translateX(100vw)",
+          },
+        },
       },
       animation: {
         enter: "enter 520ms cubic-bezier(0.2, 0.9, 0.3, 1) both",
+        marquee: "marquee 20s linear infinite",
       },
     },
   },

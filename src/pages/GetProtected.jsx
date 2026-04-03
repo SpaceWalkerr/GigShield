@@ -94,85 +94,74 @@ function GetProtected() {
   };
 
   return (
-    <main className="frame-shell flex min-h-screen items-center py-6 sm:py-10">
-      <section className="board animate-enter w-full overflow-hidden">
-        {/* Top strip */}
-        <div className="top-strip">
-          AI-powered protection for every ride — activate in minutes
+    <main className="min-h-screen bg-[#f4f5f7] pb-24">
+      {/* Header */}
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-extrabold tracking-tight text-gray-900">GIGSHIELD.</Link>
+          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-200">
+            Activation
+          </span>
         </div>
+        <Link to="/" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
+          Cancel
+        </Link>
+      </nav>
 
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-coal-200 px-4 py-4 sm:px-6">
-          <div className="bg-coal-900 px-3 py-1">
-            <p className="hero-title text-2xl leading-none text-white sm:text-3xl">
-              GIGSHIELD.
-            </p>
-          </div>
-          <Link to="/" className="secondary-btn text-xs px-3 py-2">
-            ← Back
-          </Link>
+      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-20">
+        <header className="mb-12">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">
+            Secure Your Income
+          </p>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter leading-none mb-4">
+            Activate Protection
+          </h1>
+          <p className="text-sm font-bold text-gray-500">
+            Setup your parametric insurance profile in under 3 minutes.
+          </p>
         </header>
 
-        <div className="grid lg:grid-cols-5 min-h-[560px]">
-          {/* Left sidebar – value props */}
-          <aside className="hidden lg:flex flex-col justify-between border-r border-coal-200 bg-coal-50 px-6 py-8 lg:col-span-2">
-            <div>
-              <p className="kicker mb-3">Why GigShield?</p>
-              <div className="space-y-4">
-                {[
-                  { icon: "🌧️", title: "Weather Protection", desc: "Rain, heatwaves and AQI spikes trigger instant payouts" },
-                  { icon: "📵", title: "Outage Coverage", desc: "Platform downtime means lost income — we cover it" },
-                  { icon: "⚡", title: "Instant Activation", desc: "Takes under 3 minutes. No paperwork. No hassle." },
-                  { icon: "🤖", title: "AI-Powered Engine", desc: "Smart signals drive fair, automatic compensation" },
-                ].map((item) => (
-                  <div key={item.title} className="flex gap-3">
-                    <span className="text-xl mt-0.5">{item.icon}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-coal-900">{item.title}</p>
-                      <p className="text-xs text-coal-500 mt-0.5">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-12">
+          {step < 7 && (
+            <div className="mb-8">
+              <StepProgress currentStep={step} totalSteps={TOTAL_STEPS} />
             </div>
+          )}
 
-            <div className="board p-4 mt-6">
-              <p className="kicker mb-2">Trusted by riders on</p>
-              <div className="flex gap-3">
-                <span className="rounded-full bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1">🧡 Swiggy</span>
-                <span className="rounded-full bg-red-100 text-red-700 text-xs font-bold px-3 py-1">❤️ Zomato</span>
-              </div>
-            </div>
-          </aside>
-
-          {/* Right – form area */}
-          <div className="flex flex-col px-4 py-6 sm:px-6 sm:py-8 lg:col-span-3">
-            {step < 7 && (
-              <div className="mb-8">
-                <StepProgress currentStep={step} totalSteps={TOTAL_STEPS} />
-              </div>
-            )}
-
-            {/* Back button within flow */}
-            {step > 1 && step < 7 && (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="mb-4 text-xs text-coal-400 hover:text-coal-700 transition flex items-center gap-1 self-start"
-              >
-                ← Go back
-              </button>
-            )}
-
-            <div
-              key={step}
-              className="animate-enter flex-1"
+          {step > 1 && step < 7 && (
+            <button
+              type="button"
+              onClick={prevStep}
+              className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition flex items-center gap-2"
             >
-              {renderStep()}
-            </div>
+              ← Previous Step
+            </button>
+          )}
+
+          <div
+            key={step}
+            className="animate-enter"
+          >
+            {renderStep()}
           </div>
         </div>
-      </section>
+
+        {step < 7 && (
+          <footer className="mt-16 pt-8 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-8">
+              {[
+                { label: "Instant Trigger", desc: "Rain, heat, and AQI spikes" },
+                { label: "Automatic Payouts", desc: "No manual claims required" }
+              ].map((item, i) => (
+                <div key={i}>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{item.label}</p>
+                  <p className="text-xs font-bold text-gray-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </footer>
+        )}
+      </div>
     </main>
   );
 }

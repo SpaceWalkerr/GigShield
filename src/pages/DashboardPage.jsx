@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { MapPin, Fingerprint, Clock, Plus, Check } from "lucide-react";
 import ActivityPanel from "../components/ActivityPanel";
 import EarningsSnapshot from "../components/EarningsSnapshot";
 import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
@@ -13,7 +14,7 @@ import planDetails from "../data/planDetails.json";
 import triggerEvents from "../data/triggerEvents.json";
 import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
-import { calculateWeeklyPremium } from "../utils/pricing";
+import { calculateWeeklyPremium, getRiskMultiplier } from "../utils/pricing";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { getRiskLevelFromScore } from "../utils/fraud";
@@ -40,42 +41,18 @@ const onboardingStorageKey = "gigshieldOnboardingCompleted";
 function formatRelativeTime(isoDate) {
   const diffMs = Date.now() - new Date(isoDate).getTime();
   const diffMinutes = Math.floor(diffMs / 60000);
-
-  if (diffMinutes < 1) {
-    return "just now";
-  }
-  if (diffMinutes < 60) {
-    return `${diffMinutes} min ago`;
-  }
-
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours} hr ago`;
-  }
-
+  if (diffHours < 24) return `${diffHours} hr ago`;
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
 function getDeltaMeta(amount) {
-  if (amount > 0) {
-    return {
-      label: `+${formatCurrency(amount)}`,
-      classes: "bg-moss-100 text-moss-600",
-    };
-  }
-
-  if (amount < 0) {
-    return {
-      label: `-${formatCurrency(Math.abs(amount))}`,
-      classes: "bg-red-100 text-red-700",
-    };
-  }
-
-  return {
-    label: "No change",
-    classes: "bg-coal-100 text-coal-700",
-  };
+  if (amount > 0) return { label: `+${formatCurrency(amount)}`, classes: "bg-green-100 text-green-700" };
+  if (amount < 0) return { label: `-${formatCurrency(Math.abs(amount))}`, classes: "bg-red-100 text-red-700" };
+  return { label: "No change", classes: "bg-gray-100 text-gray-500" };
 }
 
 function toDayKey(value) {
@@ -89,757 +66,274 @@ function getWeeklyTrend(history) {
     const date = new Date(now);
     date.setDate(now.getDate() - i);
     const key = toDayKey(date);
-    days.push({
-      key,
-      label: date.toLocaleDateString(undefined, { weekday: "short" }),
-      triggers: 0,
-      paidAmount: 0,
-      blockedAmount: 0,
-      pendingClaims: 0,
-    });
+    days.push({ key, label: date.toLocaleDateString(undefined, { weekday: "short" }), triggers: 0, paidAmount: 0, blockedAmount: 0, pendingClaims: 0 });
   }
-
   history.forEach((item) => {
     const key = toDayKey(item.createdAt || Date.now());
     const day = days.find((entry) => entry.key === key);
-    if (!day) {
-      return;
-    }
+    if (!day) return;
     day.triggers += 1;
-    if (item.status === "paid" || item.status === "capped") {
-      day.paidAmount += Number(item.payoutAmount || 0);
-    } else {
-      day.blockedAmount += Number(item.basePayout || 0);
-    }
-    if (item.lifecycleStatus === "pending-verification" || item.lifecycleStatus === "processing") {
-      day.pendingClaims += 1;
-    }
+    if (item.status === "paid" || item.status === "capped") day.paidAmount += Number(item.payoutAmount || 0);
+    if (item.lifecycleStatus === "pending-verification" || item.lifecycleStatus === "processing") day.pendingClaims += 1;
   });
-
   return days;
 }
 
-/*
- * Main demo console for the worker journey.
- * Local state tracks the selected plan, payouts, trigger history, and fraud persona simulation.
- */
-function DashboardPage() {
+export default function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [session] = useState(() => getSession());
-  const planIdFromUrl = searchParams.get("plan");
-  const triggerIdFromUrl = searchParams.get("trigger");
-  const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
-  const resolvedPlanId =
-    planIdFromUrl ||
-    session?.selectedPlanId ||
-    persistedPlanId ||
-    userProfile.selectedPlanId;
-  const displayName = session?.name || userProfile.name;
-  const displayCity = session?.city || userProfile.city;
-  const displayPlatforms = session?.platforms || userProfile.platforms;
-  const selectedPlan =
-    planDetails.find((plan) => plan.id === resolvedPlanId) ??
-    planDetails[0];
-  const derivedPremiumBreakdown = useMemo(
-    () =>
-      calculateWeeklyPremium({
-        basePremium: selectedPlan.weeklyPremium,
-        platformCount: displayPlatforms.length,
-        riskLevel: session?.riskLevel || "Medium",
-      }),
-    [selectedPlan.weeklyPremium, displayPlatforms.length, session?.riskLevel],
-  );
-  const displayPremiumBreakdown =
-    session?.premiumBreakdown || derivedPremiumBreakdown;
-  const displayWeeklyPremium = displayPremiumBreakdown.adjustedPremium;
-  const premiumHistory = useMemo(
-    () =>
-      session?.premiumHistory && session.premiumHistory.length > 0
-        ? session.premiumHistory
-        : [
-            {
-              id: "fallback",
-              reason: "Initial premium setup",
-              changedAt: session?.signedInAt || new Date().toISOString(),
-              premium: displayPremiumBreakdown.adjustedPremium,
-              platformCount: displayPremiumBreakdown.platformCount,
-              riskLevel: displayPremiumBreakdown.riskLevel,
-              basePremium: displayPremiumBreakdown.basePremium,
-              platformLoadFee: displayPremiumBreakdown.platformLoadFee,
-              riskMultiplier: displayPremiumBreakdown.riskMultiplier,
-            },
-          ],
-    [session?.premiumHistory, session?.signedInAt, displayPremiumBreakdown],
-  );
-  const timelineEntries = useMemo(
-    () =>
-      premiumHistory.slice(0, 5).map((entry, index) => {
-        const previousEntry = premiumHistory[index + 1];
-        const previousPremium = previousEntry?.premium ?? entry.premium;
-        const deltaAmount = entry.premium - previousPremium;
+  const { languageMode, setLanguageMode } = useSiteLanguage();
 
-        return {
-          ...entry,
-          deltaAmount,
-          deltaMeta: getDeltaMeta(deltaAmount),
-          relativeTime: formatRelativeTime(entry.changedAt),
-        };
-      }),
-    [premiumHistory],
-  );
-
-  const [coverageActive] = useState(userProfile.coverageActive);
-  const [earningsProtectedThisWeek, setEarningsProtectedThisWeek] = useState(
-    userProfile.earningsProtectedThisWeek,
-  );
-  const [lastPayoutAmount, setLastPayoutAmount] = useState(
-    userProfile.lastPayoutAmount,
-  );
+  // Core States
+  const [selectedPlatforms, setSelectedPlatforms] = useState(["Swiggy", "Zomato", "Blinkit"]);
+  const [activePersonaKey, setActivePersonaKey] = useState("normal");
+  const [earningsProtectedThisWeek, setEarningsProtectedThisWeek] = useState(userProfile.earningsProtectedThisWeek);
+  const [lastPayoutAmount, setLastPayoutAmount] = useState(userProfile.lastPayoutAmount);
   const [paidTodayAmount, setPaidTodayAmount] = useState(0);
   const [payoutDayKey, setPayoutDayKey] = useState(new Date().toDateString());
-  const [latestPayoutMeta, setLatestPayoutMeta] = useState({
-    status: "idle",
-    reason: "",
-    basePayout: 0,
-    remainingCap: getDailyPayoutCap(selectedPlan.id),
-    dailyCap: getDailyPayoutCap(selectedPlan.id),
-  });
   const [latestTriggerId, setLatestTriggerId] = useState("");
-  const [activePersonaKey, setActivePersonaKey] = useState("normal");
-  const [lastActiveTime, setLastActiveTime] = useState(
-    activityData.lastActiveTime,
-  );
   const [triggerAuditEvents, setTriggerAuditEvents] = useState(() => getTriggerAuditEvents().slice(0, 8));
   const [weeklyTrend, setWeeklyTrend] = useState(() => getWeeklyTrend(getPayoutHistory()));
-  const [simulationPlanId, setSimulationPlanId] = useState(selectedPlan.id);
-  const [simulationTriggerId, setSimulationTriggerId] = useState(triggerEvents[0]?.id || "");
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => localStorage.getItem(onboardingStorageKey) !== "done",
-  );
-  const { languageMode, setLanguageMode } = useSiteLanguage();
-  const hasAutoTriggeredRef = useRef(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(onboardingStorageKey) !== "done");
 
+  const availablePlatforms = ["Swiggy", "Zomato", "Blinkit", "Zepto", "BigBasket", "Porter"];
+  const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
+  const resolvedPlanId = searchParams.get("plan") || session?.selectedPlanId || persistedPlanId || userProfile.selectedPlanId;
+  const selectedPlan = planDetails.find((p) => p.id === resolvedPlanId) ?? planDetails[0];
+
+  // Derived Data for Dynamic UI
   const activeFraudProfile = fraudScores[activePersonaKey] ?? fraudScores.normal;
-  const activeRiskLevel = getRiskLevelFromScore(activeFraudProfile.score);
+  const displayRiskLevel = getRiskLevelFromScore(activeFraudProfile.score);
+  const displayRiskMultiplier = getRiskMultiplier(displayRiskLevel);
+  const platformCount = selectedPlatforms.length;
 
-  const latestTrigger =
-    triggerEvents.find((event) => event.id === latestTriggerId) ?? null;
-  const latestTriggerDomain = latestTrigger?.domain || "";
+  // Use the refined pricing utility
+  const displayPremiumBreakdown = calculateWeeklyPremium({
+    basePremium: selectedPlan.weeklyPremium,
+    platformCount,
+    riskLevel: displayRiskLevel
+  });
+  const displayWeeklyPremium = displayPremiumBreakdown.adjustedPremium;
+
+  const [latestPayoutMeta, setLatestPayoutMeta] = useState({
+    status: "idle", reason: "", basePayout: 0, remainingCap: getDailyPayoutCap(selectedPlan.id), dailyCap: getDailyPayoutCap(selectedPlan.id)
+  });
+
+  const latestTrigger = triggerEvents.find((e) => e.id === latestTriggerId) ?? null;
   const dailyPayoutCap = getDailyPayoutCap(selectedPlan.id);
 
-  const simulationPlan = useMemo(
-    () => planDetails.find((plan) => plan.id === simulationPlanId) || selectedPlan,
-    [simulationPlanId, selectedPlan],
-  );
-  const simulationResult = useMemo(
-    () =>
-      simulationTriggerId
-        ? getPayoutForTrigger(triggerEvents, simulationTriggerId, simulationPlan.id, {
-            coverageHours: simulationPlan.coverageHours,
-            paidTodayAmount,
-            atTime: new Date(),
-          })
-        : null,
-    [simulationTriggerId, simulationPlan.id, simulationPlan.coverageHours, paidTodayAmount],
-  );
-
-  const planRecommendation = useMemo(
-    () =>
-      planDetails
-        .filter((plan) => plan.id !== selectedPlan.id)
-        .map((plan) => {
-          const comparisonPremium = calculateWeeklyPremium({
-            basePremium: plan.weeklyPremium,
-            platformCount: displayPlatforms.length,
-            riskLevel: session?.riskLevel || "Medium",
-          }).adjustedPremium;
-
-          return {
-            ...plan,
-            comparisonPremium,
-            premiumDelta: displayWeeklyPremium - comparisonPremium,
-            capDelta: getDailyPayoutCap(plan.id) - getDailyPayoutCap(selectedPlan.id),
-          };
-        })
-        .sort((a, b) => b.premiumDelta - a.premiumDelta)[0],
-    [selectedPlan.id, displayPlatforms.length, session?.riskLevel, displayWeeklyPremium],
-  );
-
-  const closeOnboarding = () => {
-    localStorage.setItem(onboardingStorageKey, "done");
-    setShowOnboarding(false);
-  };
-
+  // Simulation Logic
   const handleSimulateTrigger = async (triggerId) => {
     const now = new Date();
     const triggerRules = evaluateTriggerRules({ triggerId, now });
 
     if (triggerRules.cooldownBlocked || triggerRules.dedupBlocked) {
-      const blockedReason = triggerRules.cooldownBlocked
-        ? `Trigger cooling down. Retry in ${triggerRules.cooldownRemainingSec}s.`
-        : `Duplicate event blocked. Retry in ${triggerRules.dedupRemainingSec}s.`;
-
+      const blockedReason = triggerRules.cooldownBlocked ? `Cooling down. Retry in ${triggerRules.cooldownRemainingSec}s.` : "Duplicate blocked.";
       const status = triggerRules.cooldownBlocked ? "blocked-cooldown" : "blocked-dedup";
-      const blockedReceipt = createPayoutReceipt({
-        createdAt: now.toISOString(),
-        status,
-        reason: blockedReason,
-        triggerId,
-        triggerLabel: triggerEvents.find((event) => event.id === triggerId)?.label ?? triggerId,
-        planId: selectedPlan.id,
-        planName: selectedPlan.name,
-        payoutAmount: 0,
-        basePayout: 0,
-        dailyCap: dailyPayoutCap,
-        remainingCap: Math.max(0, dailyPayoutCap - paidTodayAmount),
-        isCoveredNow: true,
-        coverageHours: selectedPlan.coverageHours,
-        riskLevel: activeRiskLevel,
-        failureReasonCode: "TRIGGER_BLOCKED",
-      });
-      savePayoutReceipt(blockedReceipt);
-
-      const audit = {
-        id: blockedReceipt?.payoutId || `${now.getTime()}`,
-        createdAt: now.toISOString(),
-        triggerId,
-        decision: status,
-        reason: blockedReason,
-      };
-      appendTriggerAuditEvent(audit);
-      setTriggerAuditEvents(getTriggerAuditEvents().slice(0, 8));
-      setWeeklyTrend(getWeeklyTrend(getPayoutHistory()));
-      setLastPayoutAmount(0);
-      setLatestPayoutMeta({
-        status,
-        reason: blockedReason,
-        basePayout: 0,
-        remainingCap: Math.max(0, dailyPayoutCap - paidTodayAmount),
-        dailyCap: dailyPayoutCap,
-        triggerConfidenceScore: 0,
-      });
+      setLatestPayoutMeta({ status, reason: blockedReason, basePayout: 0, remainingCap: Math.max(0, dailyPayoutCap - paidTodayAmount), dailyCap: dailyPayoutCap });
       setLatestTriggerId(triggerId);
-
-      pushNotification({
-        type: "warning",
-        title: "Trigger blocked",
-        message: blockedReason,
-      });
-      trackEvent("trigger_blocked", { triggerId, status, blockedReason });
       return;
     }
 
-    // Real-time weather simulation is temporarily disabled to keep UI responsive.
-    const weatherReliability = {
-      primary: null,
-      sources: [],
-      confidence: 0.5,
-    };
-    const triggerConfidence = getTriggerConfidenceScore({
-      triggerId,
-      weatherReliability,
-      personaRiskLevel: activeRiskLevel,
-    });
-
+    const triggerConfidence = getTriggerConfidenceScore({ triggerId, personaRiskLevel: displayRiskLevel });
     const todayKey = now.toDateString();
     const effectivePaidToday = todayKey === payoutDayKey ? paidTodayAmount : 0;
 
-    if (todayKey !== payoutDayKey) {
-      setPayoutDayKey(todayKey);
-      setPaidTodayAmount(0);
-    }
+    const payoutResult = getPayoutForTrigger(triggerEvents, triggerId, selectedPlan.id, {
+      coverageHours: selectedPlan.coverageHours, paidTodayAmount: effectivePaidToday, atTime: now
+    });
 
-    const payoutResult = getPayoutForTrigger(
-      triggerEvents,
-      triggerId,
-      selectedPlan.id,
-      {
-        coverageHours: selectedPlan.coverageHours,
-        paidTodayAmount: effectivePaidToday,
-        atTime: now,
-      },
-    );
     const payoutAmount = payoutResult.payoutAmount;
-    const enrichedResult = {
-      ...payoutResult,
-      triggerConfidenceScore: Number((triggerConfidence.score * 100).toFixed(0)),
-      triggerConfidenceLabel: triggerConfidence.label,
-      weatherReliability,
-    };
+    const enrichedResult = { ...payoutResult, triggerConfidenceScore: Number((triggerConfidence.score * 100).toFixed(0)), triggerConfidenceLabel: triggerConfidence.label };
 
     const receipt = createPayoutReceipt({
-      createdAt: now.toISOString(),
-      status: payoutResult.status,
-      reason: payoutResult.reason,
-      triggerId,
-      triggerLabel: triggerEvents.find((event) => event.id === triggerId)?.label ?? triggerId,
-      planId: selectedPlan.id,
-      planName: selectedPlan.name,
-      payoutAmount,
-      basePayout: payoutResult.basePayout,
-      dailyCap: payoutResult.dailyCap,
-      remainingCap: payoutResult.remainingCap,
-      isCoveredNow: payoutResult.isCoveredNow,
-      coverageHours: payoutResult.coverageHours,
-      riskLevel: activeRiskLevel,
-      triggerConfidenceScore: enrichedResult.triggerConfidenceScore,
-      triggerConfidenceLabel: enrichedResult.triggerConfidenceLabel,
-      weatherReliability,
+      createdAt: now.toISOString(), status: payoutResult.status, reason: payoutResult.reason, triggerId,
+      triggerLabel: triggerEvents.find((e) => e.id === triggerId)?.label ?? triggerId,
+      planId: selectedPlan.id, planName: selectedPlan.name, payoutAmount, basePayout: payoutResult.basePayout,
+      dailyCap: payoutResult.dailyCap, remainingCap: payoutResult.remainingCap, isCoveredNow: true,
+      coverageHours: selectedPlan.coverageHours, riskLevel: displayRiskLevel,
+      triggerConfidenceScore: enrichedResult.triggerConfidenceScore
     });
     savePayoutReceipt(receipt);
 
     appendTriggerAuditEvent({
-      id: receipt?.payoutId || `${now.getTime()}`,
-      createdAt: now.toISOString(),
-      triggerId,
-      planId: selectedPlan.id,
-      decision: payoutResult.status,
-      reason: payoutResult.reason,
-      payoutAmount,
-      confidence: enrichedResult.triggerConfidenceScore,
+      id: receipt?.payoutId || `${now.getTime()}`, createdAt: now.toISOString(), triggerId,
+      decision: payoutResult.status, reason: payoutResult.reason, payoutAmount, confidence: enrichedResult.triggerConfidenceScore
     });
+
     setTriggerAuditEvents(getTriggerAuditEvents().slice(0, 8));
     setWeeklyTrend(getWeeklyTrend(getPayoutHistory()));
-
     setLastPayoutAmount(payoutAmount);
-    if (payoutAmount > 0) {
-      setEarningsProtectedThisWeek((currentAmount) =>
-        applyTriggerToEarnings(currentAmount, payoutAmount),
-      );
-    }
     setPaidTodayAmount(effectivePaidToday + payoutAmount);
     setLatestPayoutMeta(enrichedResult);
     setLatestTriggerId(triggerId);
-    setLastActiveTime(now.toISOString());
-
-    pushNotification({
-      type: payoutAmount > 0 ? "success" : "warning",
-      title: payoutAmount > 0 ? "Payout approved" : "Payout blocked",
-      message: payoutResult.reason,
-    });
 
     if (payoutAmount > 0 && (payoutResult.status === "paid" || payoutResult.status === "capped")) {
       navigate("/payout");
     }
-
-    trackEvent("trigger_processed", {
-      triggerId,
-      payoutStatus: payoutResult.status,
-      payoutAmount,
-      confidence: enrichedResult.triggerConfidenceScore,
-    });
   };
 
-  useEffect(() => {
-    if (!triggerIdFromUrl || hasAutoTriggeredRef.current) {
-      return;
-    }
+  const togglePlatform = (p) => {
+    setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+  };
 
-    const triggerExists = triggerEvents.some((event) => event.id === triggerIdFromUrl);
-    if (!triggerExists) {
-      return;
-    }
+  const timelineEntries = useMemo(() => [
+    { id: '1', premium: displayWeeklyPremium, reason: 'Current premium', changedAt: new Date().toISOString(), platformCount, riskLevel: displayRiskLevel, riskMultiplier: displayRiskMultiplier, deltaMeta: { label: 'Active', classes: 'bg-green-100 text-green-700' } }
+  ], [displayWeeklyPremium, platformCount, displayRiskLevel, displayRiskMultiplier]);
 
-    hasAutoTriggeredRef.current = true;
-    const timeoutId = window.setTimeout(() => {
-      handleSimulateTrigger(triggerIdFromUrl);
-    }, 0);
+  const timelineEntriesWithDelta = useMemo(() => timelineEntries.map(e => ({ ...e, relativeTime: formatRelativeTime(e.changedAt) })), [timelineEntries]);
 
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-    // handleSimulateTrigger has broad state deps; keep this effect URL-driven only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [triggerIdFromUrl]);
+  const coverageActive = selectedPlatforms.length > 0;
 
   return (
-    <main className="frame-shell min-h-screen py-6 sm:py-8">
-      <header className="board animate-enter mb-5 overflow-hidden">
-        <div className="top-strip">
-          {selectLabel(
-            languageMode,
-            "Easy Demo: press weather/problem buttons and see instant support payout.",
-            "सरल डेमो: मौसम/समस्या बटन दबाएं और तुरंत भुगतान देखें।",
-          )}
+    <main className="min-h-screen bg-[#f4f5f7] font-sans pb-24 text-gray-900 overflow-x-hidden">
+      {/* Dynamic Nav */}
+      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
+          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">Live</span>
         </div>
+        <div className="flex items-center gap-4">
+          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
+          <button onClick={async () => { await supabase.auth.signOut(); clearSession(); navigate("/auth"); }} className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">Sign Out</button>
+        </div>
+      </nav>
 
-        <div className="border-b border-coal-200 px-4 py-5 sm:px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="max-w-[1400px] mx-auto px-6 py-10">
+        <header className="mb-12">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">{selectLabel(languageMode, "Worker Console", "वर्कर कंसोल")}</p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             <div>
-              <p className="kicker">
-                {selectLabel(languageMode, "Worker Dashboard", "वर्कर डैशबोर्ड")}
-              </p>
-              <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
-                {selectLabel(languageMode, "Hello", "नमस्ते")} {displayName}
+              <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mb-6">
+                {selectLabel(languageMode, "Hello", "नमस्ते")}, <span className="text-gray-300">{session?.name || "Rider"}</span>
               </h1>
-              <p className="mt-3 text-sm text-coal-500">
-                {selectLabel(languageMode, "Apps", "ऐप्स")}: {displayPlatforms.join(", ")} | {" "}
-                {selectLabel(languageMode, "City", "शहर")}: {displayCity}
-              </p>
+              <div className="flex flex-wrap items-center gap-8 text-sm font-bold text-gray-500">
+                <span className="flex items-center gap-2"><MapPin size={16} />{session?.city || "New Delhi"}</span>
+                <span className="flex items-center gap-2"><Fingerprint size={16} />{session?.workerId || "GS-8.2k"}</span>
+                <span className={`flex items-center gap-2 transition-colors ${coverageActive ? "text-green-600" : "text-red-400"}`}><Clock size={16} />{selectedPlan.coverageHours}</span>
+              </div>
             </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <LanguageToggle
-                languageMode={languageMode}
-                setLanguageMode={setLanguageMode}
-              />
-              <span
-                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                  coverageActive
-                    ? "bg-moss-100 text-moss-600"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {coverageActive
-                  ? selectLabel(languageMode, "Coverage Active", "कवरेज चालू")
-                  : selectLabel(languageMode, "Coverage Paused", "कवरेज रुका")}
-              </span>
-              <Link to="/" className="secondary-btn">
-                {selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}
-              </Link>
-              {session?.role === "admin" ? (
-                <Link to="/admin/ops" className="secondary-btn">
-                  {selectLabel(languageMode, "Admin Ops", "एडमिन ऑप्स")}
-                </Link>
-              ) : null}
-              <button
-                type="button"
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  clearSession();
-                  navigate("/auth");
-                }}
-                className="secondary-btn"
-              >
-                {selectLabel(languageMode, "Sign Out", "लॉग आउट")}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-4">
-            <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Current Plan", "मौजूदा योजना")}</p>
-              <p className="mt-1 text-lg font-semibold text-coal-900">
-                {selectedPlan.name}
-              </p>
-            </article>
-            <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Weekly Premium", "साप्ताहिक प्रीमियम")}</p>
-              <p className="mt-1 text-lg font-semibold text-coal-900">
-                {formatCurrency(displayWeeklyPremium)}
-              </p>
-            </article>
-            <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Coverage Hours", "कवरेज समय")}</p>
-              <p className="mt-1 text-lg font-semibold text-coal-900">
-                {selectedPlan.coverageHours}
-              </p>
-            </article>
-            <article className="board-soft p-3">
-              <p className="kicker">{selectLabel(languageMode, "Premium Logic", "प्रीमियम का हिसाब")}</p>
-              <p className="mt-1 text-sm font-semibold text-coal-900">
-                {selectLabel(languageMode, "Base", "मूल")}
-                {" "}
-                {formatCurrency(displayPremiumBreakdown.basePremium)} + {selectLabel(languageMode, "load", "लोड")}{" "}
-                {formatCurrency(displayPremiumBreakdown.platformLoadFee)}
-              </p>
-              <p className="mt-1 text-xs text-coal-600">
-                {displayPremiumBreakdown.platformCount} {selectLabel(languageMode, "platforms", "ऐप्स")} | {" "}
-                {selectLabel(languageMode, "Risk", "जोखिम")} {displayPremiumBreakdown.riskLevel} x
-                {displayPremiumBreakdown.riskMultiplier.toFixed(2)}
-              </p>
-            </article>
-          </div>
-
-          <article className="board-soft mt-4 p-4">
-            <p className="kicker">
-              {selectLabel(languageMode, "Why Premium Changed", "प्रीमियम क्यों बदला")}
-            </p>
-            <p className="mt-1 text-xs text-coal-600">
-              {selectLabel(
-                languageMode,
-                "Each event logs what changed and how much it moved the weekly premium.",
-                "हर इवेंट बताता है कि प्रीमियम कितना बदला।",
-              )}
-            </p>
-            <div className="mt-3 space-y-2">
-              {timelineEntries.map((entry) => (
-                <div key={entry.id} className="rounded-lg border border-coal-200 bg-white px-3 py-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-coal-900">
-                      {formatCurrency(entry.premium)} | {entry.reason}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-coal-500">
-                        {entry.relativeTime}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-1 text-[11px] font-semibold ${entry.deltaMeta.classes}`}
-                      >
-                        {entry.deltaMeta.label}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-coal-600">
-                    {entry.platformCount} platforms | Risk {entry.riskLevel} x
-                    {Number(entry.riskMultiplier).toFixed(2)} | Base {formatCurrency(entry.basePremium)} + load{" "}
-                    {formatCurrency(entry.platformLoadFee)}
-                  </p>
+            <div className="flex flex-col items-end gap-2">
+               <div className="bg-white border-2 border-gray-900 rounded-2xl px-5 py-4 flex items-center gap-4 shadow-xl">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Weekly Premium", "साप्ताहिक प्रीमियम")}</p>
+                  <p className="text-3xl font-black tracking-tighter">{formatCurrency(displayWeeklyPremium)}</p>
                 </div>
-              ))}
+                <div className="h-10 w-px bg-gray-100" />
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Risk Level", "जोखिम स्तर")}</p>
+                  <p className={`text-sm font-black uppercase ${displayRiskLevel === "High" ? "text-red-500" : "text-green-600"}`}>{displayRiskLevel}</p>
+                </div>
+              </div>
             </div>
-          </article>
+          </div>
+        </header>
 
-          <article className="board-soft mt-4 p-4">
-            <p className="kicker">{selectLabel(languageMode, "How To Use", "कैसे उपयोग करें")}</p>
-            <div className="mt-2 grid gap-2 text-sm text-coal-800 sm:grid-cols-3">
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                {selectLabel(
-                  languageMode,
-                  "1. Press a problem button (Rain / Heat / AQI / Outage)",
-                  "1. समस्या बटन दबाएं (बारिश / गर्मी / AQI / प्लेटफॉर्म बंद)",
-                )}
-              </p>
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                {selectLabel(
-                  languageMode,
-                  "2. Tap Receive Payout and complete selfie verification",
-                  "2. भुगतान प्राप्त करें दबाएं और सेल्फी सत्यापन पूरा करें",
-                )}
-              </p>
-              <p className="rounded-lg border border-coal-200 bg-white px-3 py-2 font-semibold">
-                {selectLabel(
-                  languageMode,
-                  "3. Check payout and protected money update instantly",
-                  "3. भुगतान और सुरक्षित राशि का तुरंत अपडेट देखें",
-                )}
-              </p>
-            </div>
-          </article>
-        </div>
-      </header>
-
-      <section className="mt-4 grid gap-4 lg:grid-cols-3">
-        <TriggerSimulationPanel
-          triggerEvents={triggerEvents}
-          selectedPlanId={selectedPlan.id}
-          selectedPlanName={selectedPlan.name}
-          latestTrigger={latestTrigger}
-          latestPayout={lastPayoutAmount}
-          latestPayoutMeta={latestPayoutMeta}
-          paidTodayAmount={paidTodayAmount}
-          dailyPayoutCap={dailyPayoutCap}
-          onSimulateTrigger={handleSimulateTrigger}
-          languageMode={languageMode}
-        />
-        <EarningsSnapshot
-          earningsProtectedThisWeek={earningsProtectedThisWeek}
-          lastPayoutAmount={lastPayoutAmount}
-          languageMode={languageMode}
-        />
-      </section>
-
-      <section className="mt-4 grid gap-4 lg:grid-cols-3">
-        <PlanSummary
-          selectedPlan={selectedPlan}
-          coverageActive={coverageActive}
-          languageMode={languageMode}
-        />
-        <ActivityPanel
-          activity={activityData}
-          lastActiveTime={lastActiveTime}
-          languageMode={languageMode}
-        />
-        <FraudDetectionIndicator
-          fraudProfiles={fraudScores}
-          activePersonaKey={activePersonaKey}
-          onPersonaChange={setActivePersonaKey}
-          languageMode={languageMode}
-        />
-      </section>
-
-      <section className="mt-4 grid gap-4 lg:grid-cols-2">
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Why this payout amount", "यह भुगतान राशि क्यों")}</p>
-          <p className="mt-2 text-sm text-coal-700">
-            {selectLabel(
-              languageMode,
-              `Base ${formatCurrency(Number(latestPayoutMeta.basePayout || 0))} -> Remaining Cap ${formatCurrency(Number(latestPayoutMeta.remainingCap || 0))} -> Paid ${formatCurrency(lastPayoutAmount)} (${latestPayoutMeta.status || "idle"})`,
-              `बेस ${formatCurrency(Number(latestPayoutMeta.basePayout || 0))} -> बची सीमा ${formatCurrency(Number(latestPayoutMeta.remainingCap || 0))} -> भुगतान ${formatCurrency(lastPayoutAmount)} (${latestPayoutMeta.status || "idle"})`,
-            )}
-          </p>
-          <p className="mt-2 text-xs text-coal-600">
-            {selectLabel(languageMode, "Trigger confidence", "ट्रिगर भरोसा")}: {latestPayoutMeta.triggerConfidenceScore || 0}% ({latestPayoutMeta.triggerConfidenceLabel || "-"})
-          </p>
-          {latestTriggerDomain === "social" ? (
-            <p className="mt-2 rounded-lg border border-coal-200 bg-white px-3 py-2 text-xs text-coal-700">
-              {selectLabel(
-                languageMode,
-                "Social disruption rationale: payouts are based on zone access loss, expected shift interruption, and plan coverage constraints.",
-                "सामाजिक व्यवधान कारण: भुगतान ज़ोन पहुंच हानि, शिफ्ट बाधा अनुमान और योजना कवरेज सीमाओं पर आधारित है।",
-              )}
-            </p>
-          ) : null}
-        </article>
-
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Plan recommendation", "योजना सुझाव")}</p>
-          {planRecommendation ? (
-            <>
-              <p className="mt-2 text-sm font-semibold text-coal-900">{planRecommendation.name}</p>
-              <p className="mt-1 text-xs text-coal-600">
-                {planRecommendation.premiumDelta > 0
-                  ? selectLabel(
-                    languageMode,
-                    `Switch plan to save ${formatCurrency(planRecommendation.premiumDelta)} per week`,
-                    `योजना बदलकर प्रति सप्ताह ${formatCurrency(planRecommendation.premiumDelta)} बचाएं`,
-                  )
-                  : selectLabel(
-                    languageMode,
-                    `Switch plan for +${formatCurrency(Math.abs(planRecommendation.capDelta))} daily cap potential`,
-                    `योजना बदलकर +${formatCurrency(Math.abs(planRecommendation.capDelta))} दैनिक सीमा पाएँ`,
-                  )}
-              </p>
-              <p className="mt-1 text-xs text-coal-600">
-                {selectLabel(languageMode, "Coverage", "कवरेज")}: {planRecommendation.coverageHours}
-              </p>
-            </>
-          ) : null}
-        </article>
-      </section>
-
-      <section className="mt-4 grid gap-4 lg:grid-cols-2">
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Weekly trend", "साप्ताहिक ट्रेंड")}</p>
-          <div className="mt-3 grid grid-cols-7 gap-2">
-            {weeklyTrend.map((day) => {
-              const barHeight = Math.min(100, day.triggers * 20 + day.pendingClaims * 10);
+        {/* Platform Manager Section */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Active Work Apps", "सक्रिय काम के ऐप्स")}</p>
+            <p className="text-xs font-bold text-gray-400">{selectedPlatforms.length} {selectLabel(languageMode, "Apps active", "ऐप्स सक्रिय")}</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {availablePlatforms.map((p) => {
+              const isActive = selectedPlatforms.includes(p);
               return (
-                <div key={day.key} className="flex flex-col items-center gap-1 text-[10px] text-coal-600">
-                  <div className="flex h-24 w-8 items-end rounded bg-coal-100">
-                    <div className="w-full rounded bg-electric-500" style={{ height: `${barHeight}%` }} />
+                <button
+                  key={p}
+                  onClick={() => togglePlatform(p)}
+                  className={`relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
+                    isActive ? "border-gray-900 bg-gray-900 text-white shadow-lg scale-[1.02]" : "border-gray-200 bg-white hover:border-gray-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-black uppercase tracking-widest">{p}</span>
+                    {isActive ? <Check size={14} /> : <Plus size={14} className="text-gray-300" />}
                   </div>
-                  <span>{day.label}</span>
-                  <span>{day.triggers}T</span>
-                </div>
+                  <p className={`text-[9px] font-bold uppercase tracking-tight ${isActive ? "text-white/60" : "text-gray-400"}`}>
+                    {isActive ? "Connected" : "Connect"}
+                  </p>
+                </button>
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-coal-600">
-            {selectLabel(languageMode, "Legend", "लीजेंड")}: T={selectLabel(languageMode, "Triggers", "ट्रिगर्स")}
-          </p>
-        </article>
+        </section>
 
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Claim simulation", "क्लेम सिमुलेशन")}</p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            <label className="text-xs font-semibold text-coal-600">
-              {selectLabel(languageMode, "Plan", "योजना")}
-              <select
-                className="mt-1 w-full rounded-lg border border-coal-200 bg-white px-2 py-2 text-sm"
-                value={simulationPlanId}
-                onChange={(event) => setSimulationPlanId(event.target.value)}
-              >
-                {planDetails.map((plan) => (
-                  <option key={plan.id} value={plan.id}>{plan.name}</option>
-                ))}
-              </select>
-            </label>
+        <div className="grid lg:grid-cols-3 gap-12">
+          {/* Main Controls */}
+          <div className="lg:col-span-2 space-y-12">
+            <TriggerSimulationPanel
+              triggerEvents={triggerEvents}
+              selectedPlanId={selectedPlan.id}
+              selectedPlanName={selectedPlan.name}
+              latestTrigger={latestTrigger}
+              latestPayout={lastPayoutAmount}
+              latestPayoutMeta={latestPayoutMeta}
+              paidTodayAmount={paidTodayAmount}
+              dailyPayoutCap={dailyPayoutCap}
+              onSimulateTrigger={handleSimulateTrigger}
+              languageMode={languageMode}
+            />
 
-            <label className="text-xs font-semibold text-coal-600">
-              {selectLabel(languageMode, "Trigger", "ट्रिगर")}
-              <select
-                className="mt-1 w-full rounded-lg border border-coal-200 bg-white px-2 py-2 text-sm"
-                value={simulationTriggerId}
-                onChange={(event) => setSimulationTriggerId(event.target.value)}
-              >
-                {triggerEvents.map((event) => (
-                  <option key={event.id} value={event.id}>{event.label}</option>
-                ))}
-              </select>
-            </label>
+            <div className="grid md:grid-cols-2 gap-8">
+              <EarningsSnapshot
+                earningsProtectedThisWeek={earningsProtectedThisWeek}
+                lastPayoutAmount={lastPayoutAmount}
+                languageMode={languageMode}
+              />
+              <ActivityPanel
+                activity={activityData}
+                lastActiveTime={userProfile.lastActiveTime}
+                languageMode={languageMode}
+              />
+            </div>
           </div>
 
-          {simulationResult ? (
-            <div className="mt-3 rounded-lg border border-coal-200 bg-white p-3 text-xs text-coal-700">
-              <p>{selectLabel(languageMode, "Predicted payout", "अनुमानित भुगतान")}: {formatCurrency(simulationResult.payoutAmount || 0)}</p>
-              <p>{selectLabel(languageMode, "Status", "स्थिति")}: {simulationResult.status}</p>
-              <p>{selectLabel(languageMode, "Reason", "कारण")}: {simulationResult.reason}</p>
-            </div>
-          ) : null}
-        </article>
-      </section>
+          {/* Side Feedback */}
+          <div className="space-y-12">
+            <FraudDetectionIndicator
+              fraudProfiles={fraudScores}
+              activePersonaKey={activePersonaKey}
+              onPersonaChange={setActivePersonaKey}
+              languageMode={languageMode}
+            />
 
-      <section className="mt-4">
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Event audit timeline", "इवेंट ऑडिट टाइमलाइन")}</p>
-          <div className="mt-3 space-y-2">
-            {triggerAuditEvents.length === 0 ? (
-              <p className="text-xs text-coal-600">{selectLabel(languageMode, "No audits yet", "अभी कोई ऑडिट नहीं")}</p>
-            ) : (
-              triggerAuditEvents.map((event) => (
-                <div key={event.id} className="rounded-lg border border-coal-200 bg-white px-3 py-2 text-xs text-coal-700">
-                  <p className="font-semibold text-coal-900">{event.triggerId}{" -> "}{event.decision}</p>
-                  <p>{new Date(event.createdAt).toLocaleString()}</p>
-                  <p>{event.reason}</p>
-                  {event.confidence ? <p>Confidence: {event.confidence}%</p> : null}
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Premium Timeline", "प्रीमियम टाइमलाइन")}</p>
+              <div className="space-y-4">
+                {timelineEntriesWithDelta.map((e) => (
+                  <div key={e.id} className="bg-white border border-gray-200 rounded-3xl p-6 transition-all hover:border-gray-900/10 hover:shadow-soft">
+                    <div className="flex items-center justify-between mb-2">
+                       <p className="text-sm font-black">{formatCurrency(e.premium)} — {e.reason}</p>
+                       <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${e.deltaMeta.classes}`}>{e.deltaMeta.label}</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400">
+                      {e.platformCount} platforms | Risk {e.riskLevel} x{Number(e.riskMultiplier).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Weekly Activity", "साप्ताहिक गतिविधि")}</p>
+              <div className="bg-white border border-gray-200 rounded-3xl p-8">
+                <div className="flex h-32 items-end justify-between gap-3">
+                  {weeklyTrend.map((d) => (
+                    <div key={d.key} className="flex-1 flex flex-col items-center gap-2">
+                       <div className="w-full bg-gray-100 rounded-full overflow-hidden h-full flex flex-col justify-end">
+                          <div className="bg-gray-900 rounded-full transition-all duration-1000" style={{ height: `${Math.min(100, d.triggers * 25)}%` }} />
+                       </div>
+                       <span className="text-[9px] font-black text-gray-400 uppercase">{d.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))
-            )}
-          </div>
-        </article>
-      </section>
-
-      <section className="mt-4">
-        <article className="board-soft p-4">
-          <p className="kicker">{selectLabel(languageMode, "Live signal health", "लाइव सिग्नल स्वास्थ्य")}</p>
-          <p className="mt-2 text-xs text-coal-600">
-            {selectLabel(
-              languageMode,
-              "Real-time signal simulation is temporarily disabled for stability.",
-              "स्थिरता के लिए रियल-टाइम सिग्नल सिमुलेशन अस्थायी रूप से बंद है।",
-            )}
-          </p>
-        </article>
-      </section>
-
-      <nav className="fixed bottom-3 left-1/2 z-40 flex w-[95%] max-w-md -translate-x-1/2 items-center justify-between rounded-full border border-coal-200 bg-white/95 px-3 py-2 shadow-edge lg:hidden">
-        <button type="button" className="text-xs font-semibold text-coal-700" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          {selectLabel(languageMode, "Trigger", "ट्रिगर")}
-        </button>
-        <Link to="/payout" className="text-xs font-semibold text-coal-700">
-          {selectLabel(languageMode, "Verify", "वेरिफाई")}
-        </Link>
-        <Link to="/payout" className="text-xs font-semibold text-coal-700">
-          {selectLabel(languageMode, "Receive", "प्राप्त")}
-        </Link>
-        <Link to="/payout/history" className="text-xs font-semibold text-coal-700">
-          {selectLabel(languageMode, "History", "इतिहास")}
-        </Link>
-      </nav>
-
-      {showOnboarding ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-coal-900/40 px-4">
-          <article className="w-full max-w-lg rounded-2xl border border-coal-200 bg-white p-5 shadow-edge">
-            <p className="kicker">{selectLabel(languageMode, "How payout works", "भुगतान कैसे काम करता है")}</p>
-            <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-coal-700">
-              <li>{selectLabel(languageMode, "Trigger event is detected", "ट्रिगर इवेंट पहचाना जाता है")}</li>
-              <li>{selectLabel(languageMode, "Risk and confidence checks run", "जोखिम और भरोसा जांच चलती है")}</li>
-              <li>{selectLabel(languageMode, "Verification may be required", "सत्यापन आवश्यक हो सकता है")}</li>
-              <li>{selectLabel(languageMode, "Payout settles and receipt is stored", "भुगतान सेटल होता है और रसीद सुरक्षित होती है")}</li>
-            </ol>
-            <div className="mt-4 flex justify-end">
-              <button type="button" className="primary-btn" onClick={closeOnboarding}>
-                {selectLabel(languageMode, "Start demo", "डेमो शुरू करें")}
-              </button>
+              </div>
             </div>
-          </article>
+          </div>
         </div>
-      ) : null}
-
+      </div>
     </main>
   );
 }
-
-export default DashboardPage;
