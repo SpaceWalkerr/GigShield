@@ -1,225 +1,56 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { Menu, X, Zap, ShieldCheck, Wallet, ArrowUp } from "lucide-react";
+import { Zap, ShieldCheck, Wallet, CloudRain, Wind, WifiOff, MapPinOff, Activity, ScanFace, Lock, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Marquee from "react-fast-marquee";
-import LanguageToggle from "../components/LanguageToggle";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
 
 export default function LandingPage() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const { languageMode, setLanguageMode } = useSiteLanguage();
+  const { languageMode } = useSiteLanguage();
   const container = useRef();
 
   useEffect(() => {
-    let ctx = gsap.context(() => {
-      // Hero text stagger
-      gsap.from(".hero-text", {
-        y: 50,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out",
-        delay: 0.2
-      });
-      
-      // Floating icons loop animation
-      gsap.to(".floating-icon", {
-        y: -8,
-        yoyo: true,
-        repeat: -1,
-        duration: 2,
-        ease: "sine.inOut"
-      });
-      // Feature text stagger
-      gsap.from(".feature-text", {
-        y: 30,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out",
-        delay: 0.8
-      });
-      // Bottom cards stagger
-      gsap.from(".info-card", {
-        scrollTrigger: {
-          trigger: ".cards-container",
-          start: "top 90%",
-        },
-        y: 50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out"
-      });
-    }, container);
+    if (!container.current) return;
     
+    let ctx = gsap.context(() => {
+      // Ensure elements exist before animating
+      const heroElements = document.querySelectorAll(".hero-text");
+      const infoCards = document.querySelectorAll(".info-card");
+      
+      if (heroElements.length > 0) {
+        gsap.from(".hero-text", { y: 50, opacity: 0, duration: 1, stagger: 0.2, ease: "power3.out", delay: 0.2 });
+      }
+      
+      gsap.to(".floating-icon", { y: -8, yoyo: true, repeat: -1, duration: 2, ease: "sine.inOut" });
+      
+      if (document.querySelectorAll(".feature-text").length > 0) {
+        gsap.from(".feature-text", { y: 30, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power2.out", delay: 0.8 });
+      }
+      
+      if (infoCards.length > 0 && document.querySelector(".cards-container")) {
+        gsap.from(".info-card", {
+          scrollTrigger: { trigger: ".cards-container", start: "top 90%" },
+          y: 50, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power2.out"
+        });
+      }
+    }, container);
     return () => ctx.revert();
   }, []);
 
-  const navItems = [
-    { key: "product", label: selectLabel(languageMode, "Product", "उत्पाद") },
-    { key: "triggers", label: selectLabel(languageMode, "Triggers", "ट्रिगर्स") },
-    { key: "fraud", label: selectLabel(languageMode, "Fraud Guard", "फ्रॉड गार्ड") },
-    { key: "pricing", label: selectLabel(languageMode, "Pricing", "कीमत") },
-  ];
-
-  const handleNavClick = (key) => {
-    navigate(
-      key === "pricing"
-        ? "/pricing"
-        : key === "product"
-          ? "/product"
-          : key === "triggers"
-            ? "/triggers"
-            : "/fraud-guard"
-    );
-    setIsMobileMenuOpen(false);
-  };
-
-  const toggleMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   return (
     <div ref={container} className="min-h-screen bg-[#f4f5f7] font-sans flex flex-col">
-      {/* Marquee Top Strip */}
-      <div className="relative z-20 w-full bg-[#1a2229] py-2 overflow-hidden flex items-center shadow-md">
-        <Marquee speed={40} direction="left" gradient={false} className="text-sm font-semibold tracking-widest text-[#f4cf3f]">
-          {selectLabel(
-            languageMode,
-            "⚡ Ramesh Kumar received ₹30 payback for Heavy Rain   •   ⚡ Suresh triggered ₹50 payout for Heatwave   •   ⚡ Amit got ₹40 for AQI spike   •   ⚡ Vikram received ₹60 for Delhi Outage   •   ⚡ GigShield pays by trigger, not paperwork!",
-            "⚡ रमेश कुमार को भारी बारिश के लिए ₹30 मिले   •   ⚡ सुरेश को लू के लिए ₹50 मिले   •   ⚡ अमित को AQI के लिए ₹40 मिले   •   ⚡ GigShield ट्रिगर से भुगतान करता है!"
-          )}
-        </Marquee>
-      </div>
-
       {/* Hero section */}
       <div className="relative flex-1 flex flex-col min-h-[calc(100vh-36px)]">
         <img
           src="/rider.png"
           alt="Delivery Rider Minimal 3D"
-          className="absolute inset-0 h-full w-full object-cover opacity-30 z-0 mix-blend-multiply"
+          className="absolute inset-0 h-full w-full object-cover opacity-30 z-0 mix-blend-multiply blur-sm"
         />
 
         {/* Content Wrapper */}
         <div className="relative z-10 flex flex-1 flex-col">
-          {/* Navigation Bar */}
-          <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-6 md:px-8 flex-none">
-            <div className="cursor-pointer rounded bg-[#f4f5f7]/90 px-3 py-1 text-xl md:text-2xl font-bold tracking-tight text-gray-900 backdrop-blur-sm shadow-sm" onClick={() => navigate("/")}>
-              GIGSHIELD.
-            </div>
-
-            {/* Desktop Menu */}
-            <div className="hidden items-center gap-6 rounded-full bg-[#f4f5f7]/80 px-6 py-2 font-medium shadow-sm backdrop-blur-md lg:flex border border-white/40">
-              <button
-                onClick={() => handleNavClick("product")}
-                className="text-gray-900 transition-colors hover:text-gray-600"
-              >
-                {selectLabel(languageMode, "Product", "उत्पाद")}
-              </button>
-              <button
-                onClick={() => handleNavClick("pricing")}
-                className="text-gray-900 transition-colors hover:text-gray-600"
-              >
-                {selectLabel(languageMode, "Pricing", "कीमत")}
-              </button>
-              
-              <div className="mx-2 h-5 border-l border-gray-300" />
-              
-              {/* Desktop Hamburger for hidden items */}
-              <div className="relative group">
-                <button className="flex items-center gap-1 text-gray-900 hover:text-gray-600 transition-colors">
-                  <Menu size={20} />
-                </button>
-                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-2xl border border-white/60 bg-white/95 p-2 shadow-xl backdrop-blur-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <button
-                    onClick={() => handleNavClick("triggers")}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                  >
-                    {selectLabel(languageMode, "Triggers", "ट्रिगर्स")}
-                  </button>
-                  <button
-                    onClick={() => handleNavClick("fraud")}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                  >
-                    {selectLabel(languageMode, "Fraud Guard", "फ्रॉड गार्ड")}
-                  </button>
-                </div>
-              </div>
-
-              <div className="mx-2 h-5 border-l border-gray-300" />
-              
-              <LanguageToggle
-                languageMode={languageMode}
-                setLanguageMode={setLanguageMode}
-              />
-            </div>
-
-            <div className="hidden md:flex gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/get-protected")}
-                className="rounded-full bg-[#202A36] px-6 py-2.5 font-medium text-white shadow-lg transition-all hover:bg-[#1a2229] hover:shadow-xl"
-              >
-                {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/auth")}
-                className="rounded-full bg-white px-6 py-2.5 font-medium text-gray-900 shadow-lg transition-all hover:bg-gray-100 hover:shadow-xl border border-gray-200"
-              >
-                {selectLabel(languageMode, "Sign In", "साइन इन")}
-              </button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="rounded-full bg-[#f4f5f7]/80 p-2 text-gray-900 shadow-sm backdrop-blur-sm focus:outline-none lg:hidden"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </nav>
-
-          {/* Mobile Menu Dropdown */}
-          {isMobileMenuOpen && (
-            <div className="absolute left-4 right-4 top-24 z-20 rounded-2xl border border-white/20 bg-white/95 p-6 shadow-xl backdrop-blur-lg lg:hidden">
-              <div className="flex flex-col gap-4 text-center font-medium">
-                {navItems.map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => handleNavClick(item.key)}
-                    className="border-b border-gray-100 py-2 text-gray-900 transition-colors hover:text-gray-600 last:border-0"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <div className="flex justify-center pt-2">
-                  <LanguageToggle
-                    languageMode={languageMode}
-                    setLanguageMode={setLanguageMode}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate("/get-protected")}
-                  className="mt-4 rounded-full bg-[#202A36] px-6 py-3 font-medium text-white transition-colors hover:bg-[#1a2229]"
-                >
-                  {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate("/auth")}
-                  className="rounded-full bg-gray-100 px-6 py-3 font-medium text-gray-900 transition-colors hover:bg-gray-200"
-                >
-                  {selectLabel(languageMode, "Sign In", "साइन इन")}
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Main Content Area */}
           <div className="pointer-events-none flex flex-1 flex-col items-center justify-center py-12 px-4 md:py-20 flex-shrink-0">
             <div className="pointer-events-auto flex w-full max-w-5xl flex-col items-center justify-center text-center">
@@ -260,11 +91,104 @@ export default function LandingPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/signin")}
                   className="rounded-full bg-white/90 px-8 py-3.5 text-lg font-semibold text-gray-900 shadow-xl transition-all hover:bg-white hover:-translate-y-1 border border-gray-200 backdrop-blur-md"
                 >
                   {selectLabel(languageMode, "Sign In", "साइन इन")}
                 </button>
+              </div>
+
+              {/* About Section - Integrated Triggers & Fraud Guard */}
+              <div id="about-section" className="mt-32 w-full max-w-7xl mx-auto space-y-32 pointer-events-auto">
+                {/* Section Header */}
+                <div className="text-center space-y-6 max-w-3xl mx-auto mb-20 bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/60 shadow-lg">
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
+                    {selectLabel(languageMode, "How it Works", "यह कैसे काम करता है")}
+                  </span>
+                  <h2 className="hero-text text-5xl md:text-6xl font-black text-gray-900 leading-[1.1] tracking-tightest">
+                    {selectLabel(languageMode, "Built for transparency.", "पारदर्शिता के लिए निर्मित।")}<br />
+                    <span className="text-gray-400 italic font-medium">{selectLabel(languageMode, "Backed by tech.", "तकनीक द्वारा समर्थित।")}</span>
+                  </h2>
+                </div>
+
+                <div className="grid lg:grid-cols-2 gap-20 items-stretch text-left">
+                  {/* Left Column: Triggers */}
+                  <div className="flex flex-col h-full space-y-12 bg-white/60 backdrop-blur-xl rounded-[3rem] p-10 border border-white/60 shadow-xl">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
+                        <Zap className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-3xl font-black text-gray-900">{selectLabel(languageMode, "The Trigger Engine", "ट्रिगर इंजन")}</h3>
+                      <p className="text-gray-500 font-medium leading-relaxed">
+                        {selectLabel(
+                          languageMode,
+                          "Our system monitors environmental and platform signals in real-time. Payouts are issued automatically when verified conditions are met—no manual claims needed.",
+                          "हमारा सिस्टम रियल-टाइम में पर्यावरण और प्लेटफ़ॉर्म संकेतों की निगरानी करता है। शर्तें पूरी होने पर भुगतान स्वतः किया जाता है।"
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      {[
+                        { icon: <CloudRain className="w-5 h-5" />, title: selectLabel(languageMode, "Weather Data", "मौसम डेटा"), desc: selectLabel(languageMode, "Heavy rain and heatwave alerts.", "भारी बारिश और लू के अलर्ट।") },
+                        { icon: <Wind className="w-5 h-5" />, title: selectLabel(languageMode, "AQI Monitoring", "AQI निगरानी"), desc: selectLabel(languageMode, "Safe work limits for air quality.", "वायु गुणवत्ता के लिए सुरक्षित सीमा।") },
+                        { icon: <WifiOff className="w-5 h-5" />, title: selectLabel(languageMode, "Platform Outages", "प्लेटफ़ॉर्म आउटेज"), desc: selectLabel(languageMode, "Zero earnings during app downtime.", "ऐप डाउनटाइम के दौरान सुरक्षा।") },
+                        { icon: <MapPinOff className="w-5 h-5" />, title: selectLabel(languageMode, "Zone Closures", "ज़ोन बंदी"), desc: selectLabel(languageMode, "Pickups blocked by local strikes.", "स्थानीय हड़ताल या बंदी।") },
+                      ].map((item, i) => (
+                        <div key={i} className="p-6 rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:translate-y-[-4px] transition-all group">
+                          <div className="w-10 h-10 bg-[#f4f5f7] rounded-xl flex items-center justify-center text-gray-400 group-hover:text-blue-600 transition-colors mb-4">
+                            {item.icon}
+                          </div>
+                          <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
+                          <p className="text-xs text-gray-500 font-medium">{item.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Fraud Guard */}
+                  <div className="flex flex-col h-full space-y-12 bg-gray-900 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px]" />
+                    
+                    <div className="space-y-4 relative z-10">
+                      <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center text-white border border-white/10 shadow-xl">
+                        <Lock className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-3xl font-black text-white">{selectLabel(languageMode, "Fraud Guard Protection", "फ्रॉड गार्ड सुरक्षा")}</h3>
+                      <p className="text-gray-400 font-medium leading-relaxed">
+                        {selectLabel(
+                          languageMode,
+                          "GigShield establishes trust using risk scoring and verification gates. This ensures that only genuine delivery workers receive payouts during verified disruptions.",
+                          "GigShield जोखिम स्कोरिंग और सत्यापन गेट का उपयोग करके भरोसा बनाता है। यह सुनिश्चित करता है कि केवल असली वर्कर्स को ही भुगतान मिले।"
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 relative z-10">
+                      {[
+                        { icon: <Activity className="w-5 h-5" />, text: selectLabel(languageMode, "Continuous behavior risk scoring", "लगातार व्यवहार जोखिम स्कोरिंग") },
+                        { icon: <ScanFace className="w-5 h-5" />, text: selectLabel(languageMode, "Selfie-based identity verification gates", "सेल्फी-आधारित पहचान सत्यापन गेट") },
+                        { icon: <CheckCircle2 className="w-5 h-5" />, text: selectLabel(languageMode, "Transparent payout decision history", "पारदर्शी भुगतान निर्णय इतिहास") },
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 shadow-sm hover:bg-white/10 transition-colors cursor-default">
+                          <div className="text-blue-400">{item.icon}</div>
+                          <p className="text-sm font-bold text-gray-200">{item.text}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] p-8 text-gray-900 relative z-10">
+                      <h4 className="text-xl font-black mb-2">{selectLabel(languageMode, "Unmatched Trust", "अतुलनीय भरोसा")}</h4>
+                      <p className="text-gray-500 text-xs font-bold leading-relaxed">
+                        {selectLabel(
+                          languageMode,
+                          "Our multi-layer verification process reduces fraud by 98% while ensuring 100% payout speed for honest riders.",
+                          "हमारी बहु-स्तरीय सत्यापन प्रक्रिया धोखाधड़ी को 98% तक कम करती है और असली राइडर्स को तेज़ भुगतान सुनिश्चित करती है।"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Additional GigShield Info Section */}

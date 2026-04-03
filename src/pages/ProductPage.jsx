@@ -33,16 +33,7 @@ function ProductPage() {
 
   return (
     <div className="min-h-screen bg-[#f4f5f7] font-sans">
-      {/* Nav */}
-      <nav className="sticky top-0 z-40 bg-[#f4f5f7]/80 backdrop-blur-md border-b border-white/60 px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="text-xl font-extrabold tracking-tight text-gray-900">GIGSHIELD.</Link>
-        <div className="flex items-center gap-3">
-          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-          <button onClick={() => navigate("/triggers")} className="hidden sm:inline-flex secondary-btn text-xs px-3 py-2">{selectLabel(languageMode, "Triggers", "ट्रिगर्स")}</button>
-          <button onClick={() => navigate("/pricing")} className="hidden sm:inline-flex secondary-btn text-xs px-3 py-2">{selectLabel(languageMode, "Pricing", "कीमत")}</button>
-          <button onClick={() => navigate("/signin")} className="primary-btn text-xs px-4 py-2">{selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}</button>
-        </div>
-      </nav>
+
 
       {/* Hero */}
       <section className="px-6 py-20 sm:px-12 lg:px-24 max-w-6xl mx-auto">

@@ -38,8 +38,20 @@ body {
     @apply mx-auto w-full max-w-[1400px] px-6 sm:px-8;
   }
 
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+
+  .mesh-gradient {
+    background-color: #f4f5f7;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(210,100%,94%,1) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(220,100%,92%,1) 0, transparent 50%), 
+      radial-gradient(at 100% 100%, hsla(200,100%,96%,1) 0, transparent 50%);
+  }
+
   .board {
-    @apply rounded-3xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md;
+    @apply rounded-[32px] border border-gray-200/60 bg-white/80 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)];
   }
 
   .board-soft {

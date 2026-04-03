@@ -7,10 +7,6 @@ export function validatePhone(phone) {
   return /^[6-9]\d{9}$/.test(cleaned);
 }
 
-export function validateOtp(otp) {
-  return /^\d{6}$/.test(otp);
-}
-
 export function validateFullName(name) {
   return name.trim().length >= 2;
 }

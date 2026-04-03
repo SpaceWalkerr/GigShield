@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { TOTAL_STEPS, useVerificationFlow } from "../hooks/useVerificationFlow";
 import StepCoverage from "../components/verification/StepCoverage";
-import StepOtp from "../components/verification/StepOtp";
-import StepPhone from "../components/verification/StepPhone";
 import StepPlatform from "../components/verification/StepPlatform";
 import StepProgress from "../components/verification/StepProgress";
 import StepProfile from "../components/verification/StepProfile";
@@ -14,46 +12,15 @@ function GetProtected() {
     step,
     formData,
     isLoading,
-    resendTimer,
     updateField,
-    sendOtp,
-    resendOtp,
-    verifyOtp,
     nextStep,
     prevStep,
     completeFlow,
   } = useVerificationFlow();
 
-  const handleVerifyOtp = async (otp) => {
-    const ok = await verifyOtp(otp);
-    if (ok) nextStep();
-    return ok;
-  };
-
   const renderStep = () => {
     switch (step) {
       case 1:
-        return (
-          <StepPhone
-            formData={formData}
-            updateField={updateField}
-            onSubmit={sendOtp}
-            isLoading={isLoading}
-          />
-        );
-      case 2:
-        return (
-          <StepOtp
-            formData={formData}
-            updateField={updateField}
-            phone={formData.phone}
-            onVerify={handleVerifyOtp}
-            onResend={resendOtp}
-            resendTimer={resendTimer}
-            isLoading={isLoading}
-          />
-        );
-      case 3:
         return (
           <StepProfile
             formData={formData}
@@ -61,7 +28,7 @@ function GetProtected() {
             onNext={nextStep}
           />
         );
-      case 4:
+      case 2:
         return (
           <StepPlatform
             formData={formData}
@@ -69,7 +36,7 @@ function GetProtected() {
             onNext={nextStep}
           />
         );
-      case 5:
+      case 3:
         return (
           <StepRiderProof
             formData={formData}
@@ -77,7 +44,7 @@ function GetProtected() {
             onNext={nextStep}
           />
         );
-      case 6:
+      case 4:
         return (
           <StepCoverage
             formData={formData}
@@ -86,7 +53,7 @@ function GetProtected() {
             isLoading={isLoading}
           />
         );
-      case 7:
+      case 5:
         return <StepSuccess formData={formData} />;
       default:
         return null;
@@ -95,18 +62,7 @@ function GetProtected() {
 
   return (
     <main className="min-h-screen bg-[#f4f5f7] pb-24">
-      {/* Header */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-extrabold tracking-tight text-gray-900">GIGSHIELD.</Link>
-          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-200">
-            Activation
-          </span>
-        </div>
-        <Link to="/" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
-          Cancel
-        </Link>
-      </nav>
+
 
       <div className="max-w-2xl mx-auto px-6 py-12 sm:py-20">
         <header className="mb-12">
