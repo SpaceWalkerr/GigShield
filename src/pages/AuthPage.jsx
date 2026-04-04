@@ -68,47 +68,16 @@ function AuthPage() {
   }), [selectedPlan, selectedPlatforms.length, riskLevel]);
 
   useEffect(() => {
-    const handleOAuthCallback = async (session) => {
-      if (!session) return;
-      
-      const userMeta = session.user.user_metadata || {};
-      const { email } = session.user;
-      const name = userMeta.full_name || userProfile.name;
-      const resolvedRole = adminEmailAllowlist.includes((email || "").toLowerCase()) ? "admin" : "worker";
-      
-      saveSession({
-        isAuthenticated: true,
-        mode: "oauth",
-        role: resolvedRole,
-        authToken: session.access_token,
-        name,
-        email,
-        city: userMeta.city || "Bangalore",
-        workerId: "RIDER-" + session.user.id.substring(0, 6).toUpperCase(),
-        platforms: ["Zomato", "Swiggy"],
-        selectedPlanId,
-        riskLevel: "Medium",
-        calculatedWeeklyPremium: 155, 
-        premiumBreakdown: { adjustedPremium: 155, basePremium: 155, platformLoadFee: 0, platformCount: 2, riskLevel: "Medium", riskMultiplier: 1.0 },
-        premiumHistory: [],
-        signedInAt: new Date().toISOString(),
-      });
-      navigate(`/dashboard?plan=${selectedPlanId}`);
-    };
-
+    // AuthPage does not receive the OAuth callback anymore —
+    // that is handled by /auth/callback (AuthCallbackPage).
+    // This effect only handles the case where the user is already
+    // signed in and lands on /auth directly.
+    let handled = false;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) handleOAuthCallback(session);
+      if (handled || !session) return;
+      handled = true;
+      navigate(`/dashboard?plan=${selectedPlanId}`, { replace: true });
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        handleOAuthCallback(session);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate, selectedPlanId]);
 
   const togglePlatform = (platform) => {
@@ -257,7 +226,7 @@ function AuthPage() {
                     const { error } = await supabase.auth.signInWithOAuth({
                       provider: "google",
                       options: {
-                        redirectTo: `${window.location.origin}/auth?plan=${selectedPlanId}`,
+                        redirectTo: `${window.location.origin}/auth/callback?plan=${selectedPlanId}`,
                         queryParams: { prompt: "select_account" },
                       },
                     });

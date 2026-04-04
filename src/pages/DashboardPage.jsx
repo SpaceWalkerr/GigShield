@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MapPin, Fingerprint, Clock, Plus, Check } from "lucide-react";
 import ActivityPanel from "../components/ActivityPanel";
+import AutomationPanel from "../components/AutomationPanel";
 import EarningsSnapshot from "../components/EarningsSnapshot";
 import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
 import PlanSummary from "../components/PlanSummary";
@@ -258,6 +259,12 @@ export default function DashboardPage() {
               );
             })}
           </div>
+        </section>
+
+        {/* ── n8n Automation Panel ─────────────────────────────────────── */}
+        <section className="mb-12">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">{selectLabel(languageMode, "Live Risk Engine", "लाइव जोखिम इंजन")}</p>
+          <AutomationPanel session={session} />
         </section>
 
         <div className="grid lg:grid-cols-3 gap-12">

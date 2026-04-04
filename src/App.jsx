@@ -10,6 +10,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 const SignInPage = lazy(() => import("./pages/SignInPage"));
 const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
@@ -116,6 +117,7 @@ function App() {
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
               {/* Protected Routes */}
               <Route

@@ -1,7 +1,6 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ShieldCheck, ArrowRight, Smartphone, Mail } from "lucide-react";
-import LanguageToggle from "../components/LanguageToggle";
+import { ShieldCheck, Smartphone } from "lucide-react";
 import planDetails from "../data/planDetails.json";
 import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
@@ -34,49 +33,6 @@ function SignInPage() {
   const [authError, setAuthError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) handleOAuthCallback(session);
-    });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) handleOAuthCallback(session);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleOAuthCallback = (session) => {
-    const userMeta = session.user.user_metadata || {};
-    const resolvedRole = adminEmailAllowlist.includes(
-      (session.user.email || "").toLowerCase(),
-    )
-      ? "admin"
-      : "worker";
-    const premium = calculateWeeklyPremium({
-      basePremium: selectedPlan.weeklyPremium,
-      platformCount: 2,
-      riskLevel: "Medium",
-    });
-    saveSession({
-      isAuthenticated: true,
-      mode: "oauth",
-      role: resolvedRole,
-      authToken: session.access_token,
-      name: userMeta.full_name || userProfile.name,
-      email: session.user.email,
-      city: userMeta.city || "Bangalore",
-      workerId: "RIDER-" + session.user.id.substring(0, 6).toUpperCase(),
-      platforms: ["Zomato", "Swiggy"],
-      selectedPlanId,
-      riskLevel: "Medium",
-      calculatedWeeklyPremium: premium.adjustedPremium,
-      premiumBreakdown: premium,
-      premiumHistory: [],
-      signedInAt: new Date().toISOString(),
-    });
-    navigate(`/dashboard?plan=${selectedPlanId}`);
-  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fb] flex font-sans selection:bg-gray-900 selection:text-white">
@@ -201,7 +157,7 @@ function SignInPage() {
                     const { error } = await supabase.auth.signInWithOAuth({
                       provider: "google",
                       options: {
-                        redirectTo: `${window.location.origin}/signin?plan=${selectedPlanId}`,
+                        redirectTo: `${window.location.origin}/auth/callback?plan=${selectedPlanId}`,
                         queryParams: { prompt: "select_account" },
                       },
                     });
