@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
@@ -210,10 +211,10 @@ function buildResponse({ worker, weather, aqi, risk }) {
 
     // Notification banner
     notification: risk.riskLevel === 'high'
-      ? `⚡ Risk Alert: ${weather?.condition ?? 'Hazard'} detected near ${weather?.locationName ?? 'your area'}. Auto-protection activated.`
+      ? `Risk Alert: ${weather?.condition ?? 'Hazard'} detected near ${weather?.locationName ?? 'your area'}. Auto-protection activated.`
       : risk.riskLevel === 'medium'
-      ? `⚠️ Moderate Risk: ${weather?.condition ?? 'Conditions'} at ${weather?.temperature?.toFixed(1) ?? '–'}°C. Stay safe.`
-      : `✅ All Clear: ${weather?.temperature?.toFixed(1) ?? '–'}°C, ${weather?.condition ?? 'clear sky'}. Safe to deliver.`,
+      ? `Moderate Risk: ${weather?.condition ?? 'Conditions'} at ${weather?.temperature?.toFixed(1) ?? '–'}°C. Stay safe.`
+      : `All Clear: ${weather?.temperature?.toFixed(1) ?? '–'}°C, ${weather?.condition ?? 'clear sky'}. Safe to deliver.`,
 
     // Full weather details
     liveWeather: weather ? {
@@ -284,6 +285,93 @@ app.post('/api/automation/risk-check', async (req, res) => {
   }
 });
 
+// ─── Cookie Byte AI Chat (Groq) ───────────────────────────────────────────────────────
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL   = 'llama-3.3-70b-versatile';
+
+const ARIA_SYSTEM_PROMPT = `You are Cookie Byte, the official AI support assistant for GigShield — India's first parametric income protection platform for gig delivery workers on Zomato, Swiggy, Blinkit, and other platforms.
+
+Your personality: warm, knowledgeable, concise, and empathetic. You speak like a trusted advisor who genuinely cares about the financial wellbeing of delivery riders.
+
+About GigShield:
+- Parametric insurance: payouts are triggered automatically by environmental/platform events — no manual claims needed
+- Trigger events: Heavy Rain, Extreme Heat (>40°C), Poor AQI (4+/5), High Wind (>40 km/h), Platform Outages
+- Plans: Basic (₹89/week), Standard (₹129/week), Pro (₹189/week)
+- Payouts: ₹500–₹1,500 per event depending on plan
+- Coverage: 24/7 across all active delivery platforms
+- Premium adjusts dynamically based on real-time risk
+- Zero paperwork: everything is automatic
+
+Common questions you can help with:
+- How do I know if my claim was triggered?
+- Why did my premium change?
+- What events qualify for a payout?
+- How long does a payout take?
+- How do I upgrade my plan?
+- Is my area covered?
+- How do I link multiple platforms?
+
+Rules:
+- Always be helpful and positive
+- Keep responses under 120 words unless the question genuinely needs more detail
+- If you don't know something specific (like a user's actual account details), say so honestly and direct them to contact support@gigshield.app
+- Never make up specific numbers about a user's account
+- Use simple language — many riders may not be highly tech-savvy
+- Occasionally use emojis sparingly to be friendly (🛡️, ⚡, 💰, 🌧️)
+- Respond in the same language the user uses (Hindi or English)`;
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages, workerName, riskLevel } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'messages array is required' });
+    }
+
+    // Inject live context as a system note
+    const contextNote = workerName
+      ? `\n\n[Current user context: Rider name = ${workerName}, Current risk level = ${riskLevel || 'unknown'}. Personalize your response if relevant.]`
+      : '';
+
+    const groqMessages = [
+      { role: 'system', content: ARIA_SYSTEM_PROMPT + contextNote },
+      ...messages.slice(-12), // keep last 12 messages for context window
+    ];
+
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages: groqMessages,
+        max_tokens: 300,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!groqRes.ok) {
+      const errText = await groqRes.text();
+      console.error('[ARIA] Groq error:', errText);
+      return res.status(502).json({ error: 'AI service unavailable. Please try again.' });
+    }
+
+    const data = await groqRes.json();
+    const reply = data.choices?.[0]?.message?.content?.trim();
+
+    if (!reply) return res.status(502).json({ error: 'No response from Cookie Byte.' });
+
+    console.log(`[Cookie Byte] 💬 replied to ${workerName || 'user'}`);
+    return res.status(200).json({ reply });
+
+  } catch (err) {
+    console.error('[Cookie Byte] Unexpected error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ─── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
@@ -291,6 +379,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('\n══════════════════════════════════════════════════════════');
   console.log(`🚀  GigShield Risk Server  →  http://127.0.0.1:${PORT}`);
   console.log(`✅  POST /api/automation/risk-check`);
+  console.log(`🤖  POST /api/chat  (Cookie Byte — powered by Groq Llama 3.3 70B)`);
   console.log(`🌤   Weather: ${WEATHER_API_KEY ? 'OpenWeatherMap (API key set)' : 'Open-Meteo (free, no key needed)'}`);
   console.log('══════════════════════════════════════════════════════════\n');
 });

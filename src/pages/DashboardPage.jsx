@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { MapPin, Fingerprint, Clock, Plus, Check } from "lucide-react";
 import ActivityPanel from "../components/ActivityPanel";
 import AutomationPanel from "../components/AutomationPanel";
+import ARIAChat from "../components/ARIAChat";
 import EarningsSnapshot from "../components/EarningsSnapshot";
 import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
 import PlanSummary from "../components/PlanSummary";
@@ -879,6 +880,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      {/* ── ARIA Floating Chat ─────────────────────────────────────────── */}
+      <ARIAChat session={session} riskLevel={displayRiskLevel} />
     </main>
   );
 }

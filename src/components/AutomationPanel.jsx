@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "react-toastify";
 import { checkGigShieldRisk } from "../lib/gigshieldApi";
 import { formatCurrency } from "../utils/format";
 
@@ -129,9 +130,38 @@ export default function AutomationPanel({ session }) {
       const result = await checkGigShieldRisk(payload);
       setData(result);
       setLastRefresh(new Date().toLocaleTimeString());
+
+      // ── Risk Toast Notification ─────────────────────────────────────
+      const level = (result.riskLevel || "low").toLowerCase();
+      toast.dismiss(); // clear previous
+      
+      const textConfig = {
+        low:    "Low Risk — Safe to deliver. Coverage active.",
+        medium: "Medium Risk — Stay cautious. Payout may be available.",
+        high:   "High Risk — Auto-protection activated! Check your claim.",
+      };
+      const text = textConfig[level] || textConfig.low;
+      
+      const config = {
+        autoClose: 5000,
+        className: "!rounded-xl !shadow-lg !font-sans !text-[13px] !font-semibold text-gray-700",
+      };
+
+      if (level === "low") {
+        toast.success(text, config);
+      } else if (level === "medium") {
+        toast.warning(text, config);
+      } else {
+        toast.error(text, config);
+      }
+
     } catch (err) {
       console.error("[AutomationPanel] Check failed:", err);
       setError(err.message || "Could not connect to the risk engine.");
+      toast.error("Risk engine unavailable. Check your connection.", {
+        className: "!rounded-xl !shadow-lg !font-sans !text-[13px] !font-semibold text-gray-700",
+        autoClose: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -211,11 +241,31 @@ export default function AutomationPanel({ session }) {
 
           {/* Notification banner */}
           {data.notification && (
-            <div className={`rounded-2xl border p-4 flex gap-3 ${cfg.bg} ${cfg.border}`}>
-              <div className={`w-1 self-stretch rounded-full ${cfg.dot} flex-shrink-0`} />
-              <div>
-                <p className="text-xs font-black text-gray-700 uppercase tracking-widest mb-0.5">Live Alert</p>
-                <p className="text-sm font-semibold text-gray-800">{data.notification}</p>
+            <div className={`relative overflow-hidden rounded-2xl border p-4 flex items-center gap-4 ${cfg.bg} ${cfg.border} shadow-sm transition-all duration-500`}>
+              {/* Thick left edge accent */}
+              <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${cfg.dot}`} />
+              
+              {/* Premium Icon Circle */}
+              <div className="relative pl-2 flex items-center justify-center">
+                 <div className={`w-11 h-11 rounded-full flex items-center justify-center bg-white shadow-sm border ${cfg.border}`}>
+                    {cfg.label === 'HIGH' && <span className="text-xl" role="img" aria-label="warning">🚨</span>}
+                    {cfg.label === 'MEDIUM' && <span className="text-xl" role="img" aria-label="caution">⚠️</span>}
+                    {cfg.label === 'LOW' && <span className="text-xl" role="img" aria-label="safe">🛡️</span>}
+                 </div>
+                 {/* Pulse indicator */}
+                 <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-[2.5px] border-white ${cfg.dot}`}>
+                   <div className={`absolute inset-0 rounded-full animate-ping opacity-75 ${cfg.dot}`} />
+                 </div>
+              </div>
+
+              {/* Text content */}
+              <div className="flex-1">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                   System Alert
+                   <span className="text-gray-300">•</span>
+                   <span className="text-gray-400 capitalize">{data.riskLevel} Risk Detected</span>
+                </p>
+                <p className="text-[14px] font-bold text-gray-900 leading-snug">{data.notification}</p>
               </div>
             </div>
           )}

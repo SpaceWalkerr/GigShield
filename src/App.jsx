@@ -1,5 +1,7 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import NotificationStack from "./components/NotificationStack";
 import Navbar from "./components/Navbar";
 import { isSessionActive } from "./utils/session";
@@ -100,6 +102,17 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+        toastClassName="!rounded-2xl !shadow-xl !font-sans !text-sm"
+      />
       <NotificationStack />
       <Navbar />
       <div className="pt-36 sm:pt-32 lg:pt-32 min-h-screen bg-[#f4f5f7]">
