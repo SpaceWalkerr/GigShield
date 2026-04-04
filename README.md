@@ -1,6 +1,5 @@
 # GigShield
 
-GigShield is a simple income protection website for gig delivery workers.
 GigShield is a React + Vite web app for gig-worker income protection simulation.
 
 It models parametric payout behavior: when disruption signals (weather, AQI, outage-style events, and policy triggers) cross configured thresholds, payouts move through a guarded lifecycle with verification, anti-fraud checks, and auditability.
