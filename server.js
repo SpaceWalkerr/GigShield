@@ -383,3 +383,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌤   Weather: ${WEATHER_API_KEY ? 'OpenWeatherMap (API key set)' : 'Open-Meteo (free, no key needed)'}`);
   console.log('══════════════════════════════════════════════════════════\n');
 });
+
+export default app;

@@ -9,8 +9,6 @@ const QUICK_QUESTIONS = [
   "How do I upgrade my plan?",
 ];
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:3001";
-
 // ─── Message bubble ────────────────────────────────────────────────────────────
 function Bubble({ msg }) {
   const isUser = msg.role === "user";
@@ -94,7 +92,7 @@ export default function ARIAChat({ session, riskLevel }) {
 
     try {
       const allMessages = [...messages, userMsg];
-      const res = await fetch(`${BACKEND_URL}/api/chat`, {
+      const res = await fetch(`/api/chat`, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

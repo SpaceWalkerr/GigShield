@@ -6,14 +6,8 @@
  * Endpoint: POST http://127.0.0.1:3001/api/automation/risk-check
  */
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:3001';
-
-/**
- * @param {Object} workerPayload
- * @returns {Promise<RiskResult>} Normalized risk result object
- */
 export async function checkGigShieldRisk(workerPayload) {
-  const response = await fetch(`${BACKEND_URL}/api/automation/risk-check`, {
+  const response = await fetch('/api/automation/risk-check', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(workerPayload),
