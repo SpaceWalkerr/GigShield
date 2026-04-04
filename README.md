@@ -109,6 +109,26 @@ Policy exclusion is enforced in code before payout calculation.
 - Platform status adapter (simulated)
 - Payment flow simulated with lifecycle states
 
+11. Predictive Safety Net (Pre-Trigger)
+- Forecast mode checks disruption probability before final trigger confirmation.
+- Early support recommendation is shown with confidence and factor breakdown.
+- Policy controls support live threshold and advance-ratio tuning.
+
+12. Rider Reputation + Plan Optimizer
+- Non-gamified reliability tier (Bronze / Silver / Gold).
+- Better tier unlocks faster approvals and stronger advance edge.
+- Weekly optimizer recommends plan changes and highlights potential overpay.
+
+13. Growth + Trust features
+- Community Heatmap: city-level disruption, payout activity, and trust pulse.
+- Team Protection: invite code, verified members, and group discount unlock.
+- Trust Center: uptime, payout success, median settlement, fraud blocked, audits.
+
+14. Phase 3 Ops intelligence
+- Anomaly alert engine (volume spike, approval drift, cluster risk).
+- Moderation queue for suspicious team clusters.
+- Recent moderation action feed in Admin Ops.
+
 ## End-to-End Workflow (Step by Step)
 
 ### Workflow A: Worker Onboarding and Plan Setup
@@ -154,6 +174,10 @@ Policy exclusion is enforced in code before payout calculation.
 - Payout: verification, lifecycle progression, settlement
 - Payout Received: confirmation + downloads
 - Payout History: searchable ledger
+- Predictive History: forecast decision logs with factor-level breakdown
+- Community Heatmap: city-level social proof and disruption pulse
+- Team Protection: referral/team roster and discount unlock flow
+- Trust Center: public trust metrics and audit snapshot
 - Admin Ops: flagged queue, analytics, override controls
 
 ## AI/ML and Intelligence Components
@@ -175,11 +199,36 @@ Already added:
 - Token-aware request structure
 - Observability event tracking
 - Unit and flow-style tests
+- Predictive assessments persisted to Supabase
+- Team protection state synced with Supabase
+- Owner-scoped RLS for predictive and team tables
+- Phase 3 anomaly + moderation persistence pipeline
 
 Still mock/simulated in this demo:
 - Real payment rails
 - Full backend-only persistence migration
 - Full ML model lifecycle infrastructure
+
+## Supabase Setup Order
+
+Run SQL files in this order:
+
+1. `supabase/schema.sql`
+- Base project tables (worker state and payout history).
+
+2. `supabase/schema2.sql`
+- Predictive assessments + team protection tables and owner-scoped policies.
+
+3. `supabase/schema3.sql`
+- Phase 3 persistence tables (anomaly events + moderation actions).
+
+Required env:
+
+```bash
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_ENABLE_BACKEND_PERSISTENCE=true
+```
 
 ## Quick Start
 

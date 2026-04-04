@@ -31,12 +31,87 @@ import {
   getTriggerAuditEvents,
   getTriggerConfidenceScore,
 } from "../utils/triggerEngine";
+import {
+  buildPredictiveAssessment,
+  createPredictivePolicyConfig,
+  deriveLiveSignalsFromComposite,
+  hydratePredictiveAssessments,
+  getPredictivePolicySavedAt,
+  loadPredictivePolicyConfig,
+  getLatestPredictiveAssessment,
+  getPredictiveAssessments,
+  savePredictivePolicyConfig,
+  savePredictiveAssessment,
+} from "../utils/predictiveSafetyNet";
+import { getCompositeDisruptionSignals } from "../utils/integrations";
+import { computeReputationProfile } from "../utils/reputation";
+import { getPlanOptimizerRecommendation } from "../utils/planOptimizer";
 import { pushNotification } from "../utils/notifications";
 import { trackEvent } from "../utils/observability";
 import { supabase } from "../utils/supabase";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const onboardingStorageKey = "gigshieldOnboardingCompleted";
+const backendPersistenceEnabled = import.meta.env.VITE_ENABLE_BACKEND_PERSISTENCE === "true";
+
+const predictivePolicyBaseline = createPredictivePolicyConfig({
+  riskThreshold: {
+    Low: 0.72,
+    Medium: 0.79,
+    High: 0.87,
+  },
+  advanceRatioByRisk: {
+    Low: 0.35,
+    Medium: 0.27,
+    High: 0.2,
+  },
+});
+
+const predictivePolicyPresets = {
+  conservative: {
+    riskThreshold: { Low: 82, Medium: 88, High: 93 },
+    advanceRatioByRisk: { Low: 20, Medium: 14, High: 10 },
+  },
+  balanced: {
+    riskThreshold: { Low: 72, Medium: 79, High: 87 },
+    advanceRatioByRisk: { Low: 35, Medium: 27, High: 20 },
+  },
+  aggressive: {
+    riskThreshold: { Low: 64, Medium: 71, High: 80 },
+    advanceRatioByRisk: { Low: 45, Medium: 35, High: 25 },
+  },
+};
+
+function toPercentDraft(policyConfig) {
+  return {
+    riskThreshold: {
+      Low: Math.round((policyConfig.riskThreshold.Low || 0) * 100),
+      Medium: Math.round((policyConfig.riskThreshold.Medium || 0) * 100),
+      High: Math.round((policyConfig.riskThreshold.High || 0) * 100),
+    },
+    advanceRatioByRisk: {
+      Low: Math.round((policyConfig.advanceRatioByRisk.Low || 0) * 100),
+      Medium: Math.round((policyConfig.advanceRatioByRisk.Medium || 0) * 100),
+      High: Math.round((policyConfig.advanceRatioByRisk.High || 0) * 100),
+    },
+  };
+}
+
+function toConfigFromPercentDraft(draft, currentPolicyConfig) {
+  return createPredictivePolicyConfig({
+    riskPenalty: currentPolicyConfig.riskPenalty,
+    riskThreshold: {
+      Low: Number(draft.riskThreshold.Low || 0) / 100,
+      Medium: Number(draft.riskThreshold.Medium || 0) / 100,
+      High: Number(draft.riskThreshold.High || 0) / 100,
+    },
+    advanceRatioByRisk: {
+      Low: Number(draft.advanceRatioByRisk.Low || 0) / 100,
+      Medium: Number(draft.advanceRatioByRisk.Medium || 0) / 100,
+      High: Number(draft.advanceRatioByRisk.High || 0) / 100,
+    },
+  });
+}
 
 function formatRelativeTime(isoDate) {
   const diffMs = Date.now() - new Date(isoDate).getTime();
@@ -96,6 +171,14 @@ export default function DashboardPage() {
   const [triggerAuditEvents, setTriggerAuditEvents] = useState(() => getTriggerAuditEvents().slice(0, 8));
   const [weeklyTrend, setWeeklyTrend] = useState(() => getWeeklyTrend(getPayoutHistory()));
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(onboardingStorageKey) !== "done");
+  const [predictiveSummary, setPredictiveSummary] = useState(() => getLatestPredictiveAssessment());
+  const [predictiveHistory, setPredictiveHistory] = useState(() => getPredictiveAssessments({ limit: 3 }));
+  const [predictivePolicyConfig, setPredictivePolicyConfig] = useState(() => loadPredictivePolicyConfig(predictivePolicyBaseline));
+  const [policyDraft, setPolicyDraft] = useState(() => toPercentDraft(loadPredictivePolicyConfig(predictivePolicyBaseline)));
+  const [policySavedAt, setPolicySavedAt] = useState(() => getPredictivePolicySavedAt());
+  const [predictiveSyncStatus, setPredictiveSyncStatus] = useState(() =>
+    backendPersistenceEnabled ? "waiting" : "local-only",
+  );
 
   const availablePlatforms = ["Swiggy", "Zomato", "Blinkit"];
   const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
@@ -123,8 +206,81 @@ export default function DashboardPage() {
   const latestTrigger = triggerEvents.find((e) => e.id === latestTriggerId) ?? null;
   const dailyPayoutCap = getDailyPayoutCap(selectedPlan.id);
 
+  useEffect(() => {
+    let alive = true;
+
+    const syncPredictiveHistory = async () => {
+      const hydrated = await hydratePredictiveAssessments({
+        workerId: session?.workerId,
+        limit: 10,
+      });
+
+      if (!alive || hydrated.length === 0) {
+        return;
+      }
+
+      setPredictiveSummary(hydrated[0] || null);
+      setPredictiveHistory(hydrated.slice(0, 3));
+    };
+
+    syncPredictiveHistory();
+
+    return () => {
+      alive = false;
+    };
+  }, [session?.workerId]);
+
   // Simulation Logic
-  const handleSimulateTrigger = async (triggerId) => {
+  const handleSimulateTrigger = async (triggerId, mode = "confirmed") => {
+    if (mode === "forecast") {
+      const compositeSignals = await getCompositeDisruptionSignals({
+        city: session?.city || "New Delhi",
+        platforms: selectedPlatforms,
+      });
+
+      const liveSignals = deriveLiveSignalsFromComposite({
+        triggerId,
+        compositeSignals,
+      });
+
+      const forecast = buildPredictiveAssessment({
+        triggerEvents,
+        triggerId,
+        planId: selectedPlan.id,
+        riskLevel: displayRiskLevel,
+        paidTodayAmount,
+        liveSignals,
+        policyConfig: predictivePolicyConfig,
+      });
+
+      const syncResult = await savePredictiveAssessment(forecast, {
+        workerId: session?.workerId,
+        city: session?.city || "Unknown",
+      });
+      if (!backendPersistenceEnabled) {
+        setPredictiveSyncStatus("local-only");
+      } else if (syncResult?.ok && syncResult?.backend) {
+        setPredictiveSyncStatus("synced");
+      } else {
+        setPredictiveSyncStatus("fallback");
+      }
+      setPredictiveSummary(forecast);
+      setPredictiveHistory(getPredictiveAssessments({ limit: 3 }));
+      setLatestTriggerId(triggerId);
+      setLatestPayoutMeta({
+        status: forecast.status,
+        reason: forecast.reason,
+        basePayout: forecast.expectedPayout,
+        remainingCap: forecast.remainingCap,
+        dailyCap: forecast.dailyCap,
+        predictiveProbability: forecast.probabilityAdjustedPct,
+        predictiveThreshold: forecast.thresholdPct,
+        predictiveAdvanceAmount: forecast.advanceAmount,
+        predictiveConfidenceLabel: forecast.confidenceLabel,
+      });
+      return;
+    }
+
     const now = new Date();
     const triggerRules = evaluateTriggerRules({ triggerId, now });
 
@@ -184,6 +340,44 @@ export default function DashboardPage() {
     }
   };
 
+  const handlePolicyDraftChange = (sectionKey, riskKey, value) => {
+    const normalizedValue = Number(value);
+    setPolicyDraft((prev) => ({
+      ...prev,
+      [sectionKey]: {
+        ...prev[sectionKey],
+        [riskKey]: Number.isFinite(normalizedValue) ? normalizedValue : 0,
+      },
+    }));
+  };
+
+  const handleSavePolicyConfig = () => {
+    const nextConfig = toConfigFromPercentDraft(policyDraft, predictivePolicyConfig);
+    const persisted = savePredictivePolicyConfig(nextConfig);
+    setPredictivePolicyConfig(persisted);
+    setPolicyDraft(toPercentDraft(persisted));
+    setPolicySavedAt(getPredictivePolicySavedAt());
+  };
+
+  const handleResetPolicyConfig = () => {
+    const resetConfig = savePredictivePolicyConfig(predictivePolicyBaseline);
+    setPredictivePolicyConfig(resetConfig);
+    setPolicyDraft(toPercentDraft(resetConfig));
+    setPolicySavedAt(getPredictivePolicySavedAt());
+  };
+
+  const handleApplyPreset = (presetKey) => {
+    const preset = predictivePolicyPresets[presetKey];
+    if (!preset) {
+      return;
+    }
+
+    setPolicyDraft({
+      riskThreshold: { ...preset.riskThreshold },
+      advanceRatioByRisk: { ...preset.advanceRatioByRisk },
+    });
+  };
+
   const togglePlatform = (p) => {
     setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
   };
@@ -199,6 +393,26 @@ export default function DashboardPage() {
   const weeklySupportCap = dailyPayoutCap * 7;
   const weeklySupportLeft = Math.max(0, weeklySupportCap - weeklyPaidAmount);
   const emergencyActive = Boolean(latestTrigger);
+  const reputationProfile = useMemo(
+    () =>
+      computeReputationProfile({
+        payoutHistory: getPayoutHistory(),
+        predictiveHistory: getPredictiveAssessments({ limit: 100 }),
+      }),
+    [weeklyTrend, predictiveHistory],
+  );
+
+  const planOptimizer = useMemo(
+    () =>
+      getPlanOptimizerRecommendation({
+        selectedPlan,
+        selectedPlatforms,
+        riskLevel: displayRiskLevel,
+        payoutHistory: getPayoutHistory().slice(0, 50),
+        plans: planDetails,
+      }),
+    [selectedPlan, selectedPlatforms, displayRiskLevel, weeklyTrend],
+  );
 
   return (
     <main className="min-h-screen bg-[#f4f5f7] font-sans pb-24 text-gray-900 overflow-x-hidden">
@@ -207,6 +421,34 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
           <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">Live</span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+              predictiveSyncStatus === "synced"
+                ? "bg-green-50 text-green-700 border-green-200"
+                : predictiveSyncStatus === "fallback"
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : predictiveSyncStatus === "local-only"
+                    ? "bg-gray-100 text-gray-600 border-gray-200"
+                    : "bg-blue-50 text-blue-700 border-blue-200"
+            }`}
+            title={
+              predictiveSyncStatus === "synced"
+                ? "Forecast writes are syncing to Supabase"
+                : predictiveSyncStatus === "fallback"
+                  ? "Supabase write failed, local fallback active"
+                  : predictiveSyncStatus === "local-only"
+                    ? "Backend persistence is disabled"
+                    : "Run a forecast to validate Supabase sync"
+            }
+          >
+            {predictiveSyncStatus === "synced"
+              ? "Backend Sync: ON"
+              : predictiveSyncStatus === "fallback"
+                ? "Backend Sync: FALLBACK"
+                : predictiveSyncStatus === "local-only"
+                  ? "Backend Sync: OFF"
+                  : "Backend Sync: WAIT"}
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <button onClick={async () => { await supabase.auth.signOut(); clearSession(); navigate("/auth"); }} className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">Sign Out</button>
@@ -319,6 +561,7 @@ export default function DashboardPage() {
               paidTodayAmount={paidTodayAmount}
               dailyPayoutCap={dailyPayoutCap}
               onSimulateTrigger={handleSimulateTrigger}
+              predictiveSummary={predictiveSummary}
               languageMode={languageMode}
             />
 
@@ -344,6 +587,233 @@ export default function DashboardPage() {
               onPersonaChange={setActivePersonaKey}
               languageMode={languageMode}
             />
+
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                {selectLabel(languageMode, "Rider Reputation", "राइडर रेपुटेशन")}
+              </p>
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-500">{selectLabel(languageMode, "Reliability Tier", "रिलायबिलिटी टियर")}</p>
+                  <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    reputationProfile.tier === "Gold"
+                      ? "bg-amber-100 text-amber-800"
+                      : reputationProfile.tier === "Silver"
+                        ? "bg-slate-100 text-slate-700"
+                        : "bg-orange-100 text-orange-700"
+                  }`}>
+                    {reputationProfile.tier}
+                  </span>
+                </div>
+                <p className="text-3xl font-black tracking-tight text-gray-900">{reputationProfile.score}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Settled", "सेटल्ड")}</p>
+                    <p className="text-sm font-black text-gray-900">{reputationProfile.settlementRatePct}%</p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Predictive Win", "प्रेडिक्टिव विन")}</p>
+                    <p className="text-sm font-black text-gray-900">{reputationProfile.predictiveSuccessRatePct}%</p>
+                  </div>
+                </div>
+                <p className="text-xs font-medium text-gray-600">{reputationProfile.reviewNote}</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  {selectLabel(languageMode, "Benefit", "बेनेफिट")}: +{reputationProfile.benefits.advanceBoostPct}% {selectLabel(languageMode, "advance edge", "एडवांस एज")}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                {selectLabel(languageMode, "Plan Optimizer", "प्लान ऑप्टिमाइजर")}
+              </p>
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-500">{selectLabel(languageMode, "This week", "इस सप्ताह")}</p>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{planOptimizer.recommendedPlan.name}</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-700">{planOptimizer.summary}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Current", "करेंट")}</p>
+                    <p className="text-sm font-black text-gray-900">{formatCurrency(planOptimizer.currentPremium)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Suggested", "सुझाया")}</p>
+                    <p className="text-sm font-black text-gray-900">{formatCurrency(planOptimizer.recommendedPremium)}</p>
+                  </div>
+                </div>
+                {planOptimizer.overpayAmount > 0 && (
+                  <p className="text-xs font-black text-green-700">
+                    {selectLabel(languageMode, "Potential save", "संभावित बचत")}: {formatCurrency(planOptimizer.overpayAmount)}/week
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate("/pricing")}
+                  className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                >
+                  {planOptimizer.actionLabel}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                {selectLabel(languageMode, "Early Protection Radar", "अर्ली प्रोटेक्शन रडार")}
+              </p>
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+                    {selectLabel(languageMode, "Disruption Probability", "डिसरप्शन संभावना")}
+                  </p>
+                  <span className="text-sm font-black text-gray-900">
+                    {predictiveSummary ? `${predictiveSummary.probabilityAdjustedPct}%` : "--"}
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gray-900 transition-all duration-700"
+                    style={{ width: `${predictiveSummary?.probabilityAdjustedPct ?? 0}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <span>{selectLabel(languageMode, "Threshold", "थ्रेशहोल्ड")}: {predictiveSummary?.thresholdPct ?? "--"}%</span>
+                  <span>{selectLabel(languageMode, "Advance", "एडवांस")}: {predictiveSummary ? formatCurrency(predictiveSummary.advanceAmount) : "--"}</span>
+                </div>
+                <p className="text-xs font-medium text-gray-600">
+                  {predictiveSummary
+                    ? predictiveSummary.reason
+                    : selectLabel(languageMode, "Run forecast on any emergency to start the radar.", "रडार शुरू करने के लिए किसी भी इमरजेंसी पर फोरकास्ट चलाएं।")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/predictive-history")}
+                  className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                >
+                  {selectLabel(languageMode, "Open Predictive History", "प्रीडिक्टिव हिस्ट्री खोलें")}
+                </button>
+              </div>
+
+              {predictiveHistory.length > 0 && (
+                <div className="space-y-3">
+                  {predictiveHistory.map((item) => (
+                    <div key={item.assessmentId} className="bg-white border border-gray-200 rounded-2xl p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-xs font-black text-gray-900 uppercase tracking-wide">{item.triggerLabel}</p>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{item.probabilityAdjustedPct}%</span>
+                      </div>
+                      <p className="mt-1 text-[11px] font-medium text-gray-600">{item.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                    {selectLabel(languageMode, "Policy Controls", "पॉलिसी कंट्रोल्स")}
+                  </p>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    {selectLabel(languageMode, "Admin Tuning", "एडमिन ट्यूनिंग")}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPreset("conservative")}
+                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  >
+                    {selectLabel(languageMode, "Conservative", "कंजरवेटिव")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPreset("balanced")}
+                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  >
+                    {selectLabel(languageMode, "Balanced", "बैलेंस्ड")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPreset("aggressive")}
+                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  >
+                    {selectLabel(languageMode, "Aggressive", "अग्रेसिव")}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: "Low", label: selectLabel(languageMode, "Low", "लो") },
+                    { key: "Medium", label: selectLabel(languageMode, "Medium", "मीडियम") },
+                    { key: "High", label: selectLabel(languageMode, "High", "हाई") },
+                  ].map((risk) => (
+                    <div key={`threshold-${risk.key}`} className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{risk.label}</p>
+                      <input
+                        type="number"
+                        min="40"
+                        max="99"
+                        step="1"
+                        value={policyDraft.riskThreshold[risk.key]}
+                        onChange={(event) => handlePolicyDraftChange("riskThreshold", risk.key, event.target.value)}
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-black text-gray-800 focus:border-gray-900 focus:outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {selectLabel(languageMode, "Threshold %", "थ्रेशहोल्ड %")}
+                </p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: "Low", label: selectLabel(languageMode, "Low", "लो") },
+                    { key: "Medium", label: selectLabel(languageMode, "Medium", "मीडियम") },
+                    { key: "High", label: selectLabel(languageMode, "High", "हाई") },
+                  ].map((risk) => (
+                    <div key={`advance-${risk.key}`} className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{risk.label}</p>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        step="1"
+                        value={policyDraft.advanceRatioByRisk[risk.key]}
+                        onChange={(event) => handlePolicyDraftChange("advanceRatioByRisk", risk.key, event.target.value)}
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-black text-gray-800 focus:border-gray-900 focus:outline-none"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {selectLabel(languageMode, "Advance %", "एडवांस %")}
+                </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSavePolicyConfig}
+                    className="h-10 rounded-xl bg-gray-900 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors"
+                  >
+                    {selectLabel(languageMode, "Save Policy", "पॉलिसी सेव करें")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetPolicyConfig}
+                    className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  >
+                    {selectLabel(languageMode, "Reset", "रीसेट")}
+                  </button>
+                </div>
+                <p className="text-[10px] font-bold text-gray-400">
+                  {policySavedAt
+                    ? `${selectLabel(languageMode, "Last saved", "आखिरी सेव")} : ${new Date(policySavedAt).toLocaleString()}`
+                    : selectLabel(languageMode, "Not saved yet", "अभी सेव नहीं हुआ")}
+                </p>
+              </div>
+            </div>
 
             <div className="space-y-6">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Why This Weekly Cost", "यह साप्ताहिक खर्च क्यों")}</p>
@@ -375,6 +845,35 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                {selectLabel(languageMode, "Growth Features", "ग्रोथ फीचर्स")}
+              </p>
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => navigate("/community-heatmap")}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                >
+                  {selectLabel(languageMode, "Open Community Heatmap", "कम्युनिटी हीटमैप खोलें")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/team-protection")}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                >
+                  {selectLabel(languageMode, "Open Team Protection", "टीम प्रोटेक्शन खोलें")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/trust-center")}
+                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                >
+                  {selectLabel(languageMode, "Open Trust Center", "ट्रस्ट सेंटर खोलें")}
+                </button>
               </div>
             </div>
           </div>

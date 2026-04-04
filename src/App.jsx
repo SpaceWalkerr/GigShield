@@ -22,6 +22,10 @@ const FraudGuardPage = lazy(() => import("./pages/FraudGuardPage"));
 const PayoutPage = lazy(() => import("./pages/PayoutPage"));
 const PayoutReceivedPage = lazy(() => import("./pages/PayoutReceivedPage"));
 const PayoutHistoryPage = lazy(() => import("./pages/PayoutHistoryPage"));
+const PredictiveHistoryPage = lazy(() => import("./pages/PredictiveHistoryPage"));
+const CommunityHeatmapPage = lazy(() => import("./pages/CommunityHeatmapPage"));
+const TeamProtectionPage = lazy(() => import("./pages/TeamProtectionPage"));
+const TrustCenterPage = lazy(() => import("./pages/TrustCenterPage"));
 const AdminOperationsPage = lazy(() => import("./pages/AdminOperationsPage"));
 const GetProtected = lazy(() => import("./pages/GetProtected"));
 
@@ -149,6 +153,38 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <PayoutHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/predictive-history"
+                element={
+                  <ProtectedRoute>
+                    <PredictiveHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/community-heatmap"
+                element={
+                  <ProtectedRoute>
+                    <CommunityHeatmapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/team-protection"
+                element={
+                  <ProtectedRoute>
+                    <TeamProtectionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trust-center"
+                element={
+                  <ProtectedRoute>
+                    <TrustCenterPage />
                   </ProtectedRoute>
                 }
               />

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LanguageToggle from "../components/LanguageToggle";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { selectLabel } from "../utils/i18n";
@@ -12,11 +12,22 @@ import {
 import { getTrackedEvents } from "../utils/observability";
 import { getOverrideLogs, appendOverrideLog } from "../utils/adminOps";
 import { getTriggerAuditEvents } from "../utils/triggerEngine";
+import { fetchPhase3OpsSnapshot } from "../utils/phase3Analytics";
+import { fetchModerationActions, persistAnomalyEvents, saveModerationAction } from "../utils/phase3Persistence";
+import { getSession } from "../utils/session";
 
 function AdminOperationsPage() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
+  const [session] = useState(() => getSession());
   const [history, setHistory] = useState(() => getPayoutHistory());
   const [overrideLogs, setOverrideLogs] = useState(() => getOverrideLogs());
+  const [moderationActions, setModerationActions] = useState([]);
+  const [dismissedModerationIds, setDismissedModerationIds] = useState([]);
+  const [phase3Snapshot, setPhase3Snapshot] = useState({
+    trustMetrics: null,
+    anomalyAlerts: [],
+    moderationQueue: [],
+  });
 
   const flaggedQueue = useMemo(
     () => history.filter((item) => item.lifecycleStatus === "failed" || item.failureReasonCode),
@@ -103,6 +114,50 @@ function AdminOperationsPage() {
   const refresh = () => {
     setHistory(getPayoutHistory());
     setOverrideLogs(getOverrideLogs());
+  };
+
+  useEffect(() => {
+    let alive = true;
+
+    const hydratePhase3 = async () => {
+      const snapshot = await fetchPhase3OpsSnapshot();
+      if (!alive) return;
+      setPhase3Snapshot(snapshot);
+      await persistAnomalyEvents(snapshot.anomalyAlerts, { workerId: session?.workerId });
+
+      const recentActions = await fetchModerationActions({ limit: 20 });
+      if (!alive) return;
+      setModerationActions(recentActions);
+    };
+
+    hydratePhase3();
+
+    return () => {
+      alive = false;
+    };
+  }, [history.length, session?.workerId]);
+
+  const moderationQueueVisible = useMemo(
+    () => phase3Snapshot.moderationQueue.filter((item) => !dismissedModerationIds.includes(item.id)),
+    [phase3Snapshot.moderationQueue, dismissedModerationIds],
+  );
+
+  const handleModerationAction = async (item, decision) => {
+    const result = await saveModerationAction(
+      {
+        targetWorkerId: item.workerId,
+        actionType: "team-cluster-review",
+        decision,
+        reason: item.reason,
+        payload: item,
+      },
+      { actorWorkerId: session?.workerId },
+    );
+
+    setDismissedModerationIds((prev) => [...prev, item.id]);
+    if (result?.action) {
+      setModerationActions((prev) => [result.action, ...prev].slice(0, 20));
+    }
   };
 
   const applyOverride = (item, decision) => {
@@ -224,6 +279,67 @@ function AdminOperationsPage() {
             </div>
           </section>
 
+          <section className="grid gap-8 lg:grid-cols-2">
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Anomaly Alerts</p>
+              <div className="space-y-3">
+                {phase3Snapshot.anomalyAlerts.length === 0 ? (
+                  <p className="text-xs font-bold text-gray-400 italic">No anomaly alerts right now.</p>
+                ) : (
+                  phase3Snapshot.anomalyAlerts.map((alert) => (
+                    <div key={alert.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-black text-gray-900">{alert.title}</p>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${alert.severity === "high" ? "text-red-600" : "text-amber-600"}`}>
+                          {alert.severity}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium text-gray-600">{alert.detail}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Moderation Queue</p>
+              <div className="space-y-3">
+                {moderationQueueVisible.length === 0 ? (
+                  <p className="text-xs font-bold text-gray-400 italic">No suspicious team clusters.</p>
+                ) : (
+                  moderationQueueVisible.slice(0, 6).map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-black text-gray-900">{item.workerId}</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-red-600">risk {item.riskScore}</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-gray-600">{item.reason}</p>
+                      <p className="text-[10px] font-bold text-gray-500 mt-1 uppercase tracking-widest">
+                        members {item.memberCount} | pending {item.pendingRatePct}%
+                      </p>
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => handleModerationAction(item, "approved")}
+                          className="h-8 rounded-lg bg-gray-900 px-3 text-[9px] font-black uppercase tracking-widest text-white"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleModerationAction(item, "escalated")}
+                          className="h-8 rounded-lg border border-gray-300 bg-white px-3 text-[9px] font-black uppercase tracking-widest text-gray-700"
+                        >
+                          Escalate
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </section>
+
           {/* Logs */}
           <section className="grid gap-8 lg:grid-cols-2">
             <div>
@@ -252,7 +368,33 @@ function AdminOperationsPage() {
                   <p className="text-3xl font-black tracking-tighter">{trackedEvents.length}</p>
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tracked app events</p>
                 </div>
+                <div>
+                  <p className="text-3xl font-black tracking-tighter">{phase3Snapshot.trustMetrics?.payoutSuccessRatePct ?? fraudAnalytics.settledCount}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Phase 3 trust score pulse</p>
+                </div>
               </div>
+            </div>
+          </section>
+
+          <section>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Recent Moderation Actions</p>
+            <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden">
+              {moderationActions.length === 0 ? (
+                <div className="p-6">
+                  <p className="text-xs font-bold text-gray-400 italic">No moderation actions yet.</p>
+                </div>
+              ) : (
+                moderationActions.slice(0, 8).map((item) => (
+                  <div key={item.actionId} className="border-b border-gray-50 p-6 last:border-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-black">{item.targetWorkerId} — {item.decision}</p>
+                      <span className="text-[10px] font-bold text-gray-400">{new Date(item.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{item.actionType}</p>
+                    <p className="text-[11px] font-medium text-gray-600 mt-1">{item.reason}</p>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         </div>
