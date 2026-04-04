@@ -375,13 +375,15 @@ app.post('/api/chat', async (req, res) => {
 // ─── Health check ──────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('\n══════════════════════════════════════════════════════════');
-  console.log(`🚀  GigShield Risk Server  →  http://127.0.0.1:${PORT}`);
-  console.log(`✅  POST /api/automation/risk-check`);
-  console.log(`🤖  POST /api/chat  (CookieByte — powered by Groq Llama 3.3 70B)`);
-  console.log(`🌤   Weather: ${WEATHER_API_KEY ? 'OpenWeatherMap (API key set)' : 'Open-Meteo (free, no key needed)'}`);
-  console.log('══════════════════════════════════════════════════════════\n');
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n══════════════════════════════════════════════════════════');
+    console.log(`🚀  GigShield Risk Server  →  http://127.0.0.1:${PORT}`);
+    console.log(`✅  POST /api/automation/risk-check`);
+    console.log(`🤖  POST /api/chat  (CookieByte — powered by Groq Llama 3.3 70B)`);
+    console.log(`🌤   Weather: ${WEATHER_API_KEY ? 'OpenWeatherMap (API key set)' : 'Open-Meteo (free, no key needed)'}`);
+    console.log('══════════════════════════════════════════════════════════\n');
+  });
+}
 
 export default app;
