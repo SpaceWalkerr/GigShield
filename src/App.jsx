@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import NotificationStack from "./components/NotificationStack";
 import Navbar from "./components/Navbar";
 import { isSessionActive } from "./utils/session";
+import GigShieldIntro from "./components/GigShieldIntro";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -125,7 +126,7 @@ function App() {
             }
           >
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={<GigShieldIntro><LandingPage /></GigShieldIntro>} />
               <Route path="/product" element={<ProductPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/triggers" element={<TriggerPage />} />

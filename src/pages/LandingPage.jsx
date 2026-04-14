@@ -19,6 +19,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
+import PortalZomato from "../components/PortalZomato";
+
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -154,6 +156,11 @@ export default function LandingPage() {
                     "Google से साइन इन",
                   )}
                 </button>
+              </div>
+
+              {/* 3D Zomato Portal Section */}
+              <div className="mt-16 md:mt-24 w-full max-w-[800px] mx-auto z-20 pointer-events-auto shadow-2xl rounded-3xl h-[600px] border-[6px] border-white/60">
+                 <PortalZomato />
               </div>
 
               {/* About Section - Integrated Triggers & Fraud Guard */}
