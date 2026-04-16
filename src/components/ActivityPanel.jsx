@@ -7,7 +7,8 @@ import { selectLabel } from "../utils/i18n";
  * The panel is static mock data but keeps the demo tied to rider activity context.
  */
 function ActivityPanel({ activity, lastActiveTime, languageMode }) {
-  const isWorkingNow = activity.movementStatus === "Active";
+  const resolvedActivity = activity || {};
+  const isWorkingNow = resolvedActivity.movementStatus === "Active";
   const movementClasses =
     isWorkingNow
       ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
@@ -18,16 +19,16 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
       icon="activity"
       languageMode={languageMode}
       title={
-        selectLabel(languageMode, "Work Summary", "काम का सार")
+        selectLabel(languageMode, "Operational Activity", "ऑपरेशनल गतिविधि")
       }
       subtitle={
-        selectLabel(languageMode, "Simple daily work status", "आज के काम की सरल स्थिति")
+        selectLabel(languageMode, "Live signals from the protection system", "सुरक्षा सिस्टम से लाइव सिग्नल")
       }
     >
       <dl className="space-y-4">
         {[
-          { label: selectLabel(languageMode, "Orders Completed Today", "आज पूरे किए गए ऑर्डर"), value: activity.ordersCompletedToday },
-          { label: selectLabel(languageMode, "Last Seen Working", "अंतिम बार काम करते हुए"), value: formatTime(lastActiveTime) }
+          { label: selectLabel(languageMode, "Signals Processed Today", "आज प्रोसेस किए गए सिग्नल"), value: resolvedActivity.signalsProcessedToday ?? resolvedActivity.ordersCompletedToday ?? 0 },
+          { label: selectLabel(languageMode, "Last Live Check", "अंतिम लाइव जांच"), value: lastActiveTime ? formatTime(lastActiveTime) : "--" }
         ].map((item, i) => (
           <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
             <dt className="text-xs font-bold uppercase tracking-widest text-zinc-500">
@@ -41,7 +42,7 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
 
         <div className="flex items-center justify-between border-t border-white/10 pt-4">
           <dt className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-            {selectLabel(languageMode, "Working Right Now", "अभी काम कर रहे हैं")}
+            {selectLabel(languageMode, "Live Protection Status", "लाइव सुरक्षा स्थिति")}
           </dt>
           <dd>
             <span

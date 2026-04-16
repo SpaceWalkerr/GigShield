@@ -1,3 +1,5 @@
+import { fetchRecentTriggerEventsFromBackend, syncTriggerEventToBackend } from "../services/backend/triggerEventService";
+
 const triggerCacheStorageKey = "gigshieldTriggerCache";
 const triggerAuditStorageKey = "gigshieldTriggerAudit";
 
@@ -143,7 +145,7 @@ export function getTriggerConfidenceScore({ triggerId, weatherReliability, perso
   };
 }
 
-export function appendTriggerAuditEvent(event) {
+export function appendTriggerAuditEvent(event, context = {}) {
   const raw = localStorage.getItem(triggerAuditStorageKey);
   let existing = [];
   if (raw) {
@@ -157,6 +159,7 @@ export function appendTriggerAuditEvent(event) {
 
   existing.unshift(event);
   localStorage.setItem(triggerAuditStorageKey, JSON.stringify(existing.slice(0, 100)));
+  void syncTriggerEventToBackend(event, context);
 }
 
 export function getTriggerAuditEvents() {
@@ -171,4 +174,17 @@ export function getTriggerAuditEvents() {
   } catch {
     return [];
   }
+}
+
+export async function hydrateTriggerAuditEvents(options = {}) {
+  const remote = await fetchRecentTriggerEventsFromBackend(options);
+  if (remote.length > 0) {
+    localStorage.setItem(
+      triggerAuditStorageKey,
+      JSON.stringify(remote.slice(0, 100)),
+    );
+    return remote;
+  }
+
+  return getTriggerAuditEvents();
 }

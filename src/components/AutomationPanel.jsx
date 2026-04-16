@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { checkGigShieldRisk } from "../lib/gigshieldApi";
 import { formatCurrency } from "../utils/format";
+import {
+  fetchLatestAutomationAssessmentFromBackend,
+  saveAutomationAssessmentToBackend,
+} from "../services/backend/automationAssessmentService";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 const RISK_CONFIG = {
@@ -134,7 +138,11 @@ export default function AutomationPanel({ session, setSession }) {
     try {
       const result = await checkGigShieldRisk(payload);
       setData(result);
-      setLastRefresh(new Date().toLocaleTimeString());
+      setLastRefresh(new Date(result?._computedAt || Date.now()).toLocaleTimeString());
+      void saveAutomationAssessmentToBackend(result, {
+        city: session?.city || result?.worker?.zone || "Unknown",
+        workerId: session?.workerId || result?.worker?.id || null,
+      });
 
       // ── Risk Toast Notification ─────────────────────────────────────
       const level = (result.riskLevel || "low").toLowerCase();
@@ -171,6 +179,26 @@ export default function AutomationPanel({ session, setSession }) {
       setLoading(false);
     }
   }, [session]);
+
+  useEffect(() => {
+    let alive = true;
+
+    const hydrateLatest = async () => {
+      const latest = await fetchLatestAutomationAssessmentFromBackend();
+      if (!alive || !latest) {
+        return;
+      }
+
+      setData(latest);
+      setLastRefresh(new Date(latest?._computedAt || Date.now()).toLocaleTimeString());
+    };
+
+    hydrateLatest();
+
+    return () => {
+      alive = false;
+    };
+  }, [session?.workerId]);
 
   // Auto-fetch on mount
   useEffect(() => { performCheck(); }, [performCheck]);

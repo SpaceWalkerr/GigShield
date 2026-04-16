@@ -12,7 +12,7 @@ import {
 } from "../utils/payoutReceipt";
 import { getTrackedEvents } from "../utils/observability";
 import { getOverrideLogs, appendOverrideLog } from "../utils/adminOps";
-import { getTriggerAuditEvents } from "../utils/triggerEngine";
+import { getTriggerAuditEvents, hydrateTriggerAuditEvents } from "../utils/triggerEngine";
 import { fetchPhase3OpsSnapshot } from "../utils/phase3Analytics";
 import { fetchModerationActions, persistAnomalyEvents, saveModerationAction } from "../utils/phase3Persistence";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
@@ -24,6 +24,7 @@ function AdminOperationsPage() {
   const { session } = useHydratedSession();
   const [history, setHistory] = useState(() => getPayoutHistory());
   const [overrideLogs, setOverrideLogs] = useState(() => getOverrideLogs());
+  const [triggerAudit, setTriggerAudit] = useState(() => getTriggerAuditEvents());
   const [moderationActions, setModerationActions] = useState([]);
   const [dismissedModerationIds, setDismissedModerationIds] = useState([]);
   const [phase3Snapshot, setPhase3Snapshot] = useState({
@@ -40,8 +41,6 @@ function AdminOperationsPage() {
   );
 
   const trackedEvents = getTrackedEvents();
-  const triggerAudit = getTriggerAuditEvents();
-
   const fraudAnalytics = useMemo(() => {
     const failed = history.filter((item) => item.lifecycleStatus === "failed");
     const settled = history.filter((item) => item.lifecycleStatus === "settled");
@@ -128,6 +127,13 @@ function AdminOperationsPage() {
       const hydratedHistory = await hydratePayoutHistory({ limit: 200 });
       if (!alive) return;
       setHistory(hydratedHistory);
+
+      const hydratedTriggerAudit = await hydrateTriggerAuditEvents({
+        city: session?.city,
+        limit: 100,
+      });
+      if (!alive) return;
+      setTriggerAudit(hydratedTriggerAudit);
 
       const snapshot = await fetchPhase3OpsSnapshot();
       if (!alive) return;

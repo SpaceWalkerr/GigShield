@@ -30,6 +30,7 @@ import {
   evaluateTriggerRules,
   getTriggerAuditEvents,
   getTriggerConfidenceScore,
+  hydrateTriggerAuditEvents,
 } from "../utils/triggerEngine";
 import {
   buildPredictiveAssessment,
@@ -50,6 +51,7 @@ import { AppSurface } from "../components/ui/app-page-shell";
 import { buildIncomeRadar } from "../utils/incomeRadar";
 import { saveIncomeRadarSnapshot } from "../services/backend/incomeRadarService";
 import { useHydratedSession } from "../hooks/useHydratedSession";
+import { fetchDashboardMetrics } from "../services/backend/dashboardMetricsService";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const backendPersistenceEnabled = import.meta.env.VITE_ENABLE_BACKEND_PERSISTENCE === "true";
@@ -171,6 +173,7 @@ export default function DashboardPage() {
   const [predictiveSyncStatus, setPredictiveSyncStatus] = useState(() =>
     backendPersistenceEnabled ? "waiting" : "local-only",
   );
+  const [dashboardMetrics, setDashboardMetrics] = useState(null);
 
   const availablePlatforms = ["Swiggy", "Zomato", "Blinkit"];
   const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
@@ -225,6 +228,30 @@ export default function DashboardPage() {
   useEffect(() => {
     let alive = true;
 
+    const syncTriggerAudit = async () => {
+      const hydrated = await hydrateTriggerAuditEvents({
+        city: session?.city || "New Delhi",
+        limit: 25,
+      });
+
+      if (!alive || hydrated.length === 0) {
+        return;
+      }
+
+      setTriggerAuditEvents(hydrated.slice(0, 8));
+      setLatestTriggerId((current) => current || hydrated[0]?.triggerId || "");
+    };
+
+    syncTriggerAudit();
+
+    return () => {
+      alive = false;
+    };
+  }, [session?.city]);
+
+  useEffect(() => {
+    let alive = true;
+
     const syncPayoutHistory = async () => {
       const hydrated = await hydratePayoutHistory({ limit: 100 });
       if (!alive || hydrated.length === 0) {
@@ -257,6 +284,30 @@ export default function DashboardPage() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+
+    const syncDashboardMetrics = async () => {
+      const metrics = await fetchDashboardMetrics({
+        city: session?.city || "New Delhi",
+      });
+
+      if (!alive || !metrics) {
+        return;
+      }
+
+      setDashboardMetrics(metrics);
+      setLastPayoutAmount(metrics.latestPayoutAmount || 0);
+      setPaidTodayAmount(metrics.supportToday || 0);
+    };
+
+    syncDashboardMetrics();
+
+    return () => {
+      alive = false;
+    };
+  }, [session?.city, session?.workerId]);
 
   // Simulation Logic
   const handleSimulateTrigger = async (triggerId, mode = "confirmed") => {
@@ -354,6 +405,9 @@ export default function DashboardPage() {
     appendTriggerAuditEvent({
       id: receipt?.payoutId || `${now.getTime()}`, createdAt: now.toISOString(), triggerId,
       decision: payoutResult.status, reason: payoutResult.reason, payoutAmount, confidence: enrichedResult.triggerConfidenceScore
+    }, {
+      city: session?.city || "Unknown",
+      source: mode === "forecast" ? "predictive_dashboard" : "dashboard_simulation",
     });
 
     setTriggerAuditEvents(getTriggerAuditEvents().slice(0, 8));
@@ -418,7 +472,10 @@ export default function DashboardPage() {
 
   const coverageActive = selectedPlatforms.length > 0;
   const weeklyPaidAmount = weeklyTrend.reduce((sum, day) => sum + Number(day.paidAmount || 0), 0);
-  const earningsProtectedThisWeek = weeklyPaidAmount || userProfile.earningsProtectedThisWeek;
+  const earningsProtectedThisWeek =
+    dashboardMetrics?.supportThisWeek ||
+    weeklyPaidAmount ||
+    userProfile.earningsProtectedThisWeek;
   const weeklySupportCap = dailyPayoutCap * 7;
   const weeklySupportLeft = Math.max(0, weeklySupportCap - weeklyPaidAmount);
   const emergencyActive = Boolean(latestTrigger);
@@ -694,8 +751,8 @@ export default function DashboardPage() {
                 languageMode={languageMode}
               />
               <ActivityPanel
-                activity={activityData}
-                lastActiveTime={userProfile.lastActiveTime}
+                activity={dashboardMetrics?.activitySummary || activityData}
+                lastActiveTime={dashboardMetrics?.activitySummary?.lastActiveTime || userProfile.lastActiveTime}
                 languageMode={languageMode}
               />
             </div>
