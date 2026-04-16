@@ -17,7 +17,7 @@ describe("payout security", () => {
     expect(result.fingerprint).toBeTruthy();
   });
 
-  it("fails strict checks without liveness", () => {
+  it("fails strict checks without claim location evidence", () => {
     const result = runPayoutSecurityChecks({
       evidence: {},
       workerCity: "Bengaluru",
@@ -25,6 +25,6 @@ describe("payout security", () => {
     });
 
     expect(result.ok).toBe(false);
-    expect(result.reasonCode).toBe("LIVENESS_FAILED");
+    expect(result.reasonCode).toBe("GEO_MISMATCH");
   });
 });

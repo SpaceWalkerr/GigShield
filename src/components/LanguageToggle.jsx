@@ -1,4 +1,4 @@
-import { selectLabel, languageModes } from "../utils/i18n";
+import { languageModes } from "../utils/i18n";
 
 function LanguageToggle({ languageMode, setLanguageMode }) {
   return (

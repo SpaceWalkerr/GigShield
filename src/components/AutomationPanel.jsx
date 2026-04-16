@@ -178,7 +178,7 @@ export default function AutomationPanel({ session, setSession }) {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, setSession]);
 
   useEffect(() => {
     let alive = true;

@@ -108,7 +108,7 @@ export default function ARIAChat({ session, riskLevel }) {
       let data;
       try {
         data = JSON.parse(text);
-      } catch (e) {
+      } catch {
         console.error("CookieByte JSON Parse Error:", text);
         throw new Error("I received a malformed response. Please try again in a moment. 🤖");
       }

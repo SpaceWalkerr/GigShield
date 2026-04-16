@@ -17,7 +17,7 @@ export async function checkGigShieldRisk(workerPayload) {
     });
 
     if (!response.ok) {
-      const text = await response.text().catch(() => '');
+      await response.text().catch(() => '');
       console.warn(`[API] Backend returned ${response.status}. Falling back to local engine.`);
       return await checkRiskWithFallback(workerPayload);
     }

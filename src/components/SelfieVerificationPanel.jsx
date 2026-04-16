@@ -23,7 +23,6 @@ function formatRelativeTime(isoDate) {
 }
 
 function SelfieVerificationPanel({
-  requiresVerification,
   verificationState,
   onGenerateChallenge,
   onApproveVerification,

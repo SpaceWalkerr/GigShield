@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import LandingPage from "./LandingPage";
@@ -13,47 +13,49 @@ vi.mock("../utils/siteLanguage", () => ({
 }));
 
 vi.mock("../utils/i18n", () => ({
-  selectLabel: (lang, eng, hindi) => eng,
+  selectLabel: (_lang, eng) => eng,
 }));
 
 describe("LandingPage Component", () => {
-  it("renders the main GigShield brand logo", () => {
+  it("renders the current hero headline", () => {
     render(
       <BrowserRouter>
         <LandingPage />
       </BrowserRouter>
     );
-    expect(screen.getByText(/GIGSHIELD\./)).toBeDefined();
+    expect(
+      screen.getByText(/Weekly income protection for every disrupted delivery shift\./)
+    ).toBeDefined();
   });
 
-  it("renders the marquee with payout text", () => {
+  it("renders the protection description copy", () => {
     render(
       <BrowserRouter>
         <LandingPage />
       </BrowserRouter>
     );
-    expect(screen.getAllByText(/Ramesh Kumar received ₹30 payback/)[0]).toBeDefined();
+    expect(
+      screen.getByText(/GigShield is a weekly income protection product for delivery workers\./)
+    ).toBeDefined();
   });
 
-  it("renders the main hero text overlapping", () => {
+  it("renders the weekly pricing card", () => {
     render(
       <BrowserRouter>
         <LandingPage />
       </BrowserRouter>
     );
-    expect(screen.getByText(/Protect income\./)).toBeDefined();
-    expect(screen.getByText(/Ride through every disruption\./)).toBeDefined();
+    expect(screen.getByText(/₹79 to ₹179/)).toBeDefined();
+    expect(screen.getByText(/Income Loss Only/)).toBeDefined();
   });
 
-  it("renders the call to action buttons", () => {
+  it("renders the current call-to-action buttons", () => {
     render(
       <BrowserRouter>
         <LandingPage />
       </BrowserRouter>
     );
-    const getProtectedBtns = screen.getAllByText(/Get Protected/);
-    expect(getProtectedBtns.length).toBeGreaterThan(0);
-    const signInBtns = screen.getAllByText(/Sign In/);
-    expect(signInBtns.length).toBeGreaterThan(0);
+    expect(screen.getByText(/See How It Works/)).toBeDefined();
+    expect(screen.getByText(/View Weekly Plans/)).toBeDefined();
   });
 });
