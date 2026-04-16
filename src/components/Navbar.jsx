@@ -22,21 +22,31 @@ export default function Navbar() {
     { label: "Triggers", path: "/triggers" },
     { label: "Fraud Guard", path: "/fraud-guard" },
     { label: "Get Protected", path: "/get-protected" },
-    { label: "Sign In", path: "/signin" },
-    { label: "Sign Up", path: "/signup" },
-    { label: "Auth Hub", path: "/auth" },
-    { label: "Dashboard", path: "/dashboard" },
-    { label: "Payout", path: "/payout" },
-    { label: "Receipt", path: "/payout-received" },
-    { label: "History", path: "/payout-history" },
-    { label: "Predictive", path: "/predictive-history" },
-    { label: "Heatmap", path: "/community-heatmap" },
-    { label: "Team", path: "/team-protection" },
+    { label: "Live Demo", path: "/dashboard" },
     { label: "Trust", path: "/trust-center" },
-    { label: "Support", path: "/support" },
-    { label: "Admin Hub", path: "/admin" },
-    { label: "Admin", path: "/admin-ops" },
+    { label: "Admin View", path: "/admin-ops" },
   ];
+
+  const isNavItemActive = (path) => {
+    if (path === "/dashboard") {
+      return [
+        "/dashboard",
+        "/payout",
+        "/payout-received",
+        "/payout-history",
+        "/predictive-history",
+        "/community-heatmap",
+        "/team-protection",
+        "/support",
+      ].includes(location.pathname);
+    }
+
+    if (path === "/admin-ops") {
+      return ["/admin", "/admin-ops"].includes(location.pathname);
+    }
+
+    return location.pathname === path;
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -177,7 +187,7 @@ export default function Navbar() {
         <div className="mt-3 hidden lg:block">
           <div className="flex items-center gap-2 overflow-x-auto rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-2">
             {navItems.map((item) => {
-              const active = location.pathname === item.path;
+              const active = isNavItemActive(item.path);
               return (
                 <button
                   key={item.path}
@@ -207,7 +217,7 @@ export default function Navbar() {
                 About
               </button>
               {navItems.map((item) => {
-                const active = location.pathname === item.path;
+                const active = isNavItemActive(item.path);
                 return (
                   <button
                     key={item.path}

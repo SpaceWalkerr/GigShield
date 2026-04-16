@@ -1,106 +1,211 @@
 # GigShield
 
-GigShield is an AI-enabled parametric income protection platform for India's platform-based delivery workers. It is designed for riders working with Zomato, Swiggy, Zepto, Blinkit, Amazon-style last-mile operations, and similar gig networks whose earnings are disrupted by external events they cannot control.
+GigShield is an AI-enabled parametric income protection platform for India's platform-based delivery workers. It protects riders from verified income loss caused by external disruptions such as heavy rain, unsafe AQI, platform outages, and related city-level conditions.
 
-This product does not cover health, life, personal accidents, or vehicle repair. It only protects against loss of delivery income caused by verified external disruptions.
+This product is intentionally limited to income-loss protection only.
+It does not cover health, life, accidents, or vehicle repair.
+
+## What Is GigShield?
+
+GigShield is a digital safety net for delivery workers.
+
+If a delivery partner working on platforms like Zomato, Swiggy, Blinkit, Zepto, or similar networks loses earning time because of bad weather, pollution, or platform disruption, GigShield helps protect that lost income.
+
+In simple terms:
+
+- a worker buys a small weekly protection plan
+- GigShield monitors external disruption signals
+- if a valid disruption affects earning ability, the platform can trigger support automatically
+- fraud checks and policy rules are applied before payout
+
+GigShield is not general insurance.
+It is a focused parametric income protection product for gig workers.
+
+## GigShield In One Line
+
+GigShield helps delivery workers avoid or recover income loss caused by external disruptions.
+
+## Who It Is For
+
+GigShield is built for:
+
+- food delivery riders
+- quick-commerce delivery partners
+- last-mile gig workers
+- riders who work on one or multiple delivery platforms
+
+## What Problem It Solves
+
+Delivery workers often lose income when:
+
+- heavy rain makes routes unsafe
+- AQI becomes hazardous
+- heat or environmental conditions reduce workable hours
+- platform outages stop orders
+
+Today, most workers carry that loss themselves.
+
+GigShield creates a safety layer around those income shocks using weekly coverage, automated triggers, and instant support logic.
+
+## How It Works
+
+1. the worker signs up and selects a weekly plan
+2. GigShield creates a risk profile based on city, work pattern, and platform setup
+3. the system watches for disruption events like rain, AQI spikes, or outages
+4. if a covered trigger happens, GigShield checks policy rules and fraud controls
+5. payout support is initiated through the claims flow
+
+## Core Idea
+
+India's delivery workers operate on weekly cash flow, high volatility, and low financial buffers. When rain, pollution, traffic shocks, or platform downtime reduce safe working hours, workers can lose a meaningful share of their weekly income.
+
+GigShield solves this through:
+
+- weekly-priced protection aligned to gig-worker earnings cycles
+- AI-assisted risk profiling during onboarding
+- parametric trigger detection using weather, environmental, and platform signals
+- zero-touch claims automation
+- fraud-aware payout validation
+- worker and admin dashboards for protection, trust, and analytics
+
+The platform is built as a web experience so workers, judges, and insurers can access the same product quickly across devices without app-install friction.
+
+## Standout Feature
+
+### Income Radar + Shift Advisor
+
+GigShield's signature differentiator is **Income Radar**.
+
+Instead of only paying after disruption, Income Radar helps riders avoid loss before it happens.
+
+It:
+
+- predicts the safest earning zones for the rider's next shift
+- highlights the highest-risk micro-zone in the city
+- recommends better earning windows
+- shows a tomorrow forecast for disruption pressure
+- supports a demo storyline where the rider reroutes first and still stays protected if disruption spreads
+
+This shifts GigShield from simple insurance into an intelligent co-pilot for delivery workers.
+
+Relevant implementation:
+
+- [src/utils/incomeRadar.js](/Users/suraj/Desktop/GigShield/src/utils/incomeRadar.js)
+- [src/components/IncomeRadarPanel.jsx](/Users/suraj/Desktop/GigShield/src/components/IncomeRadarPanel.jsx)
+- [src/pages/DashboardPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/DashboardPage.jsx)
 
 ## Problem Statement
 
-Delivery workers are paid on output and availability. When rain, heatwaves, dangerous AQI, curfews, app outages, or other external disruptions reduce safe working hours or stop order flow, riders lose income immediately.
+Platform-based delivery workers are the backbone of the digital economy, but their earnings are highly exposed to external disruptions.
 
-Traditional insurance is not a good fit for this problem because:
+Examples:
 
-- It is claim-heavy and document-heavy.
-- It is usually not aligned with the worker's weekly earning cycle.
-- It requires proving loss after the disruption instead of responding automatically to known external events.
+- extreme rainfall reduces safe working hours and order completion
+- dangerous AQI makes outdoor delivery unsafe
+- heatwaves lower productivity and shift duration
+- platform outages stop order flow even when the rider is available
 
-GigShield uses a parametric model instead:
+Current workers usually absorb that loss alone.
 
-- detect a verified disruption
-- check the worker's active weekly policy
-- validate risk and fraud controls
-- trigger instant income support automatically
+Traditional insurance is a poor fit because it is:
+
+- document-heavy
+- slow to assess
+- not aligned to weekly payout cycles
+- focused on reimbursement after damage instead of automatic income relief
+
+GigShield uses a parametric model:
+
+1. detect a verified external disruption
+2. validate whether the worker has active weekly coverage
+3. apply fraud and policy checks
+4. trigger payout support automatically
 
 ## Delivery Persona
 
-Primary persona:
+### Primary Persona
 
 - Name: Ramesh
 - Age: 26
 - City: Delhi NCR
-- Work style: full-time or peak-hour delivery rider
-- Platforms: Swiggy + Zomato or similar multi-app stack
+- Platforms: Swiggy + Zomato
+- Work style: full-time with peak-hour dependency
 - Weekly earnings: `₹6,000-₹15,000`
-- Financial reality: depends on weekly cash-out, has little buffer for 1-2 days of lost work
+- Pain point: can lose 1 to 2 days of income from weather, AQI, or platform downtime with no safety net
 
-Secondary personas:
+### Secondary Personas
 
-- Peak-hours rider in Mumbai who works lunch and dinner rush only
-- Weekend-heavy rider in Bengaluru who depends on surge demand
-- High-exposure rider in Delhi where AQI and weather volatility are frequent
+- Mumbai rider affected by waterlogging and platform saturation
+- Bengaluru rider affected by storm delays and high traffic friction
+- Delhi rider with repeated AQI-related disruption risk
 
 ## Persona-Based Scenarios
 
-### Scenario 1: Heavy Rain
+### 1. Heavy Rain
 
-- Ramesh starts a shift in Gurugram.
-- Rainfall crosses the city safety threshold from the weather feed.
-- Order density drops and roads become unsafe.
-- GigShield detects the trigger, verifies his weekly policy, checks daily cap and fraud controls, and starts payout without manual paperwork.
+- Ramesh begins a Gurugram shift.
+- Rain crosses the configured city threshold.
+- Demand drops and road safety worsens.
+- GigShield validates trigger eligibility and initiates income support.
 
-### Scenario 2: AQI Spike
+### 2. AQI Spike
 
-- A Delhi rider is scheduled for evening shifts.
-- AQI crosses the hazardous threshold.
-- Safe outdoor work hours drop sharply.
-- GigShield uses the AQI trigger to release income support for the covered disruption window.
+- A rider is scheduled for evening delivery.
+- AQI crosses the hazard threshold.
+- Outdoor work becomes unsafe.
+- GigShield treats this as an income-loss event and begins the payout path.
 
-### Scenario 3: Platform Outage
+### 3. Platform Outage
 
-- A rider is available and online but the partner platform is degraded.
-- Order flow stops due to verified platform downtime.
-- GigShield classifies this as parametric loss of income and automatically initiates payout.
+- A rider is online and available.
+- Platform downtime blocks order flow.
+- GigShield verifies the disruption signal and releases support automatically.
 
-### Scenario 4: Fraud Attempt
+### 4. Fraud Attempt
 
-- A suspicious user repeatedly triggers payouts from outside the expected operating zone.
-- GigShield applies velocity checks, geolocation consistency, duplicate-claim prevention, and selfie verification before releasing funds.
-- Suspicious payouts are blocked or routed for moderation.
+- A suspicious user tries to claim repeatedly from inconsistent locations.
+- GigShield checks geolocation, session behavior, duplicate patterns, and verification signals.
+- The payout is blocked or routed for moderation.
+
+### 5. Income Radar Save
+
+- A rider starts in a high-risk zone with rising AQI and congestion pressure.
+- Income Radar recommends shifting to a safer corridor before the earnings window collapses.
+- If disruption still spreads, GigShield already knows the payout-ready protection window and can respond automatically.
 
 ## End-to-End Workflow
 
-### 1. Onboarding
+### 1. Optimized Onboarding
 
-Worker enters:
+The worker enters:
 
-- identity details
 - city
 - work pattern
+- linked delivery platforms
 - weekly earnings band
-- platform
-- rider ID
-- optional vehicle type
-- rider proof screenshot
-- preferred disruption triggers
+- rider identity details
+- proof inputs
+- preferred coverage and trigger preferences
 
-The onboarding flow then:
+GigShield then:
 
-- builds a rider persona risk profile
+- creates a rider persona profile
+- estimates disruption and fraud posture
 - recommends a plan
-- previews weekly price
-- activates the worker's protection profile
+- previews weekly pricing
+- activates protection
 
 Relevant implementation:
 
-- [StepProfile.jsx](./src/components/verification/StepProfile.jsx)
-- [StepPlatform.jsx](./src/components/verification/StepPlatform.jsx)
-- [StepRiderProof.jsx](./src/components/verification/StepRiderProof.jsx)
-- [StepCoverage.jsx](./src/components/verification/StepCoverage.jsx)
-- [onboardingProfile.js](./src/utils/onboardingProfile.js)
+- [src/components/verification/StepProfile.jsx](/Users/suraj/Desktop/GigShield/src/components/verification/StepProfile.jsx)
+- [src/components/verification/StepPlatform.jsx](/Users/suraj/Desktop/GigShield/src/components/verification/StepPlatform.jsx)
+- [src/components/verification/StepRiderProof.jsx](/Users/suraj/Desktop/GigShield/src/components/verification/StepRiderProof.jsx)
+- [src/components/verification/StepCoverage.jsx](/Users/suraj/Desktop/GigShield/src/components/verification/StepCoverage.jsx)
+- [src/utils/onboardingProfile.js](/Users/suraj/Desktop/GigShield/src/utils/onboardingProfile.js)
 
 ### 2. Weekly Policy Creation
 
-Worker selects a weekly plan:
+The worker selects a weekly plan:
 
 - Basic
 - Standard
@@ -109,138 +214,141 @@ Worker selects a weekly plan:
 Each plan defines:
 
 - weekly premium
-- coverage hours
-- payout amount by trigger
+- covered disruption hours
+- payout logic by trigger
 - daily payout cap
 
 Relevant implementation:
 
-- [planDetails.json](./src/data/planDetails.json)
-- [pricing.js](./src/utils/pricing.js)
-- [PricingPage.jsx](./src/pages/PricingPage.jsx)
+- [src/data/planDetails.json](/Users/suraj/Desktop/GigShield/src/data/planDetails.json)
+- [src/utils/pricing.js](/Users/suraj/Desktop/GigShield/src/utils/pricing.js)
+- [src/pages/PricingPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/PricingPage.jsx)
 
-### 3. Risk Assessment
+### 3. AI-Powered Risk Profiling
 
-GigShield estimates rider disruption risk based on:
+GigShield uses rider inputs and operating context to build an AI-style risk profile.
+
+Signals include:
 
 - city risk
-- work pattern
+- work style
 - weekly earnings dependency
-- platform dependency
-- selected disruption triggers
-- fraud/risk posture
+- number of linked platforms
+- disruption exposure
+- fraud posture
 
-This risk influences:
+This affects:
 
-- weekly premium
-- recommended plan
-- predictive early-support logic
-- verification friction
-
-Relevant implementation:
-
-- [onboardingProfile.js](./src/utils/onboardingProfile.js)
-- [fraud.js](./src/utils/fraud.js)
-- [predictiveSafetyNet.js](./src/utils/predictiveSafetyNet.js)
-
-### 4. Parametric Trigger Monitoring
-
-GigShield monitors external conditions using live, mock, or simulated integrations:
-
-- weather APIs
-- AQI-style environmental conditions
-- traffic signals
-- platform status signals
-- local disruption events
-
-When a trigger fires, the engine checks:
-
-- whether the trigger is covered by the selected plan
-- whether the worker is inside coverage hours
-- whether the daily cap still has room
-- whether the domain is allowed under policy rules
+- premium recommendation
+- coverage positioning
+- predictive support logic
+- verification intensity
 
 Relevant implementation:
 
-- [triggerEngine.js](./src/utils/triggerEngine.js)
-- [integrations.js](./src/utils/integrations.js)
-- [policy.js](./src/utils/policy.js)
-- [payout.js](./src/utils/payout.js)
+- [src/utils/onboardingProfile.js](/Users/suraj/Desktop/GigShield/src/utils/onboardingProfile.js)
+- [src/utils/pricing.js](/Users/suraj/Desktop/GigShield/src/utils/pricing.js)
+- [src/utils/predictiveSafetyNet.js](/Users/suraj/Desktop/GigShield/src/utils/predictiveSafetyNet.js)
+- [src/utils/fraud.js](/Users/suraj/Desktop/GigShield/src/utils/fraud.js)
 
-### 5. Claims and Payout Automation
+### 4. Parametric Trigger Automation
 
-GigShield uses a zero-touch claims model:
+GigShield monitors disruption inputs through live, mock, or simulated integrations:
 
-- disruption detected
-- payout initiated automatically
-- fraud and verification checks applied
-- payout receipt created
-- status moves through lifecycle states
+- weather signals
+- AQI and environmental conditions
+- traffic and mobility inputs
+- platform outage status
+- city disruption signals
+
+When a trigger fires, the system checks:
+
+- policy eligibility
+- coverage hours
+- daily cap room
+- payout rules
+- trigger confidence
+
+Relevant implementation:
+
+- [src/utils/triggerEngine.js](/Users/suraj/Desktop/GigShield/src/utils/triggerEngine.js)
+- [src/utils/integrations.js](/Users/suraj/Desktop/GigShield/src/utils/integrations.js)
+- [src/utils/policy.js](/Users/suraj/Desktop/GigShield/src/utils/policy.js)
+- [src/utils/payout.js](/Users/suraj/Desktop/GigShield/src/utils/payout.js)
+- [src/pages/TriggerPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/TriggerPage.jsx)
+
+### 5. Zero-Touch Claims and Payouts
+
+GigShield follows a zero-touch claims model:
+
+- disruption is detected automatically
+- a claim is initiated automatically
+- validation and fraud checks run
+- payout status advances through lifecycle states
+- receipt and payout history are recorded
 
 Lifecycle states demonstrated:
 
-- pending-verification
-- verified
-- processing
-- settled
-- failed
+- `pending-verification`
+- `verified`
+- `processing`
+- `settled`
+- `failed`
 
 Relevant implementation:
 
-- [payoutReceipt.js](./src/utils/payoutReceipt.js)
-- [PayoutPage.jsx](./src/pages/PayoutPage.jsx)
-- [PayoutReceivedPage.jsx](./src/pages/PayoutReceivedPage.jsx)
-- [PayoutHistoryPage.jsx](./src/pages/PayoutHistoryPage.jsx)
+- [src/utils/payoutReceipt.js](/Users/suraj/Desktop/GigShield/src/utils/payoutReceipt.js)
+- [src/pages/PayoutPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/PayoutPage.jsx)
+- [src/pages/PayoutReceivedPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/PayoutReceivedPage.jsx)
+- [src/pages/PayoutHistoryPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/PayoutHistoryPage.jsx)
 
-### 6. Fraud Detection and Moderation
+### 6. Intelligent Fraud Detection
 
-GigShield includes intelligent fraud protection specifically shaped for delivery use cases:
+GigShield includes delivery-specific fraud protection:
 
-- anomaly detection on behavior and payout attempts
-- location validation against expected city zone
-- activity validation through rider persona and session behavior
-- duplicate-claim prevention using cooldown and dedup rules
-- velocity limits for repeated payout attempts
-- selfie/liveness verification for high-risk sessions
-- admin moderation queue for flagged payouts
+- anomaly detection in payout attempts
+- location validation
+- activity validation
+- duplicate-claim prevention
+- velocity and cooldown checks
+- selfie or liveness-style verification for risky sessions
+- admin moderation support
 
 Relevant implementation:
 
-- [payoutSecurity.js](./src/utils/payoutSecurity.js)
-- [triggerEngine.js](./src/utils/triggerEngine.js)
-- [SelfieVerificationPanel.jsx](./src/components/SelfieVerificationPanel.jsx)
-- [FraudGuardPage.jsx](./src/pages/FraudGuardPage.jsx)
-- [AdminOperationsPage.jsx](./src/pages/AdminOperationsPage.jsx)
+- [src/utils/payoutSecurity.js](/Users/suraj/Desktop/GigShield/src/utils/payoutSecurity.js)
+- [src/components/SelfieVerificationPanel.jsx](/Users/suraj/Desktop/GigShield/src/components/SelfieVerificationPanel.jsx)
+- [src/pages/FraudGuardPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/FraudGuardPage.jsx)
+- [src/pages/AdminOperationsPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/AdminOperationsPage.jsx)
 
-### 7. Analytics and Trust Views
+### 7. Worker and Admin Analytics
 
-Worker-side analytics:
+Worker-side views include:
 
-- earnings protected this week
-- weekly support left
+- weekly earnings protected
+- support remaining
 - trigger status
 - payout history
-- predictive risk radar
+- predictive and radar insights
 
-Admin-side analytics:
+Admin-side views include:
 
-- failed vs settled payouts
-- false positive rate
-- risk bucket distribution
+- payout outcomes
 - anomaly alerts
-- moderation queue
-- trust metrics and payout success rate
+- risk and trust metrics
+- moderation visibility
+- insurer-facing operations
 
 Relevant implementation:
 
-- [DashboardPage.jsx](./src/pages/DashboardPage.jsx)
-- [TrustCenterPage.jsx](./src/pages/TrustCenterPage.jsx)
-- [AdminOperationsPage.jsx](./src/pages/AdminOperationsPage.jsx)
-- [phase3Analytics.js](./src/utils/phase3Analytics.js)
+- [src/pages/DashboardPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/DashboardPage.jsx)
+- [src/pages/TrustCenterPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/TrustCenterPage.jsx)
+- [src/pages/AdminOperationsPage.jsx](/Users/suraj/Desktop/GigShield/src/pages/AdminOperationsPage.jsx)
+- [src/utils/phase3Analytics.js](/Users/suraj/Desktop/GigShield/src/utils/phase3Analytics.js)
 
 ## Weekly Premium Model
 
-GigShield is intentionally designed around weekly pricing because delivery workers usually think in weekly earning and withdrawal cycles, not monthly insurance cycles.
+Weekly pricing is central to GigShield because delivery workers usually think in weekly earnings and weekly withdrawals.
 
 ### Base Weekly Plans
 
@@ -250,377 +358,166 @@ GigShield is intentionally designed around weekly pricing because delivery worke
 
 Defined in:
 
-- [planDetails.json](./src/data/planDetails.json)
+- [src/data/planDetails.json](/Users/suraj/Desktop/GigShield/src/data/planDetails.json)
 
-### Dynamic Weekly Premium Calculation
+### Dynamic Premium Inputs
 
-The live premium is adjusted using:
+The live weekly premium is adjusted using:
 
-- selected plan base premium
-- number of linked platforms
-- risk multiplier
+- selected plan base price
+- linked platform count
+- risk level
+- persona risk signals
 
-Current pricing logic:
+Relevant implementation:
 
-```txt
-adjusted weekly premium =
-  (base weekly premium + extra platform fee) x risk multiplier
-```
-
-Current risk multipliers:
-
-- Low: `1.00`
-- Medium: `1.10`
-- High: `1.25`
-
-Current extra platform load:
-
-- `₹12` per additional linked platform
-
-Implemented in:
-
-- [pricing.js](./src/utils/pricing.js)
-
-### Why Weekly Pricing Works
-
-- aligns with rider payout rhythm
-- reduces upfront purchase friction
-- makes protection easy to renew or pause
-- fits micro-insurance behavior better than monthly billing
+- [src/utils/pricing.js](/Users/suraj/Desktop/GigShield/src/utils/pricing.js)
 
 ## Parametric Triggers
 
-GigShield uses external-event triggers rather than manual loss documentation.
+The current product direction focuses on disruption triggers such as:
 
-Current trigger categories:
+- heavy rainfall
+- unsafe AQI
+- heat stress conditions
+- traffic-driven severe slowdown
+- platform outage or degraded availability
 
-- Heavy rain
-- Heatwave
-- AQI spike
-- Platform outage
-- Curfew or lockdown
-- Local strike
-- Zone closure
+Only income-loss triggers are covered.
 
-Current sources:
+GigShield explicitly excludes:
 
-- weather API or fallback feeds
-- mock traffic adapter
-- simulated platform outage adapter
-- local trigger simulation data
+- health claims
+- life cover
+- personal accidents
+- vehicle repair expenses
 
-Implemented in:
+## Why Web Instead of Mobile
 
-- [triggerEvents.json](./src/data/triggerEvents.json)
-- [integrations.js](./src/utils/integrations.js)
-- [TriggerPage.jsx](./src/pages/TriggerPage.jsx)
+We chose a web-first approach because it:
 
-### Policy Boundary
+- reduces friction for judges and demo reviewers
+- works immediately across laptop and mobile browsers
+- supports fast iteration during hackathon timelines
+- makes onboarding, dashboards, and insurer/admin views easier to present
 
-Covered:
+The UI is still designed responsively for mobile-style worker flows.
 
-- income loss caused by verified environmental, platform, or social disruptions
+## Frontend Experience
 
-Not covered:
+The product now has a unified, static global navbar so every major surface is accessible throughout the site.
 
-- health
-- life
-- accidents
-- vehicle repair
+Key routes available from navigation:
 
-Enforced in:
+- home
+- product
+- pricing
+- triggers
+- fraud guard
+- get protected
+- sign in / sign up / auth hub
+- dashboard
+- payout / receipt / payout history
+- predictive history
+- community heatmap
+- team protection
+- trust center
+- support
+- admin hub / admin operations
 
-- [policy.js](./src/utils/policy.js)
+Relevant implementation:
 
-## Why We Chose Web
-
-GigShield is currently built as a web platform instead of a mobile-first native app.
-
-Reasoning:
-
-- fastest to prototype and iterate during hackathon phases
-- easier for judges to access instantly using a shared URL
-- supports both worker and admin workflows in the same product surface
-- works well for responsive onboarding, dashboard, and admin operations
-- can later evolve into PWA or wrapper-based mobile deployment
-
-Why this is appropriate for this challenge:
-
-- the user journey is form-heavy and dashboard-heavy
-- admin and insurer views are also required
-- a web product lowers the barrier for demo, testing, and collaboration
-
-## AI / ML Strategy
-
-GigShield uses AI/ML-inspired decisioning across pricing, risk forecasting, and fraud prevention.
-
-### 1. Dynamic Pricing
-
-The current system adjusts weekly premium using rider risk and platform count. The next ML step is to tune weekly premium using hyper-local disruption likelihood such as:
-
-- flood-prone zones
-- chronic AQI hotspots
-- frequent platform instability
-- time-of-day exposure patterns
-
-Example:
-
-- a historically low-risk zone can receive a lower weekly premium
-- a high-volatility zone can receive more protection hours or different pricing
-
-### 2. Predictive Risk Modeling
-
-The predictive safety net estimates disruption probability using weighted factors:
-
-- weather
-- outage risk
-- traffic
-- regional risk
-- historical trends
-
-This supports:
-
-- early support readiness
-- predictive payout planning
-- next-week insurer forecasting
-
-Implemented in:
-
-- [predictiveSafetyNet.js](./src/utils/predictiveSafetyNet.js)
-- [PredictiveHistoryPage.jsx](./src/pages/PredictiveHistoryPage.jsx)
-
-### 3. Intelligent Fraud Detection
-
-Fraud controls include:
-
-- high/medium/low risk session classification
-- duplicate trigger protection
-- payout attempt velocity limits
-- geolocation consistency
-- liveness and selfie verification
-- moderation queue and anomaly analytics
-
-This is especially relevant for delivery-specific fraud such as:
-
-- GPS spoofing
-- repeated payout attempts
-- trigger farming
-- fake disruption claims not matching city conditions
-
-### 4. Recommended Future ML Enhancements
-
-- zone-level disruption risk model trained on historical weather and rider shift data
-- anomaly model on payout frequency by rider, city, and trigger type
-- reputation model for lower-friction approvals to trusted riders
-- insurer-side forecasting of weekly loss ratios by city and trigger cluster
+- [src/components/Navbar.jsx](/Users/suraj/Desktop/GigShield/src/components/Navbar.jsx)
+- [src/App.jsx](/Users/suraj/Desktop/GigShield/src/App.jsx)
 
 ## Tech Stack
 
-Frontend:
-
-- React 19
+- React
 - Vite
-- React Router
 - Tailwind CSS
-- GSAP
-- Lenis
+- Framer Motion
+- React Router
+- Supabase authentication hooks
+- mock and simulated integration utilities for triggers, payouts, and fraud workflows
 
-Backend:
-
-- Express 5
-- CORS
-- dotenv
-
-Data and persistence:
-
-- Supabase
-- localStorage fallback
-
-AI / verification / simulation:
-
-- MediaPipe Tasks Vision for selfie verification assets
-- mock traffic and platform integrations
-- weather integration with fallback behavior
-
-Testing:
-
-- Vitest
-- Testing Library
-
-## Current Product Surfaces
-
-Public routes:
-
-- `/`
-- `/product`
-- `/pricing`
-- `/triggers`
-- `/fraud-guard`
-- `/get-protected`
-- `/signin`
-- `/signup`
-- `/auth`
-- `/auth/callback`
-
-Protected worker/admin routes:
-
-- `/dashboard`
-- `/payout`
-- `/payout-received`
-- `/payout-history`
-- `/predictive-history`
-- `/community-heatmap`
-- `/team-protection`
-- `/trust-center`
-- `/admin-ops`
-
-## Development Plan By Phase
+## Development Plan
 
 ### Phase 1: Ideate & Know Your Delivery Worker
 
-Scope:
-
-- define persona
-- define problem workflow
-- define weekly premium logic
+- define worker personas
+- document scenarios and workflow
+- design weekly premium model
 - define parametric triggers
-- justify product platform choice
-- document AI/ML direction
-- produce a minimal prototype and strategy video
+- map AI and fraud strategy
+- create the idea document and prototype direction
 
-Phase 1 output in this repo:
+### Phase 2: Automation & Protection
 
-- idea document in this README
-- public-facing product pages
-- onboarding concept
-- pricing and trigger explanation
-
-### Phase 2: Protect Your Worker
-
-Scope:
-
-- registration process
-- insurance policy management
+- onboarding and registration
+- policy management
 - dynamic premium calculation
-- claims management
+- trigger automation
+- claims and payout lifecycle
 
-Current repo coverage for Phase 2:
-
-- registration and sign-in flow
-- onboarding and protection activation flow
-- weekly policy selection
-- dynamic weekly premium calculation
-- trigger-based payout lifecycle
-
-### Phase 3: Perfect for Your Worker
-
-Scope:
+### Phase 3: Scale & Optimise
 
 - advanced fraud detection
-- instant payout simulation
-- worker dashboard
-- insurer/admin dashboard
+- intelligent dashboards
+- payout simulation polish
+- predictive support logic
+- Income Radar differentiation
 
-Current repo coverage for Phase 3:
+## Deliverables Coverage
 
-- fraud and moderation surfaces
-- payout lifecycle and settlement simulation
+This repo now demonstrates the expected deliverables:
+
+- optimized onboarding for a delivery-worker persona
+- AI-style risk profiling
+- weekly policy creation
+- parametric trigger-based claim initiation
+- payout processing flow
+- fraud detection and verification logic
 - worker analytics dashboard
-- admin ops and trust metrics
-- predictive analytics and moderation queue
-
-## Deliverable Mapping
-
-### Must-Have Features
-
-- AI-powered risk assessment: implemented through persona profiling, predictive risk scoring, and dynamic weekly pricing
-- Dynamic premium calculation: implemented on a weekly basis in pricing and onboarding flows
-- Predictive risk modeling: implemented through predictive safety net logic and dashboard radar
-- Intelligent fraud detection: implemented with anomaly checks, location validation, verification gates, and moderation
-- Parametric automation: implemented via trigger monitoring, automatic claim initiation, and payout lifecycle simulation
-- Integration capabilities: supported through weather API fallback, mock traffic, simulated platform APIs, and payout simulation
-
-### Expected Deliverables
-
-- optimized onboarding: yes
-- risk profiling using AI/ML logic: yes
-- weekly policy creation: yes
-- loss-of-income parametric claim triggering: yes
-- payout processing: simulated
-- analytics dashboard: yes
-
-## Video Submission Notes
-
-Add your public demo links here before submission:
-
-- Phase 1 strategy video: `ADD_PUBLIC_VIDEO_LINK`
-- Phase 2 demo video: `ADD_PUBLIC_VIDEO_LINK`
-- Phase 3 demo video: `ADD_PUBLIC_VIDEO_LINK`
-
-Suggested 2-minute Phase 1 video structure:
-
-1. Problem and rider persona
-2. Why weekly parametric protection
-3. Product workflow
-4. AI/ML strategy
-5. Prototype walkthrough
+- insurer/admin analytics views
 
 ## Local Setup
 
-Install:
+### Install
 
 ```bash
 npm install
 ```
 
-Run frontend:
+### Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Run backend API:
-
-```bash
-npm run start:api
-```
-
-Useful scripts:
+### Build
 
 ```bash
 npm run build
-npm run lint
-npm run test
 ```
 
-## Environment Variables
+## Demo Assets
 
-Frontend:
+Add public links here before submission:
 
-```bash
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
-VITE_ENABLE_BACKEND_PERSISTENCE=true
-VITE_ADMIN_EMAILS=admin1@example.com,admin2@example.com
-VITE_STRICT_TOKEN_ENFORCEMENT=false
-```
+- Phase 1 strategy video: `TBD`
+- Phase 2 demo video: `TBD`
+- Final demo video: `TBD`
 
-Backend:
+## Submission Notes
 
-```bash
-PORT=3001
-WEATHER_API_KEY=...
-GROQ_API_KEY=...
-```
+GigShield is designed to show that parametric insurance for gig workers can be:
 
-## Current Limitations
+- simple
+- weekly-priced
+- automated
+- fraud-aware
+- predictive
+- worker-centric
 
-- payout rails are simulated, not production payment settlement
-- platform integrations are mocked or simulated
-- AQI feed is represented through trigger logic rather than a full external live integration
-- ML models are rule-based or heuristic today and not yet trained production models
-- the repository still has some unrelated existing test/build issues outside the README and submission-story work
-
-## Submission Summary
-
-GigShield is a web-based parametric income protection platform for gig delivery workers. It uses weekly pricing, AI-assisted risk assessment, automated disruption triggers, fraud controls, and instant payout simulation to protect workers against external income loss events. The product is intentionally focused on delivery income continuity and explicitly excludes health, life, accident, and vehicle repair coverage.
+The platform is not trying to insure everything.
+It focuses narrowly on one urgent gap: protecting delivery workers from external disruption-driven income loss.
