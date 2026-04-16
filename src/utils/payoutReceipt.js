@@ -1,4 +1,5 @@
 import { persistWorkerState } from "./persistence";
+import { fetchPayoutHistoryFromBackend, syncPayoutReceiptToBackend } from "../services/backend/payoutService";
 
 const payoutReceiptStorageKey = "gigshieldLatestPayoutReceipt";
 const payoutHistoryStorageKey = "gigshieldPayoutHistory";
@@ -171,6 +172,7 @@ export function savePayoutReceipt(receipt) {
     localStorage.setItem(payoutReceiptStorageKey, JSON.stringify(sanitized));
   });
   upsertHistoryRecord(sanitized);
+  void syncPayoutReceiptToBackend(sanitized);
 }
 
 export function getPayoutReceipt() {
@@ -192,6 +194,21 @@ export function clearPayoutReceipt() {
 
 export function getPayoutHistory() {
   return parseHistory(localStorage.getItem(payoutHistoryStorageKey));
+}
+
+export async function hydratePayoutHistory(options = {}) {
+  const { limit = 100 } = options;
+  const remote = await fetchPayoutHistoryFromBackend({ limit });
+
+  if (remote.length > 0) {
+    localStorage.setItem(
+      payoutHistoryStorageKey,
+      JSON.stringify(remote.slice(0, 300)),
+    );
+    return remote;
+  }
+
+  return getPayoutHistory();
 }
 
 export function getPayoutById(payoutId) {

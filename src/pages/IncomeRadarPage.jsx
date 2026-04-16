@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Radar, Route, ShieldCheck, MapPinned } from "lucide-react";
 import IncomeRadarPanel from "../components/IncomeRadarPanel";
 import {
@@ -9,14 +9,16 @@ import {
 import { buildIncomeRadar } from "../utils/incomeRadar";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
+import { fetchLatestIncomeRadarSnapshot } from "../services/backend/incomeRadarService";
 
 const cityOptions = ["New Delhi", "Mumbai", "Bengaluru"];
 
 export default function IncomeRadarPage() {
   const { languageMode } = useSiteLanguage();
   const [selectedCity, setSelectedCity] = useState("New Delhi");
+  const [backendRadar, setBackendRadar] = useState(null);
 
-  const radar = useMemo(
+  const localRadar = useMemo(
     () =>
       buildIncomeRadar({
         city: selectedCity,
@@ -25,6 +27,26 @@ export default function IncomeRadarPage() {
       }),
     [selectedCity],
   );
+
+  useEffect(() => {
+    let alive = true;
+
+    const hydrateRadar = async () => {
+      const next = await fetchLatestIncomeRadarSnapshot({ city: selectedCity });
+      if (!alive) {
+        return;
+      }
+      setBackendRadar(next);
+    };
+
+    hydrateRadar();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedCity]);
+
+  const radar = backendRadar || localRadar;
 
   return (
     <MarketingPageShell

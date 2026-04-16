@@ -6,7 +6,7 @@ import SelfieVerificationPanel from "../components/SelfieVerificationPanel";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
-import { getAuthToken, getSession } from "../utils/session";
+import { getAuthToken } from "../utils/session";
 import userProfile from "../data/userProfile.json";
 import { runPayoutSecurityChecks } from "../utils/payoutSecurity";
 import { pushNotification } from "../utils/notifications";
@@ -20,6 +20,7 @@ import {
   savePayoutReceipt,
   transitionPayoutLifecycle,
 } from "../utils/payoutReceipt";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 function getLifecycleLabel(languageMode, status) {
   const labels = {
@@ -59,7 +60,7 @@ function hasCompletedSelfieChecks(evidence) {
 function PayoutPage() {
   const navigate = useNavigate();
   const { languageMode, setLanguageMode } = useSiteLanguage();
-  const session = getSession();
+  const { session } = useHydratedSession();
   const strictTokenDefault = import.meta.env.VITE_STRICT_TOKEN_ENFORCEMENT === "true";
   const workerCity = session?.city || userProfile.city;
   const [strictTokenEnforcement] = useState(() => {

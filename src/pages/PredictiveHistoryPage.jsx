@@ -4,8 +4,8 @@ import { useSiteLanguage } from "../utils/siteLanguage";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
 import { getPredictiveAssessments, hydratePredictiveAssessments } from "../utils/predictiveSafetyNet";
-import { getSession } from "../utils/session";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 const factorOrder = ["weather", "outage", "traffic", "regional", "historical"];
 
@@ -19,7 +19,7 @@ function getFactorLabel(key, languageMode) {
 
 function PredictiveHistoryPage() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
-  const [session] = useState(() => getSession());
+  const { session } = useHydratedSession();
   const [history, setHistory] = useState(() => getPredictiveAssessments({ limit: 100 }));
   const [triggerFilter, setTriggerFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

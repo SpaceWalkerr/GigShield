@@ -4,10 +4,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NotificationStack from "./components/NotificationStack";
 import Navbar from "./components/Navbar";
-import { isSessionActive } from "./utils/session";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useHydratedSession } from "./hooks/useHydratedSession";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,8 +85,16 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function ProtectedRoute({ children }) {
-  if (!isSessionActive()) {
+function ProtectedRoute({ children, session, sessionReady }) {
+  if (!sessionReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
+        <div className="h-10 w-10 rounded-full border-4 border-white/15 border-t-cyan-300 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!session?.isAuthenticated) {
     return <Navigate replace to="/signin" />;
   }
   return children;
@@ -102,6 +110,7 @@ function App() {
 
 function AppShell() {
   const location = useLocation();
+  const { session, sessionReady } = useHydratedSession();
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -158,7 +167,7 @@ function AppShell() {
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <DashboardPage />
                   </ProtectedRoute>
                 }
@@ -166,7 +175,7 @@ function AppShell() {
               <Route
                 path="/payout"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <PayoutPage />
                   </ProtectedRoute>
                 }
@@ -174,7 +183,7 @@ function AppShell() {
               <Route
                 path="/payout-received"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <PayoutReceivedPage />
                   </ProtectedRoute>
                 }
@@ -182,7 +191,7 @@ function AppShell() {
               <Route
                 path="/payout-history"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <PayoutHistoryPage />
                   </ProtectedRoute>
                 }
@@ -190,7 +199,7 @@ function AppShell() {
               <Route
                 path="/predictive-history"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <PredictiveHistoryPage />
                   </ProtectedRoute>
                 }
@@ -198,7 +207,7 @@ function AppShell() {
               <Route
                 path="/community-heatmap"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <CommunityHeatmapPage />
                   </ProtectedRoute>
                 }
@@ -206,7 +215,7 @@ function AppShell() {
               <Route
                 path="/team-protection"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <TeamProtectionPage />
                   </ProtectedRoute>
                 }
@@ -214,7 +223,7 @@ function AppShell() {
               <Route
                 path="/trust-center"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <TrustCenterPage />
                   </ProtectedRoute>
                 }
@@ -222,7 +231,7 @@ function AppShell() {
               <Route
                 path="/support"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <Navigate to="/dashboard" replace />
                   </ProtectedRoute>
                 }
@@ -230,7 +239,7 @@ function AppShell() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <Navigate to="/admin-ops" replace />
                   </ProtectedRoute>
                 }
@@ -238,7 +247,7 @@ function AppShell() {
               <Route
                 path="/admin-ops"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute session={session} sessionReady={sessionReady}>
                     <AdminOperationsPage />
                   </ProtectedRoute>
                 }

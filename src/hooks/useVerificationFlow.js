@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { syncOnboardingToBackend } from "../services/backend/onboardingService";
 
 export const TOTAL_STEPS = 5;
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
@@ -43,9 +44,10 @@ export function useVerificationFlow() {
     if (formData.selectedPlanId) {
       localStorage.setItem(selectedPlanStorageKey, formData.selectedPlanId);
     }
+    await syncOnboardingToBackend(formData);
     setIsLoading(false);
     setStep(5);
-  }, [formData.selectedPlanId]);
+  }, [formData]);
 
   return {
     step,

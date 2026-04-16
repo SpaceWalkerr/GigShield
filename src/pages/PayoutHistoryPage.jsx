@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
-import { getFailureReasonLabel, getPayoutHistory } from "../utils/payoutReceipt";
+import { getFailureReasonLabel, getPayoutHistory, hydratePayoutHistory } from "../utils/payoutReceipt";
 import { AppPageShell, AppSurface } from "@/components/ui/app-page-shell";
 
 function PayoutHistoryPage() {
   const { languageMode } = useSiteLanguage();
-  const [history] = useState(() => getPayoutHistory());
+  const [history, setHistory] = useState(() => getPayoutHistory());
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [triggerFilter, setTriggerFilter] = useState("all");
@@ -56,6 +57,24 @@ function PayoutHistoryPage() {
       return true;
     });
   }, [dateFrom, dateTo, history, statusFilter, triggerFilter]);
+
+  useEffect(() => {
+    let alive = true;
+
+    const syncHistory = async () => {
+      const hydrated = await hydratePayoutHistory({ limit: 100 });
+      if (!alive) {
+        return;
+      }
+      setHistory(hydrated);
+    };
+
+    syncHistory();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <AppPageShell

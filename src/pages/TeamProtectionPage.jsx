@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { getSession } from "../utils/session";
 import { getLocalTeamState, hydrateTeamState, saveTeamState } from "../utils/teamProtection";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 function buildCode() {
   return `GS-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 }
 
 export default function TeamProtectionPage() {
-  const [session] = useState(() => getSession());
+  const { session } = useHydratedSession();
   const [teamState, setTeamState] = useState(() => getLocalTeamState());
   const [memberName, setMemberName] = useState("");
 

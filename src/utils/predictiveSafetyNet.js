@@ -1,5 +1,9 @@
 import { getDailyPayoutCap } from "./payout";
 import { supabase } from "./supabase";
+import {
+  fetchPredictiveAssessmentsFromBackend,
+  savePredictiveAssessmentToBackend,
+} from "../services/backend/predictiveAssessmentService";
 
 const predictiveAssessmentStorageKey = "gigshieldPredictiveAssessments";
 const predictivePolicyStorageKey = "gigshieldPredictivePolicyConfig";
@@ -259,27 +263,7 @@ export async function savePredictiveAssessment(assessment, options = {}) {
   }
 
   try {
-    const payload = {
-      assessment_id: enrichedAssessment.assessmentId,
-      worker_id: options.workerId || enrichedAssessment.workerId || "unknown-worker",
-      city: enrichedAssessment.city || "Unknown",
-      trigger_id: enrichedAssessment.triggerId,
-      status: enrichedAssessment.status,
-      probability_adjusted: Number(enrichedAssessment.probabilityAdjusted || 0),
-      payload: enrichedAssessment,
-      created_at: enrichedAssessment.createdAt || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    const { error } = await supabase
-      .from("predictive_assessments")
-      .upsert(payload, { onConflict: "assessment_id" });
-
-    if (error) {
-      return { ok: false, backend: false, error: error.message };
-    }
-
-    return { ok: true, backend: true };
+    return await savePredictiveAssessmentToBackend(enrichedAssessment, options);
   } catch {
     return { ok: false, backend: false, error: "Backend persistence unavailable" };
   }
@@ -302,6 +286,11 @@ export async function fetchPredictiveAssessmentsFromSupabase(options = {}) {
   }
 
   try {
+    const next = await fetchPredictiveAssessmentsFromBackend({ workerId, limit });
+    if (next.length > 0) {
+      return next;
+    }
+
     const { data, error } = await supabase
       .from("predictive_assessments")
       .select("assessment_id, worker_id, trigger_id, status, probability_adjusted, payload, created_at")
@@ -437,4 +426,3 @@ export function deriveLiveSignalsFromComposite({ triggerId, compositeSignals }) 
     historical,
   };
 }
-

@@ -24,8 +24,7 @@ import {
   getDailyPayoutCap,
   getPayoutForTrigger,
 } from "../utils/payout";
-import { getSession } from "../utils/session";
-import { createPayoutReceipt, getPayoutHistory, savePayoutReceipt } from "../utils/payoutReceipt";
+import { createPayoutReceipt, getPayoutHistory, hydratePayoutHistory, savePayoutReceipt } from "../utils/payoutReceipt";
 import {
   appendTriggerAuditEvent,
   evaluateTriggerRules,
@@ -49,6 +48,8 @@ import { computeReputationProfile } from "../utils/reputation";
 import { getPlanOptimizerRecommendation } from "../utils/planOptimizer";
 import { AppSurface } from "../components/ui/app-page-shell";
 import { buildIncomeRadar } from "../utils/incomeRadar";
+import { saveIncomeRadarSnapshot } from "../services/backend/incomeRadarService";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const backendPersistenceEnabled = import.meta.env.VITE_ENABLE_BACKEND_PERSISTENCE === "true";
@@ -150,14 +151,13 @@ function getWeeklyTrend(history) {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [session] = useState(() => getSession());
+  const { session } = useHydratedSession();
   const { languageMode } = useSiteLanguage();
 
   // Core States
   const [selectedPlatforms, setSelectedPlatforms] = useState(["Swiggy", "Zomato", "Blinkit"]);
   const [activePersonaKey, setActivePersonaKey] = useState("normal");
-  const [earningsProtectedThisWeek] = useState(userProfile.earningsProtectedThisWeek);
-  const [lastPayoutAmount, setLastPayoutAmount] = useState(userProfile.lastPayoutAmount);
+  const [lastPayoutAmount, setLastPayoutAmount] = useState(() => getPayoutHistory()[0]?.payoutAmount ?? userProfile.lastPayoutAmount);
   const [paidTodayAmount, setPaidTodayAmount] = useState(0);
   const [payoutDayKey] = useState(new Date().toDateString());
   const [latestTriggerId, setLatestTriggerId] = useState("");
@@ -221,6 +221,42 @@ export default function DashboardPage() {
       alive = false;
     };
   }, [session?.workerId]);
+
+  useEffect(() => {
+    let alive = true;
+
+    const syncPayoutHistory = async () => {
+      const hydrated = await hydratePayoutHistory({ limit: 100 });
+      if (!alive || hydrated.length === 0) {
+        return;
+      }
+
+      setWeeklyTrend(getWeeklyTrend(hydrated));
+      setLastPayoutAmount(Number(hydrated[0]?.payoutAmount || 0));
+
+      const todayKey = new Date().toDateString();
+      const paidToday = hydrated.reduce((sum, item) => {
+        const createdAt = item?.createdAt ? new Date(item.createdAt).toDateString() : "";
+        if (createdAt !== todayKey) {
+          return sum;
+        }
+
+        if (item.status === "paid" || item.status === "capped") {
+          return sum + Number(item.payoutAmount || 0);
+        }
+
+        return sum;
+      }, 0);
+
+      setPaidTodayAmount(paidToday);
+    };
+
+    syncPayoutHistory();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Simulation Logic
   const handleSimulateTrigger = async (triggerId, mode = "confirmed") => {
@@ -382,6 +418,7 @@ export default function DashboardPage() {
 
   const coverageActive = selectedPlatforms.length > 0;
   const weeklyPaidAmount = weeklyTrend.reduce((sum, day) => sum + Number(day.paidAmount || 0), 0);
+  const earningsProtectedThisWeek = weeklyPaidAmount || userProfile.earningsProtectedThisWeek;
   const weeklySupportCap = dailyPayoutCap * 7;
   const weeklySupportLeft = Math.max(0, weeklySupportCap - weeklyPaidAmount);
   const emergencyActive = Boolean(latestTrigger);
@@ -416,6 +453,31 @@ export default function DashboardPage() {
       }),
     [session?.city, displayRiskLevel, selectedPlatforms.length, predictiveSummary],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const persistRadar = async () => {
+      if (!backendPersistenceEnabled || !incomeRadar || !session?.workerId) {
+        return;
+      }
+
+      const result = await saveIncomeRadarSnapshot(incomeRadar, {
+        city: session?.city || "New Delhi",
+        workerId: session.workerId,
+      });
+
+      if (!cancelled && !result?.ok) {
+        console.warn("[IncomeRadar] Backend snapshot save failed");
+      }
+    };
+
+    persistRadar();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [incomeRadar, session?.city, session?.workerId]);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#09090b] pb-24 font-sans text-white">

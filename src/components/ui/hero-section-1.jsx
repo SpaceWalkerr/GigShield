@@ -30,15 +30,15 @@ const credibilityItems = [
 
 export function HeroSection() {
   return (
-    <main className="overflow-hidden bg-[#09090b] text-white">
+    <main className="overflow-hidden bg-[#06080b] text-white">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#17414a_0%,rgba(9,9,11,0.96)_42%,#09090b_78%)]" />
-        <div className="absolute left-[-10%] top-[-8%] h-[34rem] w-[34rem] rounded-full bg-cyan-400/10 blur-3xl" />
-        <div className="absolute right-[-12%] top-[12%] h-[30rem] w-[30rem] rounded-full bg-amber-300/10 blur-3xl" />
-        <div className="absolute bottom-[-18%] left-[20%] h-[26rem] w-[26rem] rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_40%,rgba(16,24,32,0.92)_0%,rgba(8,10,14,0.98)_46%,#06080b_78%)]" />
+        <div className="absolute left-[-10%] top-[-8%] h-[34rem] w-[34rem] rounded-full bg-cyan-400/4 blur-3xl" />
+        <div className="absolute right-[-12%] top-[12%] h-[30rem] w-[30rem] rounded-full bg-slate-300/6 blur-3xl" />
+        <div className="absolute bottom-[-18%] left-[20%] h-[26rem] w-[26rem] rounded-full bg-cyan-300/4 blur-3xl" />
       </div>
 
       <section className="relative z-10">
@@ -47,8 +47,8 @@ export function HeroSection() {
             className="-top-40 left-0 md:left-52 md:-top-28"
             fill="#7dd3fc"
           />
-          <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_center,rgba(10,15,22,0.12)_0%,rgba(3,6,10,0.38)_42%,rgba(2,4,8,0.74)_100%)]" />
-          <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgba(2,6,12,0.78)_0%,rgba(2,6,12,0.48)_22%,rgba(2,6,12,0.2)_44%,rgba(2,6,12,0.72)_68%,rgba(2,6,12,0.94)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_62%_48%,rgba(9,12,18,0.1)_0%,rgba(4,6,10,0.34)_42%,rgba(3,5,8,0.82)_100%)]" />
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgba(3,6,10,0.9)_0%,rgba(3,6,10,0.62)_24%,rgba(3,6,10,0.24)_46%,rgba(3,6,10,0.54)_70%,rgba(3,6,10,0.9)_100%)]" />
 
           <div className="relative z-10 grid min-h-[100svh] w-full items-center gap-8 px-4 pb-24 pt-28 sm:px-6 md:pt-32 lg:grid-cols-[0.95fr_1.05fr] lg:px-10 xl:px-14">
             <div className="order-1 max-w-3xl text-center lg:text-left">
@@ -78,60 +78,17 @@ export function HeroSection() {
                 rider-first protection system.
               </p>
 
-              <div className="mt-12 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
-                <div className="rounded-[14px] border border-cyan-300/30 bg-cyan-300/10 p-0.5">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="rounded-xl bg-cyan-300 px-5 text-base font-semibold text-zinc-950 hover:bg-cyan-200"
-                  >
-                    <Link to="/get-protected">
-                      <span className="text-nowrap">Get Protected</span>
-                    </Link>
-                  </Button>
-                </div>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="ghost"
-                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-5 text-white hover:bg-white/10"
-                >
-                  <Link to="/judge-demo">
-                    <span className="text-nowrap">Start 60-sec Demo</span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="ghost"
-                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-5 text-white hover:bg-white/10"
-                >
-                  <Link to="/income-radar">
-                    <span className="text-nowrap">Open Income Radar</span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="ghost"
-                  className="h-11 rounded-xl border border-white/10 bg-white/5 px-5 text-white hover:bg-white/10"
-                >
-                  <Link to="/dashboard">
-                    <span className="text-nowrap">View Live Demo</span>
-                  </Link>
-                </Button>
-              </div>
             </div>
 
             <div className="relative order-2 min-h-[48vh] lg:min-h-[74vh]">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(103,232,249,0.14),transparent_52%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.08),transparent_56%)]" />
               <div className="hero-spline-mask absolute -inset-x-4 -inset-y-3 z-0 overflow-hidden sm:-inset-x-6 lg:-inset-x-10 lg:-inset-y-6">
                 <SplineScene
                   scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                   className="h-full w-full"
                 />
               </div>
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_18%,rgba(2,6,12,0.14)_62%,rgba(2,6,12,0.34)_100%)]" />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_18%,rgba(3,6,10,0.1)_62%,rgba(3,6,10,0.28)_100%)]" />
             </div>
           </div>
 

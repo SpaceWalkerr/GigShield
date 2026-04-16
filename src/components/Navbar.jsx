@@ -5,6 +5,7 @@ import LanguageToggle from "./LanguageToggle";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { supabase } from "../utils/supabase";
+import { signOutSession } from "../services/backend/sessionService";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -105,7 +106,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={async () => {
-                  await supabase.auth.signOut();
+                  await signOutSession();
                   navigateTo("/signin");
                 }}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-white/[0.08]"
@@ -173,7 +174,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={async () => {
-                    await supabase.auth.signOut();
+                    await signOutSession();
                     navigateTo("/signin");
                   }}
                   className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-zinc-100"

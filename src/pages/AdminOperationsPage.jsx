@@ -6,6 +6,7 @@ import { selectLabel } from "../utils/i18n";
 import {
   getPayoutHistory,
   getFailureReasonLabel,
+  hydratePayoutHistory,
   savePayoutReceipt,
   transitionPayoutLifecycle,
 } from "../utils/payoutReceipt";
@@ -14,12 +15,12 @@ import { getOverrideLogs, appendOverrideLog } from "../utils/adminOps";
 import { getTriggerAuditEvents } from "../utils/triggerEngine";
 import { fetchPhase3OpsSnapshot } from "../utils/phase3Analytics";
 import { fetchModerationActions, persistAnomalyEvents, saveModerationAction } from "../utils/phase3Persistence";
-import { getSession } from "../utils/session";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
+import { useHydratedSession } from "../hooks/useHydratedSession";
 
 function AdminOperationsPage() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
-  const [session] = useState(() => getSession());
+  const { session } = useHydratedSession();
   const [history, setHistory] = useState(() => getPayoutHistory());
   const [overrideLogs, setOverrideLogs] = useState(() => getOverrideLogs());
   const [moderationActions, setModerationActions] = useState([]);
@@ -121,6 +122,10 @@ function AdminOperationsPage() {
     let alive = true;
 
     const hydratePhase3 = async () => {
+      const hydratedHistory = await hydratePayoutHistory({ limit: 200 });
+      if (!alive) return;
+      setHistory(hydratedHistory);
+
       const snapshot = await fetchPhase3OpsSnapshot();
       if (!alive) return;
       setPhase3Snapshot(snapshot);
