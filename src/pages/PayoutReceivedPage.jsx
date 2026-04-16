@@ -8,78 +8,69 @@ import {
   downloadReceiptPdf,
   getPayoutReceipt,
 } from "../utils/payoutReceipt";
+import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
 
 function PayoutReceivedPage() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
   const receipt = getPayoutReceipt();
 
   return (
-    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
-          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">
-            Success
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-          <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
-            {selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-2xl mx-auto px-6 py-12 sm:py-20 text-center">
+    <AppPageShell
+      badge="Success"
+      backTo="/dashboard"
+      backLabel={selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
+      actions={<LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />}
+    >
+      <div className="mx-auto max-w-2xl px-0 py-4 text-center sm:py-10">
         {!receipt || !receipt.receivedAt ? (
            <div className="space-y-6">
-             <h1 className="text-4xl font-black tracking-tighter">No Payment Found</h1>
-             <p className="text-sm font-bold text-gray-500 italic">Please initiate a payout from the dashboard first.</p>
-             <Link to="/dashboard" className="primary-btn">Go to Dashboard</Link>
+             <h1 className="text-4xl font-black tracking-tighter text-white">No Payment Found</h1>
+             <p className="text-sm font-medium italic text-zinc-400">Please initiate a payout from the dashboard first.</p>
+             <Link to="/dashboard" className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-950 transition hover:bg-zinc-200">Go to Dashboard</Link>
            </div>
         ) : (
           <>
             <header className="mb-12">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-300">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">
+              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
                 {selectLabel(languageMode, "Funds Settled", "धनराशि सेटलमेंट")}
               </p>
-              <h1 className="text-5xl sm:text-6xl font-black tracking-tighter leading-none mb-6">
+              <h1 className="mb-6 text-5xl font-black leading-none tracking-tighter text-white sm:text-6xl">
                 {formatCurrency(receipt.payoutAmount ?? 0)}
               </h1>
-              <p className="text-sm font-extrabold text-gray-900">
+              <p className="text-sm font-extrabold text-zinc-100">
                 {selectLabel(languageMode, "Receipt sent to your registered email.", "रसीद आपके पंजीकृत ईमेल पर भेज दी गई है।")}
               </p>
             </header>
 
-            <div className="bg-white border-2 border-gray-900 rounded-3xl p-8 shadow-2xl text-left space-y-6 mb-12">
+            <AppSurface className="mb-12 space-y-6 p-8 text-left">
                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Trigger Event", "ट्रिगर इवेंट")}</p>
-                  <p className="text-sm font-black">{receipt.triggerLabel || receipt.triggerId}</p>
+                  <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Trigger Event", "ट्रिगर इवेंट")}</p>
+                  <p className="text-sm font-black text-white">{receipt.triggerLabel || receipt.triggerId}</p>
                </div>
                <div className="grid grid-cols-2 gap-8">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Payout ID", "भुगतान आईडी")}</p>
-                    <p className="text-xs font-bold text-gray-500 font-mono">{receipt.payoutId || "-"}</p>
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Payout ID", "भुगतान आईडी")}</p>
+                    <p className="font-mono text-xs font-bold text-zinc-300">{receipt.payoutId || "-"}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{selectLabel(languageMode, "Received At", "प्राप्त समय")}</p>
-                    <p className="text-xs font-bold text-gray-500">{new Date(receipt.receivedAt).toLocaleTimeString()}</p>
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Received At", "प्राप्त समय")}</p>
+                    <p className="text-xs font-bold text-zinc-300">{new Date(receipt.receivedAt).toLocaleTimeString()}</p>
                   </div>
                </div>
-            </div>
+            </AppSurface>
 
             <div className="flex flex-col gap-3">
-              <Link to="/dashboard" className="primary-btn py-4">
+              <Link to="/dashboard" className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-950 transition hover:bg-zinc-200">
                 {selectLabel(languageMode, "Back to dashboard", "डैशबोर्ड पर वापस")}
               </Link>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" className="secondary-btn" onClick={() => downloadReceiptPdf(receipt)}>
+                <button type="button" className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]" onClick={() => downloadReceiptPdf(receipt)}>
                   PDF Receipt
                 </button>
-                <button type="button" className="secondary-btn" onClick={() => downloadReceiptJson(receipt)}>
+                <button type="button" className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]" onClick={() => downloadReceiptJson(receipt)}>
                   JSON Data
                 </button>
               </div>
@@ -87,7 +78,7 @@ function PayoutReceivedPage() {
           </>
         )}
       </div>
-    </main>
+    </AppPageShell>
   );
 }
 

@@ -9,8 +9,6 @@ import { Link } from "react-router-dom";
  */
 function TriggerSimulationPanel({
   triggerEvents,
-  selectedPlanId,
-  selectedPlanName,
   latestTrigger,
   latestPayout,
   latestPayoutMeta,
@@ -97,15 +95,15 @@ function TriggerSimulationPanel({
         {triggerEvents.map((event) => (
           <div
             key={event.id}
-            className="group relative overflow-hidden rounded-2xl bg-white/60 p-5 text-left border border-white/60 hover:bg-white transition-all shadow-sm"
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left shadow-xl shadow-black/10 transition-all hover:border-white/20 hover:bg-white/[0.06]"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-black uppercase tracking-widest text-gray-900">
+              <span className="text-sm font-black uppercase tracking-widest text-white">
                 {getLocalizedEventLabel(event)}
               </span>
-              <div className="h-2 w-2 rounded-full bg-gray-300 group-hover:bg-red-500 transition-colors" />
+              <div className="h-2 w-2 rounded-full bg-zinc-600 transition-colors group-hover:bg-red-400" />
             </div>
-            <p className="mt-1 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-zinc-500">
               {selectLabel(languageMode, "Run Forecast or Confirm", "फोरकास्ट चलाएं या कन्फर्म करें")}
             </p>
 
@@ -113,14 +111,14 @@ function TriggerSimulationPanel({
               <button
                 type="button"
                 onClick={() => onSimulateTrigger(event.id, "forecast")}
-                className="h-10 rounded-xl border border-gray-200 bg-white text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                className="h-10 rounded-xl border border-white/10 bg-white/[0.03] text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20 hover:bg-white/[0.06]"
               >
                 {selectLabel(languageMode, "Forecast", "फोरकास्ट")}
               </button>
               <button
                 type="button"
                 onClick={() => onSimulateTrigger(event.id, "confirmed")}
-                className="h-10 rounded-xl bg-gray-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors"
+                className="h-10 rounded-xl bg-white text-[10px] font-black uppercase tracking-widest text-zinc-950 transition-colors hover:bg-zinc-200"
               >
                 {selectLabel(languageMode, "Confirm", "कन्फर्म")}
               </button>
@@ -130,29 +128,29 @@ function TriggerSimulationPanel({
       </div>
 
       {predictiveSummary && (
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
               {selectLabel(languageMode, "Radar", "रडार")}: {predictiveSummary.triggerLabel}
             </p>
-            <span className="text-xs font-black text-gray-900">{predictiveSummary.probabilityAdjustedPct}%</span>
+            <span className="text-xs font-black text-white">{predictiveSummary.probabilityAdjustedPct}%</span>
           </div>
-          <div className="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gray-900 transition-all duration-700"
+              className="h-full rounded-full bg-white transition-all duration-700"
               style={{ width: `${predictiveSummary.probabilityAdjustedPct}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] font-medium text-gray-600">{predictiveSummary.reason}</p>
+          <p className="mt-2 text-[11px] font-medium text-zinc-300">{predictiveSummary.reason}</p>
         </div>
       )}
 
-      <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+      <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
           {selectLabel(languageMode, "Today Support Used", "आज उपयोग हुई सहायता")}
         </p>
-        <p className="text-sm font-black text-gray-900">
-          {formatCurrency(paidTodayAmount)} <span className="text-gray-300">/</span> {formatCurrency(dailyPayoutCap)}
+        <p className="text-sm font-black text-white">
+          {formatCurrency(paidTodayAmount)} <span className="text-zinc-600">/</span> {formatCurrency(dailyPayoutCap)}
         </p>
       </div>
 
@@ -160,7 +158,7 @@ function TriggerSimulationPanel({
         <div
           role="alert"
           className={`mt-6 rounded-2xl border p-6 animate-enter ${
-            statusStyles[latestPayoutMeta.status] || "border-gray-200 bg-white text-gray-900"
+            statusStyles[latestPayoutMeta.status] || "border-white/10 bg-white/[0.04] text-white"
           }`}
         >
           <div className="flex items-center justify-between mb-4">
@@ -193,7 +191,7 @@ function TriggerSimulationPanel({
 
           {(latestPayoutMeta.status === "paid" || latestPayoutMeta.status === "capped") && (
             <div className="mt-6">
-              <Link to="/payout" className="inline-flex h-12 items-center justify-center rounded-xl bg-gray-900 px-8 text-xs font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors">
+              <Link to="/payout" className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-xs font-black uppercase tracking-widest text-zinc-950 transition-colors hover:bg-zinc-200">
                 {selectLabel(languageMode, "Go to Payment", "भुगतान पेज खोलें")}
               </Link>
             </div>

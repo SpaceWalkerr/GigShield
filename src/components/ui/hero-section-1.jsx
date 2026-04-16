@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   ChevronRight,
-  Menu,
-  X,
   CloudRain,
   Wind,
   WifiOff,
@@ -17,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { AnimatedGroup } from '@/components/ui/animated-group';
 import { TextEffect } from '@/components/ui/text-effect';
-import { cn } from '@/lib/utils';
 
 const transitionVariants = {
   item: {
@@ -52,8 +49,6 @@ const credibilityItems = [
 
 export function HeroSection() {
   return (
-    <>
-      <HeroHeader />
       <main className="overflow-hidden bg-[#09090b] text-white">
         <div
           aria-hidden
@@ -105,7 +100,8 @@ export function HeroSection() {
                   <p className="mx-auto mt-8 max-w-2xl text-balance text-lg leading-8 text-zinc-300 lg:mx-0">
                     GigShield gives riders a weekly parametric income safety net.
                     When verified city disruptions reduce earning hours, payouts
-                    start automatically with fraud checks built in.
+                    start automatically with fraud checks built in. Income Radar
+                    also tells riders where to shift next before earnings fall.
                   </p>
                 </AnimatedGroup>
 
@@ -148,7 +144,7 @@ export function HeroSection() {
 
                 <AnimatedGroup
                   preset="blur-slide"
-                  className="mt-10 grid gap-3 sm:grid-cols-2"
+                  className="mt-10 grid gap-3 sm:grid-cols-3"
                 >
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
                     <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-300">
@@ -172,6 +168,18 @@ export function HeroSection() {
                     <p className="mt-2 text-sm text-zinc-300">
                       Strictly excludes health, life, accidents, and vehicle
                       repair expenses.
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-lg">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-amber-300">
+                      Standout Feature
+                    </p>
+                    <p className="mt-3 text-3xl font-black tracking-tight text-white">
+                      Income Radar
+                    </p>
+                    <p className="mt-2 text-sm text-zinc-300">
+                      Hyperlocal shift advice predicts safer earning windows and
+                      risky zones before disruption fully hits.
                     </p>
                   </div>
                 </AnimatedGroup>
@@ -249,6 +257,17 @@ export function HeroSection() {
                         </p>
                       </div>
                     </div>
+                    <div className="mt-4 rounded-[1.15rem] border border-white/10 bg-white/[0.04] p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-200">
+                        Income Radar Advice
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-white">
+                        Shift west before 6 PM. AQI drag rises in East NCR after sunset.
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-300">
+                        Coverage stays active if the worker remains in the payout-ready risk window.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </AnimatedGroup>
@@ -292,152 +311,5 @@ export function HeroSection() {
           </div>
         </section>
       </main>
-    </>
   );
 }
-
-const menuItems = [
-  { name: 'Features', href: '/product' },
-  { name: 'Triggers', href: '/triggers' },
-  { name: 'Pricing', href: '/pricing' },
-  { name: 'Fraud Guard', href: '/fraud-guard' },
-];
-
-const HeroHeader = () => {
-  const [menuState, setMenuState] = React.useState(false);
-  const [isScrolled, setIsScrolled] = React.useState(false);
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <header className="relative z-30">
-      <nav
-        data-state={menuState && 'active'}
-        className="group fixed inset-x-0 top-0 z-20 w-full px-2"
-      >
-        <div
-          className={cn(
-            'mx-auto mt-3 max-w-6xl px-5 transition-all duration-300 lg:px-8',
-            isScrolled &&
-              'max-w-5xl rounded-2xl border border-white/10 bg-black/35 backdrop-blur-lg'
-          )}
-        >
-          <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-            <div className="flex w-full justify-between lg:w-auto">
-              <Link
-                to="/"
-                aria-label="home"
-                className="flex items-center space-x-2"
-              >
-                <Logo />
-              </Link>
-
-              <button
-                onClick={() => setMenuState(!menuState)}
-                aria-label={menuState ? 'Close Menu' : 'Open Menu'}
-                className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 text-white lg:hidden"
-              >
-                <Menu className="m-auto size-6 duration-200 group-data-[state=active]:scale-0 group-data-[state=active]:opacity-0" />
-                <X className="absolute inset-0 m-auto size-6 scale-0 opacity-0 duration-200 group-data-[state=active]:scale-100 group-data-[state=active]:opacity-100" />
-              </button>
-            </div>
-
-            <div className="absolute inset-0 m-auto hidden size-fit lg:block">
-              <ul className="flex gap-8 text-sm">
-                {menuItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.href}
-                      className="block text-zinc-300 duration-150 hover:text-white"
-                    >
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border border-white/10 bg-black/60 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl group-data-[state=active]:block md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
-              <div className="lg:hidden">
-                <ul className="space-y-6 text-base">
-                  {menuItems.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className="block text-zinc-300 duration-150 hover:text-white"
-                        onClick={() => setMenuState(false)}
-                      >
-                        <span>{item.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    'border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white',
-                    isScrolled && 'lg:hidden'
-                  )}
-                >
-                  <Link to="/signin">
-                    <span>Login</span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="sm"
-                  className={cn(
-                    'bg-cyan-300 text-zinc-950 hover:bg-cyan-200',
-                    isScrolled && 'lg:hidden'
-                  )}
-                >
-                  <Link to="/get-protected">
-                    <span>Get Protected</span>
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="sm"
-                  className={cn(
-                    'hidden bg-cyan-300 text-zinc-950 hover:bg-cyan-200',
-                    isScrolled && 'lg:inline-flex'
-                  )}
-                >
-                  <Link to="/dashboard">
-                    <span>Open Demo</span>
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-    </header>
-  );
-};
-
-const Logo = ({ className }) => {
-  return (
-    <div className={cn('flex items-center gap-3', className)}>
-      <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-emerald-300 text-zinc-950 shadow-lg shadow-cyan-300/20">
-        <ShieldCheck className="size-4" />
-      </div>
-      <div>
-        <p className="text-sm font-black tracking-[0.32em] text-white">GIGSHIELD</p>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-zinc-400">
-          Weekly Income Cover
-        </p>
-      </div>
-    </div>
-  );
-};

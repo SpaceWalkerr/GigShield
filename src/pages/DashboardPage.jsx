@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MapPin, Fingerprint, Clock, Plus, Check } from "lucide-react";
 import ActivityPanel from "../components/ActivityPanel";
@@ -7,6 +7,7 @@ import AutomationPanel from "../components/AutomationPanel";
 import ARIAChat from "../components/ARIAChat";
 import EarningsSnapshot from "../components/EarningsSnapshot";
 import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
+import IncomeRadarPanel from "../components/IncomeRadarPanel";
 import PlanSummary from "../components/PlanSummary";
 import TriggerSimulationPanel from "../components/TriggerSimulationPanel";
 import activityData from "../data/activityData.json";
@@ -20,11 +21,10 @@ import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { getRiskLevelFromScore } from "../utils/fraud";
 import {
-  applyTriggerToEarnings,
   getDailyPayoutCap,
   getPayoutForTrigger,
 } from "../utils/payout";
-import { clearSession, getSession } from "../utils/session";
+import { getSession } from "../utils/session";
 import { createPayoutReceipt, getPayoutHistory, savePayoutReceipt } from "../utils/payoutReceipt";
 import {
   appendTriggerAuditEvent,
@@ -47,12 +47,10 @@ import {
 import { getCompositeDisruptionSignals } from "../utils/integrations";
 import { computeReputationProfile } from "../utils/reputation";
 import { getPlanOptimizerRecommendation } from "../utils/planOptimizer";
-import { pushNotification } from "../utils/notifications";
-import { trackEvent } from "../utils/observability";
-import { supabase } from "../utils/supabase";
+import { AppSurface } from "../components/ui/app-page-shell";
+import { buildIncomeRadar } from "../utils/incomeRadar";
 
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
-const onboardingStorageKey = "gigshieldOnboardingCompleted";
 const backendPersistenceEnabled = import.meta.env.VITE_ENABLE_BACKEND_PERSISTENCE === "true";
 
 const predictivePolicyBaseline = createPredictivePolicyConfig({
@@ -125,12 +123,6 @@ function formatRelativeTime(isoDate) {
   return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
-function getDeltaMeta(amount) {
-  if (amount > 0) return { label: `+${formatCurrency(amount)}`, classes: "bg-green-100 text-green-700" };
-  if (amount < 0) return { label: `-${formatCurrency(Math.abs(amount))}`, classes: "bg-red-100 text-red-700" };
-  return { label: "No change", classes: "bg-gray-100 text-gray-500" };
-}
-
 function toDayKey(value) {
   return new Date(value).toISOString().slice(0, 10);
 }
@@ -164,14 +156,13 @@ export default function DashboardPage() {
   // Core States
   const [selectedPlatforms, setSelectedPlatforms] = useState(["Swiggy", "Zomato", "Blinkit"]);
   const [activePersonaKey, setActivePersonaKey] = useState("normal");
-  const [earningsProtectedThisWeek, setEarningsProtectedThisWeek] = useState(userProfile.earningsProtectedThisWeek);
+  const [earningsProtectedThisWeek] = useState(userProfile.earningsProtectedThisWeek);
   const [lastPayoutAmount, setLastPayoutAmount] = useState(userProfile.lastPayoutAmount);
   const [paidTodayAmount, setPaidTodayAmount] = useState(0);
-  const [payoutDayKey, setPayoutDayKey] = useState(new Date().toDateString());
+  const [payoutDayKey] = useState(new Date().toDateString());
   const [latestTriggerId, setLatestTriggerId] = useState("");
-  const [triggerAuditEvents, setTriggerAuditEvents] = useState(() => getTriggerAuditEvents().slice(0, 8));
+  const [, setTriggerAuditEvents] = useState(() => getTriggerAuditEvents().slice(0, 8));
   const [weeklyTrend, setWeeklyTrend] = useState(() => getWeeklyTrend(getPayoutHistory()));
-  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(onboardingStorageKey) !== "done");
   const [predictiveSummary, setPredictiveSummary] = useState(() => getLatestPredictiveAssessment());
   const [predictiveHistory, setPredictiveHistory] = useState(() => getPredictiveAssessments({ limit: 3 }));
   const [predictivePolicyConfig, setPredictivePolicyConfig] = useState(() => loadPredictivePolicyConfig(predictivePolicyBaseline));
@@ -400,7 +391,7 @@ export default function DashboardPage() {
         payoutHistory: getPayoutHistory(),
         predictiveHistory: getPredictiveAssessments({ limit: 100 }),
       }),
-    [weeklyTrend, predictiveHistory],
+    [],
   );
 
   const planOptimizer = useMemo(
@@ -412,74 +403,85 @@ export default function DashboardPage() {
         payoutHistory: getPayoutHistory().slice(0, 50),
         plans: planDetails,
       }),
-    [selectedPlan, selectedPlatforms, displayRiskLevel, weeklyTrend],
+    [selectedPlan, selectedPlatforms, displayRiskLevel],
+  );
+
+  const incomeRadar = useMemo(
+    () =>
+      buildIncomeRadar({
+        city: session?.city || "New Delhi",
+        riskLevel: displayRiskLevel,
+        platformCount: selectedPlatforms.length,
+        predictiveSummary,
+      }),
+    [session?.city, displayRiskLevel, selectedPlatforms.length, predictiveSummary],
   );
 
   return (
-    <main className="min-h-screen bg-[#f4f5f7] font-sans pb-24 text-gray-900 overflow-x-hidden">
-      {/* Dynamic Nav */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
-          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">Live</span>
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-              predictiveSyncStatus === "synced"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : predictiveSyncStatus === "fallback"
-                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                  : predictiveSyncStatus === "local-only"
-                    ? "bg-gray-100 text-gray-600 border-gray-200"
-                    : "bg-blue-50 text-blue-700 border-blue-200"
-            }`}
-            title={
-              predictiveSyncStatus === "synced"
-                ? "Forecast writes are syncing to Supabase"
-                : predictiveSyncStatus === "fallback"
-                  ? "Supabase write failed, local fallback active"
-                  : predictiveSyncStatus === "local-only"
-                    ? "Backend persistence is disabled"
-                    : "Run a forecast to validate Supabase sync"
-            }
-          >
-            {predictiveSyncStatus === "synced"
-              ? "Backend Sync: ON"
-              : predictiveSyncStatus === "fallback"
-                ? "Backend Sync: FALLBACK"
-                : predictiveSyncStatus === "local-only"
-                  ? "Backend Sync: OFF"
-                  : "Backend Sync: WAIT"}
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button onClick={async () => { await supabase.auth.signOut(); clearSession(); navigate("/auth"); }} className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">Sign Out</button>
-        </div>
-      </nav>
-
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
+    <main className="min-h-screen overflow-x-hidden bg-[#09090b] pb-24 font-sans text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#14313b_0%,rgba(9,9,11,0.97)_38%,#09090b_75%)]" />
+        <div className="absolute left-[-8%] top-[5%] h-[26rem] w-[26rem] rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="absolute right-[-10%] top-[24%] h-[24rem] w-[24rem] rounded-full bg-emerald-400/10 blur-3xl" />
+      </div>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-6 pt-32 sm:pb-10 sm:pt-36">
         <header className="mb-12">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">{selectLabel(languageMode, "Income Protection Dashboard", "आय सुरक्षा डैशबोर्ड")}</p>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{selectLabel(languageMode, "Income Protection Dashboard", "आय सुरक्षा डैशबोर्ड")}</p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter leading-none mb-4 sm:mb-6">
-                {selectLabel(languageMode, "Welcome", "स्वागत है")}, <span className="text-gray-300">{session?.name || "Rider"}</span>
+                {selectLabel(languageMode, "Welcome", "स्वागत है")}, <span className="text-zinc-400">{session?.name || "Rider"}</span>
               </h1>
-              <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-xs sm:text-sm font-bold text-gray-500">
+              <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-zinc-400 sm:gap-8 sm:text-sm">
                 <span className="flex items-center gap-2"><MapPin size={16} />{session?.city || "New Delhi"}</span>
                 <span className="flex items-center gap-2"><Fingerprint size={16} />{session?.workerId || "GS-8.2k"}</span>
-                <span className={`flex items-center gap-2 transition-colors ${coverageActive ? "text-green-600" : "text-red-400"}`}><Clock size={16} />{selectLabel(languageMode, "Protection Hours", "सुरक्षा समय")} : {selectedPlan.coverageHours}</span>
+                <span className={`flex items-center gap-2 transition-colors ${coverageActive ? "text-emerald-300" : "text-red-300"}`}><Clock size={16} />{selectLabel(languageMode, "Protection Hours", "सुरक्षा समय")} : {selectedPlan.coverageHours}</span>
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-               <div className="bg-white border-2 border-gray-900 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 flex items-center gap-3 sm:gap-4 shadow-xl">
+               <div className="flex flex-wrap justify-end gap-2">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Live</span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                    predictiveSyncStatus === "synced"
+                      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+                      : predictiveSyncStatus === "fallback"
+                        ? "border-amber-400/20 bg-amber-500/10 text-amber-200"
+                        : predictiveSyncStatus === "local-only"
+                          ? "border-white/10 bg-white/[0.04] text-zinc-400"
+                          : "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
+                  }`}
+                  title={
+                    predictiveSyncStatus === "synced"
+                      ? "Forecast writes are syncing to Supabase"
+                      : predictiveSyncStatus === "fallback"
+                        ? "Supabase write failed, local fallback active"
+                        : predictiveSyncStatus === "local-only"
+                          ? "Backend persistence is disabled"
+                          : "Run a forecast to validate Supabase sync"
+                  }
+                >
+                  {predictiveSyncStatus === "synced"
+                    ? "Backend Sync: ON"
+                    : predictiveSyncStatus === "fallback"
+                      ? "Backend Sync: FALLBACK"
+                      : predictiveSyncStatus === "local-only"
+                        ? "Backend Sync: OFF"
+                        : "Backend Sync: WAIT"}
+                </span>
+               </div>
+               <div className="flex items-center gap-3 rounded-[1.75rem] border border-white/10 bg-white/[0.05] px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl sm:gap-4 sm:px-5 sm:py-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Your Weekly Cost", "आपका साप्ताहिक खर्च")}</p>
-                  <p className="text-2xl sm:text-3xl font-black tracking-tighter">{formatCurrency(displayWeeklyPremium)}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Your Weekly Cost", "आपका साप्ताहिक खर्च")}</p>
+                  <p className="text-2xl font-black tracking-tighter text-white sm:text-3xl">{formatCurrency(displayWeeklyPremium)}</p>
                 </div>
-                <div className="h-10 w-px bg-gray-100" />
+                <div className="h-10 w-px bg-white/10" />
                 <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Trust Status", "ट्रस्ट स्थिति")}</p>
-                  <p className={`text-sm font-black uppercase ${displayRiskLevel === "High" ? "text-red-500" : "text-green-600"}`}>{displayRiskLevel}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Trust Status", "ट्रस्ट स्थिति")}</p>
+                  <p className={`text-sm font-black uppercase ${displayRiskLevel === "High" ? "text-red-300" : "text-emerald-300"}`}>{displayRiskLevel}</p>
                 </div>
               </div>
             </div>
@@ -487,37 +489,37 @@ export default function DashboardPage() {
         </header>
 
         <section className="mb-10 sm:mb-12 grid gap-3 sm:gap-4 md:grid-cols-3">
-          <article className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/20 backdrop-blur-xl sm:p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
               {selectLabel(languageMode, "Emergency Status", "इमरजेंसी स्थिति")}
             </p>
-            <p className={`mt-2 text-xl sm:text-2xl font-black tracking-tight ${emergencyActive ? "text-green-600" : "text-gray-700"}`}>
+            <p className={`mt-2 text-xl font-black tracking-tight sm:text-2xl ${emergencyActive ? "text-emerald-300" : "text-zinc-100"}`}>
               {emergencyActive
                 ? selectLabel(languageMode, "Emergency Detected", "इमरजेंसी मिली")
                 : selectLabel(languageMode, "No Emergency", "कोई इमरजेंसी नहीं")}
             </p>
           </article>
 
-          <article className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/20 backdrop-blur-xl sm:p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
               {selectLabel(languageMode, "You Get Today", "आज आपको मिलेगा")}
             </p>
-            <p className="mt-2 text-xl sm:text-2xl font-black tracking-tight text-gray-900">{formatCurrency(Math.max(0, lastPayoutAmount))}</p>
+            <p className="mt-2 text-xl font-black tracking-tight text-white sm:text-2xl">{formatCurrency(Math.max(0, lastPayoutAmount))}</p>
           </article>
 
-          <article className="rounded-3xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/20 backdrop-blur-xl sm:p-6">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
               {selectLabel(languageMode, "Support Left This Week", "इस सप्ताह बची सहायता")}
             </p>
-            <p className="mt-2 text-xl sm:text-2xl font-black tracking-tight text-gray-900">{formatCurrency(weeklySupportLeft)}</p>
+            <p className="mt-2 text-xl font-black tracking-tight text-white sm:text-2xl">{formatCurrency(weeklySupportLeft)}</p>
           </article>
         </section>
 
         {/* Platform Manager Section */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Where You Work", "जहां आप काम करते हैं")}</p>
-            <p className="text-xs font-bold text-gray-400">{selectedPlatforms.length} {selectLabel(languageMode, "Apps connected", "ऐप्स जुड़े")}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{selectLabel(languageMode, "Where You Work", "जहां आप काम करते हैं")}</p>
+            <p className="text-xs font-bold text-zinc-500">{selectedPlatforms.length} {selectLabel(languageMode, "Apps connected", "ऐप्स जुड़े")}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {availablePlatforms.map((p) => {
@@ -527,14 +529,14 @@ export default function DashboardPage() {
                   key={p}
                   onClick={() => togglePlatform(p)}
                   className={`relative overflow-hidden rounded-2xl border-2 p-4 text-left transition-all duration-300 ${
-                    isActive ? "border-gray-900 bg-gray-900 text-white shadow-lg scale-[1.02]" : "border-gray-200 bg-white hover:border-gray-400"
+                    isActive ? "scale-[1.02] border-cyan-300/30 bg-white/[0.08] text-white shadow-lg shadow-cyan-950/30" : "border-white/10 bg-white/[0.03] text-zinc-100 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-black uppercase tracking-widest">{p}</span>
-                    {isActive ? <Check size={14} /> : <Plus size={14} className="text-gray-300" />}
+                    {isActive ? <Check size={14} /> : <Plus size={14} className="text-zinc-500" />}
                   </div>
-                  <p className={`text-[9px] font-bold uppercase tracking-tight ${isActive ? "text-white/60" : "text-gray-400"}`}>
+                  <p className={`text-[9px] font-bold uppercase tracking-tight ${isActive ? "text-white/60" : "text-zinc-500"}`}>
                     {isActive ? "Connected" : "Connect"}
                   </p>
                 </button>
@@ -545,8 +547,15 @@ export default function DashboardPage() {
 
         {/* ── n8n Automation Panel ─────────────────────────────────────── */}
         <section className="mb-12">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">{selectLabel(languageMode, "Live Risk Engine", "लाइव जोखिम इंजन")}</p>
+          <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{selectLabel(languageMode, "Live Risk Engine", "लाइव जोखिम इंजन")}</p>
           <AutomationPanel session={session} />
+        </section>
+
+        <section className="mb-12">
+          <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+            {selectLabel(languageMode, "Income Radar", "इनकम रडार")}
+          </p>
+          <IncomeRadarPanel radar={incomeRadar} />
         </section>
 
         <div className="grid lg:grid-cols-3 gap-8 sm:gap-12">
@@ -590,45 +599,45 @@ export default function DashboardPage() {
             />
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                 {selectLabel(languageMode, "Rider Reputation", "राइडर रेपुटेशन")}
               </p>
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+              <AppSurface className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-widest text-gray-500">{selectLabel(languageMode, "Reliability Tier", "रिलायबिलिटी टियर")}</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Reliability Tier", "रिलायबिलिटी टियर")}</p>
                   <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                     reputationProfile.tier === "Gold"
-                      ? "bg-amber-100 text-amber-800"
+                      ? "bg-amber-500/10 text-amber-200"
                       : reputationProfile.tier === "Silver"
-                        ? "bg-slate-100 text-slate-700"
-                        : "bg-orange-100 text-orange-700"
+                        ? "bg-slate-500/10 text-slate-200"
+                        : "bg-orange-500/10 text-orange-200"
                   }`}>
                     {reputationProfile.tier}
                   </span>
                 </div>
-                <p className="text-3xl font-black tracking-tight text-gray-900">{reputationProfile.score}</p>
+                <p className="text-3xl font-black tracking-tight text-white">{reputationProfile.score}</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Settled", "सेटल्ड")}</p>
-                    <p className="text-sm font-black text-gray-900">{reputationProfile.settlementRatePct}%</p>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Settled", "सेटल्ड")}</p>
+                    <p className="text-sm font-black text-white">{reputationProfile.settlementRatePct}%</p>
                   </div>
-                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{selectLabel(languageMode, "Predictive Win", "प्रेडिक्टिव विन")}</p>
-                    <p className="text-sm font-black text-gray-900">{reputationProfile.predictiveSuccessRatePct}%</p>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{selectLabel(languageMode, "Predictive Win", "प्रेडिक्टिव विन")}</p>
+                    <p className="text-sm font-black text-white">{reputationProfile.predictiveSuccessRatePct}%</p>
                   </div>
                 </div>
-                <p className="text-xs font-medium text-gray-600">{reputationProfile.reviewNote}</p>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <p className="text-xs font-medium text-zinc-300">{reputationProfile.reviewNote}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                   {selectLabel(languageMode, "Benefit", "बेनेफिट")}: +{reputationProfile.benefits.advanceBoostPct}% {selectLabel(languageMode, "advance edge", "एडवांस एज")}
                 </p>
-              </div>
+              </AppSurface>
             </div>
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                 {selectLabel(languageMode, "Plan Optimizer", "प्लान ऑप्टिमाइजर")}
               </p>
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+              <AppSurface className="space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-black uppercase tracking-widest text-gray-500">{selectLabel(languageMode, "This week", "इस सप्ताह")}</p>
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{planOptimizer.recommendedPlan.name}</span>
@@ -656,33 +665,33 @@ export default function DashboardPage() {
                 >
                   {planOptimizer.actionLabel}
                 </button>
-              </div>
+              </AppSurface>
             </div>
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                 {selectLabel(languageMode, "Early Protection Radar", "अर्ली प्रोटेक्शन रडार")}
               </p>
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+              <AppSurface className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+                  <p className="text-xs font-black uppercase tracking-widest text-zinc-500">
                     {selectLabel(languageMode, "Disruption Probability", "डिसरप्शन संभावना")}
                   </p>
-                  <span className="text-sm font-black text-gray-900">
+                  <span className="text-sm font-black text-white">
                     {predictiveSummary ? `${predictiveSummary.probabilityAdjustedPct}%` : "--"}
                   </span>
                 </div>
-                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-gray-900 transition-all duration-700"
+                    className="h-full rounded-full bg-white transition-all duration-700"
                     style={{ width: `${predictiveSummary?.probabilityAdjustedPct ?? 0}%` }}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-zinc-500">
                   <span>{selectLabel(languageMode, "Threshold", "थ्रेशहोल्ड")}: {predictiveSummary?.thresholdPct ?? "--"}%</span>
                   <span>{selectLabel(languageMode, "Advance", "एडवांस")}: {predictiveSummary ? formatCurrency(predictiveSummary.advanceAmount) : "--"}</span>
                 </div>
-                <p className="text-xs font-medium text-gray-600">
+                <p className="text-xs font-medium text-zinc-300">
                   {predictiveSummary
                     ? predictiveSummary.reason
                     : selectLabel(languageMode, "Run forecast on any emergency to start the radar.", "रडार शुरू करने के लिए किसी भी इमरजेंसी पर फोरकास्ट चलाएं।")}
@@ -690,32 +699,32 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => navigate("/predictive-history")}
-                  className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  className="h-10 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                 >
                   {selectLabel(languageMode, "Open Predictive History", "प्रीडिक्टिव हिस्ट्री खोलें")}
                 </button>
-              </div>
+              </AppSurface>
 
               {predictiveHistory.length > 0 && (
                 <div className="space-y-3">
                   {predictiveHistory.map((item) => (
-                    <div key={item.assessmentId} className="bg-white border border-gray-200 rounded-2xl p-4">
+                    <div key={item.assessmentId} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                       <div className="flex items-center justify-between gap-4">
-                        <p className="text-xs font-black text-gray-900 uppercase tracking-wide">{item.triggerLabel}</p>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{item.probabilityAdjustedPct}%</span>
+                        <p className="text-xs font-black uppercase tracking-wide text-white">{item.triggerLabel}</p>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.probabilityAdjustedPct}%</span>
                       </div>
-                      <p className="mt-1 text-[11px] font-medium text-gray-600">{item.reason}</p>
+                      <p className="mt-1 text-[11px] font-medium text-zinc-300">{item.reason}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+              <AppSurface className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                     {selectLabel(languageMode, "Policy Controls", "पॉलिसी कंट्रोल्स")}
                   </p>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
                     {selectLabel(languageMode, "Admin Tuning", "एडमिन ट्यूनिंग")}
                   </span>
                 </div>
@@ -724,21 +733,21 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => handleApplyPreset("conservative")}
-                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                    className="h-8 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[9px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                   >
                     {selectLabel(languageMode, "Conservative", "कंजरवेटिव")}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleApplyPreset("balanced")}
-                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                    className="h-8 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[9px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                   >
                     {selectLabel(languageMode, "Balanced", "बैलेंस्ड")}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleApplyPreset("aggressive")}
-                    className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                    className="h-8 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[9px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                   >
                     {selectLabel(languageMode, "Aggressive", "अग्रेसिव")}
                   </button>
@@ -751,7 +760,7 @@ export default function DashboardPage() {
                     { key: "High", label: selectLabel(languageMode, "High", "हाई") },
                   ].map((risk) => (
                     <div key={`threshold-${risk.key}`} className="space-y-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{risk.label}</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{risk.label}</p>
                       <input
                         type="number"
                         min="40"
@@ -759,12 +768,12 @@ export default function DashboardPage() {
                         step="1"
                         value={policyDraft.riskThreshold[risk.key]}
                         onChange={(event) => handlePolicyDraftChange("riskThreshold", risk.key, event.target.value)}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-black text-gray-800 focus:border-gray-900 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white focus:border-white/30 focus:outline-none"
                       />
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                   {selectLabel(languageMode, "Threshold %", "थ्रेशहोल्ड %")}
                 </p>
 
@@ -775,7 +784,7 @@ export default function DashboardPage() {
                     { key: "High", label: selectLabel(languageMode, "High", "हाई") },
                   ].map((risk) => (
                     <div key={`advance-${risk.key}`} className="space-y-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{risk.label}</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{risk.label}</p>
                       <input
                         type="number"
                         min="5"
@@ -783,12 +792,12 @@ export default function DashboardPage() {
                         step="1"
                         value={policyDraft.advanceRatioByRisk[risk.key]}
                         onChange={(event) => handlePolicyDraftChange("advanceRatioByRisk", risk.key, event.target.value)}
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-black text-gray-800 focus:border-gray-900 focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-black text-white focus:border-white/30 focus:outline-none"
                       />
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
                   {selectLabel(languageMode, "Advance %", "एडवांस %")}
                 </p>
 
@@ -796,36 +805,36 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleSavePolicyConfig}
-                    className="h-10 rounded-xl bg-gray-900 px-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-gray-800 transition-colors"
+                    className="h-10 rounded-xl bg-white px-4 text-[10px] font-black uppercase tracking-widest text-zinc-950 transition-colors hover:bg-zinc-200"
                   >
                     {selectLabel(languageMode, "Save Policy", "पॉलिसी सेव करें")}
                   </button>
                   <button
                     type="button"
                     onClick={handleResetPolicyConfig}
-                    className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-4 text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                    className="h-10 rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                   >
                     {selectLabel(languageMode, "Reset", "रीसेट")}
                   </button>
                 </div>
-                <p className="text-[10px] font-bold text-gray-400">
+                <p className="text-[10px] font-bold text-zinc-500">
                   {policySavedAt
                     ? `${selectLabel(languageMode, "Last saved", "आखिरी सेव")} : ${new Date(policySavedAt).toLocaleString()}`
                     : selectLabel(languageMode, "Not saved yet", "अभी सेव नहीं हुआ")}
                 </p>
-              </div>
+              </AppSurface>
             </div>
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Why This Weekly Cost", "यह साप्ताहिक खर्च क्यों")}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{selectLabel(languageMode, "Why This Weekly Cost", "यह साप्ताहिक खर्च क्यों")}</p>
               <div className="space-y-4">
                 {timelineEntriesWithDelta.map((e) => (
-                  <div key={e.id} className="bg-white border border-gray-200 rounded-3xl p-6 transition-all hover:border-gray-900/10 hover:shadow-soft">
+                  <div key={e.id} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 transition-all hover:border-white/20">
                     <div className="flex items-center justify-between mb-2">
-                       <p className="text-sm font-black">{formatCurrency(e.premium)} — {e.reason}</p>
+                       <p className="text-sm font-black text-white">{formatCurrency(e.premium)} — {e.reason}</p>
                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${e.deltaMeta.classes}`}>{e.deltaMeta.label}</span>
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400">
+                    <p className="text-[10px] font-bold text-zinc-500">
                       {selectLabel(languageMode, "Connected apps", "जुड़े ऐप्स")}: {e.platformCount} | {selectLabel(languageMode, "Trust", "ट्रस्ट")}: {e.riskLevel}
                     </p>
                   </div>
@@ -834,48 +843,48 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{selectLabel(languageMode, "Support Activity This Week", "इस सप्ताह सहायता गतिविधि")}</p>
-              <div className="bg-white border border-gray-200 rounded-3xl p-8">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{selectLabel(languageMode, "Support Activity This Week", "इस सप्ताह सहायता गतिविधि")}</p>
+              <AppSurface className="p-8">
                 <div className="flex h-32 items-end justify-between gap-3">
                   {weeklyTrend.map((d) => (
                     <div key={d.key} className="flex-1 flex flex-col items-center gap-2">
-                       <div className="w-full bg-gray-100 rounded-full overflow-hidden h-full flex flex-col justify-end">
-                          <div className="bg-gray-900 rounded-full transition-all duration-1000" style={{ height: `${Math.min(100, d.triggers * 25)}%` }} />
+                       <div className="flex h-full w-full flex-col justify-end overflow-hidden rounded-full bg-white/10">
+                          <div className="rounded-full bg-white transition-all duration-1000" style={{ height: `${Math.min(100, d.triggers * 25)}%` }} />
                        </div>
-                       <span className="text-[9px] font-black text-gray-400 uppercase">{d.label}</span>
+                       <span className="text-[9px] font-black uppercase text-zinc-500">{d.label}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </AppSurface>
             </div>
 
             <div className="space-y-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                 {selectLabel(languageMode, "Growth Features", "ग्रोथ फीचर्स")}
               </p>
-              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-3">
+              <AppSurface className="space-y-3">
                 <button
                   type="button"
                   onClick={() => navigate("/community-heatmap")}
-                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-left text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                 >
                   {selectLabel(languageMode, "Open Community Heatmap", "कम्युनिटी हीटमैप खोलें")}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/team-protection")}
-                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-left text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                 >
                   {selectLabel(languageMode, "Open Team Protection", "टीम प्रोटेक्शन खोलें")}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/trust-center")}
-                  className="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition-colors"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-left text-[10px] font-black uppercase tracking-widest text-zinc-100 transition-colors hover:border-white/20"
                 >
                   {selectLabel(languageMode, "Open Trust Center", "ट्रस्ट सेंटर खोलें")}
                 </button>
-              </div>
+              </AppSurface>
             </div>
           </div>
         </div>

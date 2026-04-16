@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ShieldCheck, Smartphone } from "lucide-react";
+import { ShieldCheck, Smartphone, CloudRain, Wallet } from "lucide-react";
 import planDetails from "../data/planDetails.json";
 import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
@@ -9,17 +9,13 @@ import { calculateWeeklyPremium } from "../utils/pricing";
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { saveSession } from "../utils/session";
 import { supabase } from "../utils/supabase";
+import { AuthPageShell, AuthPanel } from "@/components/ui/auth-page-shell";
 
 const validPlanIds = new Set(planDetails.map((p) => p.id));
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
-const adminEmailAllowlist = (import.meta.env.VITE_ADMIN_EMAILS || "")
-  .split(",")
-  .map((v) => v.trim().toLowerCase())
-  .filter(Boolean);
-
 function SignInPage() {
   const navigate = useNavigate();
-  const { languageMode, setLanguageMode } = useSiteLanguage();
+  const { languageMode } = useSiteLanguage();
   const [searchParams] = useSearchParams();
   const requestedPlanId = searchParams.get("plan");
   const persistedPlanId = localStorage.getItem(selectedPlanStorageKey);
@@ -35,88 +31,40 @@ function SignInPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] flex font-sans selection:bg-gray-900 selection:text-white">
-      {/* Left Panel - Hero Section */}
-      <div className="hidden lg:flex lg:w-3/5 flex-col justify-between p-16 relative overflow-hidden mesh-gradient">
-        {/* Animated Background Element */}
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-[120px] animate-pulse" />
-
-        <div className="relative z-10">
-          <div className="mt-24 space-y-8">
-            <div className="space-y-3">
-              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-500 animate-enter">
-                {selectLabel(
-                  languageMode,
-                  "Parametric Income Protection",
-                  "पैरामेट्रिक आय सुरक्षा",
-                )}
-              </p>
-              <h2 className="text-7xl font-black text-gray-900 leading-[0.95] tracking-tightest font-archivo">
-                {selectLabel(languageMode, "Welcome back,", "वापस स्वागत है,")}
-                <br />
-                <span className="text-blue-600 italic tracking-tighter">
-                  {selectLabel(languageMode, "rider.", "राइडर।")}
-                </span>
-              </h2>
-            </div>
-
-            <p className="text-gray-500 text-xl leading-relaxed max-w-md font-medium">
-              {selectLabel(
-                languageMode,
-                "Secure your earnings against weather disruptions and platform outages automatically.",
-                "मौसम और प्लेटफॉर्म बाधाओं के खिलाफ अपनी कमाई को स्वचालित रूप से सुरक्षित करें।",
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="relative z-10 flex flex-col gap-8">
-          <div className="glass-card rounded-[32px] p-8 w-fit flex items-center gap-6 group hover:translate-y-[-4px] transition-all duration-500">
-            <div className="w-14 h-14 bg-gray-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1">
-                {selectLabel(languageMode, "Active Coverage", "सक्रिय सुरक्षा")}
-              </p>
-              <p className="text-lg font-bold text-gray-900 uppercase tracking-tight">
-                {selectedPlan.name} {selectLabel(languageMode, "Plan", "योजना")}
-              </p>
-              <p className="text-sm font-semibold text-blue-600">
-                {formatCurrency(
-                  calculateWeeklyPremium({
-                    basePremium: selectedPlan.weeklyPremium,
-                    platformCount: 2,
-                    riskLevel: "Medium",
-                  }).adjustedPremium,
-                )}{" "}
-                / {selectLabel(languageMode, "week", "सप्ताह")}
-              </p>
-            </div>
-          </div>
-
-          <div className="text-[10px] font-bold text-gray-400 flex items-center gap-4">
-            <span className="w-8 h-[1px] bg-gray-300" />
-            BUILT WITH ❤️ FOR RIDERS ACROSS INDIA
-          </div>
-        </div>
-
-        {/* Hero Image - More stylized */}
-        <img
-          src="/rider.png"
-          alt=""
-          className="absolute right-[-5%] bottom-[-5%] w-[70%] h-auto object-contain opacity-40 mix-blend-multiply pointer-events-none drop-shadow-2xl"
-        />
-      </div>
-
-      {/* Right Panel - Auth Section */}
-      <div className="w-full lg:w-2/5 flex flex-col justify-center items-center px-6 pt-2 pb-4 sm:px-12 relative">
-        <div className="w-full max-w-md space-y-6">
+    <AuthPageShell
+      eyebrow={selectLabel(languageMode, "Parametric Income Protection", "पैरामेट्रिक आय सुरक्षा")}
+      title={selectLabel(languageMode, "Welcome back, rider.", "वापस स्वागत है, राइडर।")}
+      description={selectLabel(languageMode, "Secure your earnings against weather disruption, pollution spikes, and platform outages with one weekly protection account.", "मौसम, प्रदूषण और प्लेटफॉर्म बाधाओं के खिलाफ अपनी कमाई को एक साप्ताहिक सुरक्षा खाते से सुरक्षित करें।")}
+      asideItems={[
+        {
+          title: `${selectedPlan.name} ${selectLabel(languageMode, "Plan", "योजना")}`,
+          detail: `${formatCurrency(
+            calculateWeeklyPremium({
+              basePremium: selectedPlan.weeklyPremium,
+              platformCount: 2,
+              riskLevel: "Medium",
+            }).adjustedPremium,
+          )} / ${selectLabel(languageMode, "week", "सप्ताह")}`,
+          icon: <ShieldCheck className="size-5" />,
+        },
+        {
+          title: selectLabel(languageMode, "Automatic triggers", "स्वचालित ट्रिगर"),
+          detail: selectLabel(languageMode, "Rain, heat, AQI, and outage disruptions can start payouts automatically.", "बारिश, गर्मी, AQI और आउटेज के लिए भुगतान अपने आप शुरू हो सकता है।"),
+          icon: <CloudRain className="size-5" />,
+        },
+        {
+          title: selectLabel(languageMode, "Weekly safety net", "साप्ताहिक सुरक्षा जाल"),
+          detail: selectLabel(languageMode, "Built around the weekly earning and withdrawal cycle of delivery workers.", "डिलीवरी वर्कर्स की साप्ताहिक कमाई और निकासी चक्र के हिसाब से बनाया गया।"),
+          icon: <Wallet className="size-5" />,
+        },
+      ]}
+    >
+      <div className="w-full max-w-md space-y-6 mx-auto">
           <div className="text-center space-y-4">
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight font-archivo">
+            <h1 className="text-3xl font-black tracking-tight text-white font-archivo">
               {selectLabel(languageMode, "Sign In", "साइन इन करें")}
             </h1>
-            <p className="text-sm text-gray-500 font-medium">
+            <p className="text-sm font-medium text-zinc-400">
               {selectLabel(
                 languageMode,
                 "New to GigShield?",
@@ -124,22 +72,22 @@ function SignInPage() {
               )}{" "}
               <Link
                 to={`/signup?plan=${selectedPlanId}`}
-                className="text-gray-900 font-bold hover:underline underline-offset-4 decoration-2"
+                className="font-bold text-white hover:underline underline-offset-4 decoration-2"
               >
                 {selectLabel(languageMode, "Create account", "खाता बनाएं")}
               </Link>
             </p>
           </div>
 
-          <div className="glass-card rounded-[40px] p-6 space-y-4">
+          <AuthPanel className="space-y-4 rounded-[2rem]">
             {authError && (
-              <div className="p-4 rounded-2xl border border-red-100 bg-red-50 text-xs font-bold text-red-600 animate-enter">
+              <div className="animate-enter rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-xs font-bold text-red-200">
                 {authError}
               </div>
             )}
 
             {!supabase && (
-              <div className="p-4 rounded-2xl border border-orange-100 bg-orange-50 text-xs font-bold text-orange-600 animate-enter">
+              <div className="animate-enter rounded-2xl border border-orange-400/20 bg-orange-500/10 p-4 text-xs font-bold text-orange-200">
                 Supabase is not configured. Please check your .env file or use
                 Demo Mode.
               </div>
@@ -167,7 +115,7 @@ function SignInPage() {
                     setIsLoading(false);
                   }
                 }}
-                className="group w-full flex items-center justify-center gap-5 rounded-[2.5rem] bg-white border border-gray-100 px-8 py-6 text-lg font-black text-gray-900 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_60px_-15px_rgba(0,0,0,0.2)] hover:border-gray-200 transition-all active:scale-[0.97] disabled:opacity-50"
+                className="group flex w-full items-center justify-center gap-5 rounded-[2rem] border border-white/10 bg-white px-8 py-6 text-lg font-black text-gray-900 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)] transition-all hover:scale-[1.01] hover:shadow-[0_24px_80px_-20px_rgba(0,0,0,0.45)] active:scale-[0.97] disabled:opacity-50"
               >
                 <div className="w-8 h-8 flex items-center justify-center scale-125">
                   <svg viewBox="0 0 24 24">
@@ -202,7 +150,7 @@ function SignInPage() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-100" />
                 </div>
-                <span className="relative bg-white/40 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                <span className="relative bg-transparent px-3 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
                   {selectLabel(languageMode, "or", "या")}
                 </span>
               </div>
@@ -234,9 +182,9 @@ function SignInPage() {
                   localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
                   navigate(`/dashboard?plan=${selectedPlanId}`);
                 }}
-                className="w-full group flex items-center justify-center gap-3 rounded-2xl bg-gray-50/50 hover:bg-gray-50 border border-transparent hover:border-gray-200 px-6 py-4 text-xs font-bold text-gray-500 transition-all active:scale-[0.98]"
+                className="group flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 text-xs font-bold text-zinc-300 transition-all hover:bg-white/[0.08] active:scale-[0.98]"
               >
-                <Smartphone className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
+                <Smartphone className="h-4 w-4 text-zinc-500 group-hover:text-cyan-300 transition-colors" />
                 <span>
                   {selectLabel(
                     languageMode,
@@ -246,10 +194,10 @@ function SignInPage() {
                 </span>
               </button>
             </div>
-          </div>
+          </AuthPanel>
 
           <footer className="text-center space-y-4">
-            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase truncate px-8">
+            <p className="truncate px-8 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
               {selectLabel(
                 languageMode,
                 "Security verified by IRDAI Sandbox",
@@ -258,8 +206,7 @@ function SignInPage() {
             </p>
           </footer>
         </div>
-      </div>
-    </div>
+    </AuthPageShell>
   );
 }
 

@@ -101,7 +101,6 @@ function App() {
 
 function AppShell() {
   const location = useLocation();
-  const showGlobalNavbar = location.pathname !== "/";
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -111,6 +110,10 @@ function AppShell() {
     }
     requestAnimationFrame(raf);
   }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
 
   return (
     <>
@@ -122,17 +125,17 @@ function AppShell() {
         closeOnClick
         pauseOnHover
         draggable
-        theme="light"
-        toastClassName="!rounded-2xl !shadow-xl !font-sans !text-sm"
+        theme="dark"
+        toastClassName="!rounded-2xl !border !border-white/10 !bg-[#111318] !shadow-2xl !font-sans !text-sm !text-zinc-100"
       />
       <NotificationStack />
-      {showGlobalNavbar ? <Navbar /> : null}
-      <div className={`${showGlobalNavbar ? "pt-36 sm:pt-32 lg:pt-32" : ""} min-h-screen bg-[#f4f5f7]`}>
+      <Navbar />
+      <div className="min-h-screen bg-transparent">
         <ErrorBoundary>
           <Suspense
             fallback={
-              <div className="min-h-screen bg-[#f4f5f7]/50 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-[#1a2229] border-t-transparent rounded-full animate-spin" />
+              <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
+                <div className="h-10 w-10 rounded-full border-4 border-white/15 border-t-cyan-300 animate-spin" />
               </div>
             }
           >

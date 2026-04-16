@@ -1,8 +1,11 @@
-import { useNavigate, Link } from "react-router-dom";
-import { Zap, ShieldCheck, Eye, ScanFace, LayoutDashboard, ArrowRight, CloudRain, Thermometer, Wind, WifiOff, ChevronRight } from "lucide-react";
-import LanguageToggle from "../components/LanguageToggle";
+import { Zap, ShieldCheck, Eye, ScanFace, LayoutDashboard, ArrowRight, CloudRain, Thermometer, Wind, WifiOff, Radar, Compass } from "lucide-react";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
+import {
+  MarketingPageShell,
+  MarketingSection,
+  SurfaceCard,
+} from "@/components/ui/marketing-page-shell";
 
 const situations = [
   { icon: <CloudRain className="w-6 h-6" />, trigger: { en: "Heavy Rain", hi: "तेज़ बारिश" }, issue: { en: "Orders drop and riders lose active earning hours", hi: "ऑर्डर कम हो जाते हैं और राइडर्स काम के घंटे खो देते हैं" }, response: { en: "GigShield detects the rain trigger and releases payout automatically.", hi: "GigShield बारिश को डिटेक्ट करता है और अपने आप भुगतान कर देता है।" } },
@@ -17,6 +20,7 @@ const features = [
   { icon: <Eye className="w-5 h-5" />, title: { en: "Fraud Guard Layer", hi: "धोखाधड़ी सुरक्षा परत" }, detail: { en: "Risk scoring detects suspicious behavior and can require verification before payout.", hi: "जोखिम स्कोरिंग संदिग्ध व्यवहार का पता लगाता है।" } },
   { icon: <ScanFace className="w-5 h-5" />, title: { en: "Selfie Verification Gate", hi: "सेल्फी सत्यापन द्वार" }, detail: { en: "High-risk sessions are verified through a random selfie gesture challenge.", hi: "उच्च-जोखिम सत्रों के लिए सेल्फी सत्यापन।" } },
   { icon: <LayoutDashboard className="w-5 h-5" />, title: { en: "Transparent Dashboard", hi: "पारदर्शी डैशबोर्ड" }, detail: { en: "Workers can see payouts, active plan, risk state, and premium history in one place.", hi: "सभी जानकारी एक ही जगह।" } },
+  { icon: <Radar className="w-5 h-5" />, title: { en: "Income Radar + Shift Advisor", hi: "इनकम रडार + शिफ्ट एडवाइजर" }, detail: { en: "A hyperlocal AI layer predicts safer earning windows, dangerous zones, and when payout-ready protection matters most.", hi: "हाइपरलोकल AI सुरक्षित कमाई समय, जोखिम वाले ज़ोन और सही सुरक्षा समय बताता है।" } },
   { icon: <ArrowRight className="w-5 h-5" />, title: { en: "Income-Only Scope", hi: "केवल आय सुरक्षा" }, detail: { en: "Coverage is limited to loss of gig income from disruptions, not health, life, accidents, or vehicle repairs.", hi: "कवरेज केवल आय हानि के लिए है, स्वास्थ्य, जीवन, दुर्घटना या वाहन मरम्मत के लिए नहीं।" } },
 ];
 
@@ -37,123 +41,128 @@ const solutionChecklist = [
 ];
 
 function ProductPage() {
-  const navigate = useNavigate();
   const { languageMode } = useSiteLanguage();
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] font-sans">
-
-
-      {/* Hero */}
-      <section className="px-6 py-20 sm:px-12 lg:px-24 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">{selectLabel(languageMode, "Product Overview", "उत्पाद अवलोकन")}</p>
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight max-w-3xl">
-          {selectLabel(languageMode, "How GigShield works", "GigShield कैसे")}<br />
-          <span className="text-gray-400">{selectLabel(languageMode, "for delivery workers.", "काम करता है।")}</span>
-        </h1>
-        <p className="mt-6 text-lg text-gray-600 max-w-2xl leading-relaxed">
-          {selectLabel(languageMode, "GigShield protects gig worker earnings when real-world events interrupt delivery flow. It watches verified triggers and releases weekly-priced support payouts quickly.", "GigShield गिग वर्कर्स की कमाई की सुरक्षा करता है जब घटनाएं डिलीवरी को प्रभावित करती हैं और साप्ताहिक योजनाओं के तहत जल्दी भुगतान जारी करता है।")}
-        </p>
-        <div className="mt-8 flex gap-3 flex-wrap">
-          <button onClick={() => navigate("/signin")} className="primary-btn gap-2 flex items-center">
-            {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}<ArrowRight className="w-4 h-4" />
-          </button>
-          <button onClick={() => navigate("/pricing")} className="secondary-btn">{selectLabel(languageMode, "View Pricing", "कीमत देखें")}</button>
+    <MarketingPageShell
+      eyebrow={selectLabel(languageMode, "Product Overview", "उत्पाद अवलोकन")}
+      title={selectLabel(languageMode, "How GigShield works", "GigShield कैसे काम करता है")}
+      highlight={selectLabel(languageMode, "for delivery workers.", "डिलीवरी वर्कर्स के लिए।")}
+      description={selectLabel(languageMode, "GigShield protects gig worker earnings when real-world events interrupt delivery flow. It watches verified triggers, scores risk, and releases weekly-priced support payouts fast.", "GigShield गिग वर्कर्स की कमाई की सुरक्षा करता है, जोखिम स्कोर करता है और साप्ताहिक सुरक्षा भुगतान जारी करता है।")}
+      primaryAction={{ to: "/get-protected", label: selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें") }}
+      secondaryAction={{ to: "/pricing", label: selectLabel(languageMode, "View Pricing", "कीमत देखें") }}
+      stats={[
+        { label: "Scope", value: "Income Loss", detail: "Only external-disruption income loss is covered." },
+        { label: "Pricing", value: "Weekly", detail: "Designed for gig workers' earning and withdrawal rhythm." },
+        { label: "Claims", value: "Zero-touch", detail: "Parametric triggers replace manual claim paperwork." },
+        { label: "Trust", value: "AI + fraud guard", detail: "Risk scoring and verification keep payouts clean." },
+      ]}
+    >
+      <MarketingSection title={selectLabel(languageMode, "Coverage boundary and deliverables", "कवरेज सीमा और डिलिवरेबल्स")} caption="Product clarity">
+        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <SurfaceCard className="border-amber-300/20 bg-amber-300/10">
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-amber-200">Income-only scope</p>
+            <p className="mt-4 text-base leading-7 text-amber-50/90">
+              {selectLabel(languageMode, "GigShield only covers loss of delivery income from verified external disruptions. It does not cover health, life, accidents, or vehicle repair costs.", "GigShield केवल बाहरी व्यवधानों से हुई डिलीवरी आय हानि को कवर करता है। यह स्वास्थ्य, जीवन, दुर्घटना या वाहन मरम्मत लागत को कवर नहीं करता।")}
+            </p>
+          </SurfaceCard>
+          <div className="grid gap-4 md:grid-cols-2">
+            {solutionChecklist.map((item) => (
+              <SurfaceCard key={item.title}>
+                <h3 className="text-base font-bold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-zinc-300">{item.detail}</p>
+              </SurfaceCard>
+            ))}
+          </div>
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className="px-6 sm:px-12 lg:px-24 pb-20 max-w-6xl mx-auto">
-        <div className="rounded-3xl border border-amber-200 bg-amber-50/80 px-6 py-6">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700 mb-3">
-            {selectLabel(languageMode, "Coverage Boundary", "कवरेज सीमा")}
-          </p>
-          <p className="text-sm font-medium leading-relaxed text-amber-950">
-            {selectLabel(
-              languageMode,
-              "GigShield only covers loss of delivery income from verified external disruptions. It does not cover health, life, accidents, or vehicle repair costs.",
-              "GigShield केवल सत्यापित बाहरी व्यवधानों से हुई डिलीवरी आय हानि को कवर करता है। यह स्वास्थ्य, जीवन, दुर्घटना या वाहन मरम्मत लागत को कवर नहीं करता।",
-            )}
-          </p>
-        </div>
-      </section>
-
-      <section className="px-6 sm:px-12 lg:px-24 pb-20 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{selectLabel(languageMode, "Deliverable Coverage", "डिलिवरेबल कवरेज")}</p>
-        <div className="grid gap-4 md:grid-cols-2">
-          {solutionChecklist.map((item) => (
-            <div key={item.title} className="rounded-2xl border border-white/60 bg-white/60 p-5 shadow-sm">
-              <h3 className="text-base font-bold text-gray-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.detail}</p>
+      <MarketingSection title={selectLabel(languageMode, "The standout intelligence layer", "सबसे अलग इंटेलिजेंस लेयर")} caption="Income Radar">
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <SurfaceCard className="border-cyan-300/20 bg-cyan-300/10">
+            <div className="flex items-center gap-3">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-200">
+                <Radar className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-cyan-200">Income Radar</p>
+                <h3 className="mt-2 text-2xl font-bold text-white">
+                  {selectLabel(languageMode, "GigShield predicts where the rider should work next.", "GigShield बताता है कि राइडर को अगली शिफ्ट कहां काम करना चाहिए।")}
+                </h3>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <p className="mt-5 text-sm leading-7 text-cyan-50/90">
+              {selectLabel(languageMode, "Instead of acting like a normal insurance app, GigShield analyzes city micro-zones, predicted disruptions, and likely earning windows. It tells workers where to shift, when to leave risky pockets, and where payout-ready protection is most likely to matter.", "सिर्फ सामान्य इंश्योरेंस ऐप की तरह काम करने के बजाय, GigShield शहर के माइक्रो-ज़ोन, संभावित व्यवधान और कमाई के विंडो का विश्लेषण करता है। यह वर्कर को बताता है कि कहां शिफ्ट करनी है, कब जोखिम वाले क्षेत्र से निकलना है और कहां सुरक्षा सबसे उपयोगी होगी।")}
+            </p>
+          </SurfaceCard>
 
-      {/* How it works steps */}
-      <section className="px-6 sm:px-12 lg:px-24 pb-20 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{selectLabel(languageMode, "How To Use", "कैसे उपयोग करें")}</p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid gap-4">
+            {[
+              {
+                icon: <Compass className="h-5 w-5" />,
+                title: "Zone switching",
+                detail: "Suggests safer micro-zones with stronger earning continuity.",
+              },
+              {
+                icon: <CloudRain className="h-5 w-5" />,
+                title: "Risk windows",
+                detail: "Shows when rain, AQI, or outage risk is likely to drag income down.",
+              },
+              {
+                icon: <ShieldCheck className="h-5 w-5" />,
+                title: "Protection timing",
+                detail: "Recommends when payout-ready coverage matters most for the next shift.",
+              },
+            ].map((item) => (
+              <SurfaceCard key={item.title}>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-white/8 text-cyan-300">{item.icon}</div>
+                <h3 className="mt-4 text-lg font-bold text-white">{item.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-zinc-300">{item.detail}</p>
+              </SurfaceCard>
+            ))}
+          </div>
+        </div>
+      </MarketingSection>
+
+      <MarketingSection title={selectLabel(languageMode, "How the worker journey flows", "वर्कर जर्नी कैसे चलती है")} caption="Flow">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {steps.map((s, i) => (
-            <div key={i} className="group">
-              <div className="w-10 h-10 rounded-xl bg-[#1a2229] text-white flex items-center justify-center text-sm font-bold mb-4">{i + 1}</div>
-              <h3 className="text-base font-bold text-gray-900">{selectLabel(languageMode, s.en, s.hi)}</h3>
-              <p className="mt-2 text-sm text-gray-600 leading-relaxed">{selectLabel(languageMode, s.desc.en, s.desc.hi)}</p>
-            </div>
+            <SurfaceCard key={i}>
+              <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-300 text-sm font-bold text-zinc-950">{i + 1}</div>
+              <h3 className="mt-4 text-lg font-bold text-white">{selectLabel(languageMode, s.en, s.hi)}</h3>
+              <p className="mt-2 text-sm leading-7 text-zinc-300">{selectLabel(languageMode, s.desc.en, s.desc.hi)}</p>
+            </SurfaceCard>
           ))}
         </div>
-      </section>
+      </MarketingSection>
 
-      {/* Divider */}
-      <div className="border-t border-gray-200 mx-6 sm:mx-12 lg:mx-24" />
-
-      {/* Protection situations */}
-      <section className="px-6 sm:px-12 lg:px-24 py-20 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{selectLabel(languageMode, "Protection In Real Situations", "वास्तविक स्थितियों में सुरक्षा")}</p>
-        <div className="space-y-1">
+      <MarketingSection title={selectLabel(languageMode, "Protection in real situations", "वास्तविक स्थितियों में सुरक्षा")} caption="Trigger examples">
+        <div className="grid gap-4 md:grid-cols-2">
           {situations.map((s, i) => (
-            <div key={i} className="group flex items-start gap-6 py-6 border-b border-gray-200 last:border-0 hover:bg-white/40 rounded-2xl px-4 -mx-4 transition cursor-default">
-              <div className="w-12 h-12 rounded-2xl bg-white/80 border border-white/60 flex items-center justify-center text-gray-700 shadow-sm flex-shrink-0 mt-0.5 group-hover:bg-[#1a2229] group-hover:text-white transition">
-                {s.icon}
+            <SurfaceCard key={i}>
+              <div className="flex items-center gap-3">
+                <div className="flex size-11 items-center justify-center rounded-2xl bg-white/8 text-cyan-300">{s.icon}</div>
+                <h3 className="text-lg font-bold text-white">{selectLabel(languageMode, s.trigger.en, s.trigger.hi)}</h3>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-lg font-bold text-gray-900">{selectLabel(languageMode, s.trigger.en, s.trigger.hi)}</h3>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-200 rounded-full px-2 py-0.5">{selectLabel(languageMode, "Worker event", "वर्कर इवेंट")}</span>
-                </div>
-                <p className="text-sm text-gray-500">{selectLabel(languageMode, s.issue.en, s.issue.hi)}</p>
-                <p className="text-sm text-gray-700 mt-1 font-medium">{selectLabel(languageMode, "→ " + s.response.en, "→ " + s.response.hi)}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-600 transition flex-shrink-0 mt-2" />
-            </div>
+              <p className="mt-4 text-sm leading-7 text-zinc-400">{selectLabel(languageMode, s.issue.en, s.issue.hi)}</p>
+              <p className="mt-3 text-sm leading-7 text-zinc-200">{selectLabel(languageMode, s.response.en, s.response.hi)}</p>
+            </SurfaceCard>
           ))}
         </div>
-      </section>
+      </MarketingSection>
 
-      {/* Features grid */}
-      <section className="px-6 sm:px-12 lg:px-24 pb-24 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{selectLabel(languageMode, "Key Features", "मुख्य विशेषताएं")}</p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <MarketingSection title={selectLabel(languageMode, "Key platform capabilities", "मुख्य क्षमताएं")} caption="Features">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {features.map((f, i) => (
-            <div key={i} className="bg-white/60 backdrop-blur-sm border border-white/60 rounded-2xl p-6 hover:bg-white/80 transition shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-[#f4f5f7] border border-gray-100 flex items-center justify-center text-gray-700 mb-4">{f.icon}</div>
-              <h3 className="text-base font-bold text-gray-900">{selectLabel(languageMode, f.title.en, f.title.hi)}</h3>
-              <p className="mt-2 text-sm text-gray-600 leading-relaxed">{selectLabel(languageMode, f.detail.en, f.detail.hi)}</p>
-            </div>
+            <SurfaceCard key={i}>
+              <div className="flex size-10 items-center justify-center rounded-xl bg-white/8 text-cyan-300">{f.icon}</div>
+              <h3 className="mt-4 text-lg font-bold text-white">{selectLabel(languageMode, f.title.en, f.title.hi)}</h3>
+              <p className="mt-2 text-sm leading-7 text-zinc-300">{selectLabel(languageMode, f.detail.en, f.detail.hi)}</p>
+            </SurfaceCard>
           ))}
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-[#1a2229] mx-6 sm:mx-12 lg:mx-24 mb-12 rounded-3xl px-8 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-white">{selectLabel(languageMode, "Ready to ride protected?", "सुरक्षित राइड के लिए तैयार हैं?")}</h2>
-          <p className="text-gray-400 text-sm mt-2">{selectLabel(languageMode, "Activate in under 3 minutes. No paperwork.", "3 मिनट में सक्रिय करें। कोई कागजी कार्रवाई नहीं।")}</p>
-        </div>
-        <button onClick={() => navigate("/signin")} className="flex items-center gap-2 bg-white text-[#1a2229] rounded-2xl px-6 py-3 font-bold text-sm hover:bg-gray-100 transition flex-shrink-0">
-          {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}<ArrowRight className="w-4 h-4" />
-        </button>
-      </section>
-    </div>
+      </MarketingSection>
+    </MarketingPageShell>
   );
 }
 

@@ -37,7 +37,7 @@ function FraudDetectionIndicator({
     >
       <div className="space-y-8">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+          <p className="mb-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">
             {selectLabel(languageMode, "Demo: Choose Worker Profile", "डेमो: वर्कर प्रोफ़ाइल चुनें")}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -50,8 +50,8 @@ function FraudDetectionIndicator({
                   onClick={() => onPersonaChange(personaKey)}
                   className={`rounded-2xl border p-4 text-left transition-all ${
                     isSelected
-                      ? "border-gray-900 bg-gray-900 text-white shadow-lg"
-                      : "border-gray-200 bg-white text-gray-900 hover:border-gray-400"
+                      ? "border-cyan-300/30 bg-white/[0.08] text-white shadow-lg shadow-cyan-950/20"
+                      : "border-white/10 bg-white/[0.03] text-zinc-100 hover:border-white/20"
                   }`}
                 >
                   <p className="text-xs font-black uppercase tracking-widest">
@@ -59,7 +59,7 @@ function FraudDetectionIndicator({
                       ? selectLabel(languageMode, "Verified Worker", "सत्यापित वर्कर")
                       : selectLabel(languageMode, "Needs Extra Check", "अतिरिक्त जांच आवश्यक")}
                   </p>
-                  <p className={`mt-1 text-[10px] font-bold opacity-70 ${isSelected ? "text-white" : "text-gray-500"}`}>
+                  <p className={`mt-1 text-[10px] font-bold opacity-70 ${isSelected ? "text-white" : "text-zinc-500"}`}>
                     {personaKey === "normal" ? selectLabel(languageMode, "Fast payout path", "तेज़ भुगतान मार्ग") : selectLabel(languageMode, "Verification needed", "सत्यापन आवश्यक")}
                   </p>
                 </button>
@@ -68,9 +68,9 @@ function FraudDetectionIndicator({
           </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-8">
+        <div className="border-t border-white/10 pt-8">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
               {selectLabel(languageMode, "Trust Score", "ट्रस्ट स्कोर")}
             </p>
             <span
@@ -81,22 +81,22 @@ function FraudDetectionIndicator({
           </div>
 
           <div className="flex items-end gap-3 mb-6">
-            <span className="text-5xl font-black text-gray-900 tracking-tighter">
-              {activeProfile.score}<span className="text-xl text-gray-300 ml-1">/100</span>
+            <span className="text-5xl font-black tracking-tighter text-white">
+              {activeProfile.score}<span className="ml-1 text-xl text-zinc-600">/100</span>
             </span>
           </div>
 
           {showVerification ? (
-            <div className="rounded-2xl bg-red-50 border border-red-100 p-4 animate-enter flex items-start gap-3">
+            <div className="animate-enter flex items-start gap-3 rounded-2xl border border-red-400/20 bg-red-500/10 p-4">
               <div className="h-2 w-2 rounded-full bg-red-500 mt-1.5 animate-pulse" />
-              <p className="text-xs font-bold text-red-700 leading-relaxed">
+              <p className="text-xs font-bold leading-relaxed text-red-200">
                 {selectLabel(languageMode, "Selfie check needed before payment. This protects genuine workers.", "भुगतान से पहले सेल्फी जांच जरूरी है। यह असली वर्कर्स की सुरक्षा करता है।")}
               </p>
             </div>
           ) : (
-            <div className="rounded-2xl bg-green-50 border border-green-100 p-4 animate-enter flex items-start gap-3">
+            <div className="animate-enter flex items-start gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4">
               <div className="h-2 w-2 rounded-full bg-green-500 mt-1.5" />
-              <p className="text-xs font-bold text-green-700 leading-relaxed">
+              <p className="text-xs font-bold leading-relaxed text-emerald-200">
                 {selectLabel(languageMode, "Profile verified. Payment can be sent instantly.", "प्रोफ़ाइल सत्यापित। भुगतान तुरंत भेजा जा सकता है।")}
               </p>
             </div>

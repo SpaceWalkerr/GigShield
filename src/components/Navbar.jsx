@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Marquee from "react-fast-marquee";
-import { Zap } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
@@ -13,6 +13,30 @@ export default function Navbar() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
   const isHomePage = location.pathname === "/";
   const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navItems = [
+    { label: "Home", path: "/" },
+    { label: "Product", path: "/product" },
+    { label: "Pricing", path: "/pricing" },
+    { label: "Triggers", path: "/triggers" },
+    { label: "Fraud Guard", path: "/fraud-guard" },
+    { label: "Get Protected", path: "/get-protected" },
+    { label: "Sign In", path: "/signin" },
+    { label: "Sign Up", path: "/signup" },
+    { label: "Auth Hub", path: "/auth" },
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "Payout", path: "/payout" },
+    { label: "Receipt", path: "/payout-received" },
+    { label: "History", path: "/payout-history" },
+    { label: "Predictive", path: "/predictive-history" },
+    { label: "Heatmap", path: "/community-heatmap" },
+    { label: "Team", path: "/team-protection" },
+    { label: "Trust", path: "/trust-center" },
+    { label: "Support", path: "/support" },
+    { label: "Admin Hub", path: "/admin" },
+    { label: "Admin", path: "/admin-ops" },
+  ];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,7 +48,13 @@ export default function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const navigateTo = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+
   const handleNavClick = (key) => {
+    setMenuOpen(false);
     if (key === "about") {
       if (isHomePage) {
         const element = document.getElementById("about-section");
@@ -32,13 +62,13 @@ export default function Navbar() {
           element.scrollIntoView({ behavior: "smooth" });
         } else {
           // If not found yet, navigate with hash as fallback
-          navigate("/#about-section");
+          navigateTo("/#about-section");
         }
       } else {
-        navigate("/#about-section");
+        navigateTo("/#about-section");
       }
     } else {
-      navigate(`/${key}`);
+      navigateTo(`/${key}`);
     }
   };
 
@@ -62,107 +92,163 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] w-full flex flex-col">
       {/* Marquee Top Strip */}
-      <div className="relative z-20 w-full bg-[#1a2229] py-2 overflow-hidden flex items-center shadow-md">
+      <div className="relative z-20 flex w-full items-center overflow-hidden border-b border-white/8 bg-black/55 py-2 shadow-md backdrop-blur-xl">
         <Marquee
           speed={40}
           direction="left"
           gradient={false}
-          className="text-sm font-semibold tracking-widest text-[#f4cf3f]"
+          className="text-[11px] font-semibold uppercase tracking-[0.25em] text-cyan-200/80"
         >
           {selectLabel(
             languageMode,
-            "⚡ Ramesh Kumar received ₹30 payback for Heavy Rain   •   ⚡ Suresh triggered ₹50 payout for Heatwave   •   ⚡ Amit got ₹40 for AQI spike   •   ⚡ Vikram received ₹60 for Delhi Outage   •   ⚡ GigShield pays by trigger, not paperwork!",
-            "⚡ रमेश कुमार को भारी बारिश के लिए ₹30 मिले   •   ⚡ सुरेश को लू के लिए ₹50 मिले   •   ⚡ अमित को AQI के लिए ₹40 मिले   •   ⚡ GigShield ट्रिगर से भुगतान करता है!",
+            "Heavy rain protected this week’s earnings • AQI spike auto-triggered support • Platform outage payout settled instantly • Weekly protection built for gig workers",
+            "भारी बारिश पर इस सप्ताह की कमाई सुरक्षित • AQI बढ़ने पर सहायता शुरू • प्लेटफॉर्म आउटेज पर तुरंत भुगतान • गिग वर्कर्स के लिए साप्ताहिक सुरक्षा",
           )}
         </Marquee>
       </div>
 
-      {/* Navigation Bar */}
-      <nav className="glass-nav mx-auto mt-2 flex w-[min(96%,80rem)] items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3.5 md:px-8 flex-none transition-all duration-300">
-        <div
-          className="cursor-pointer rounded bg-[#f4f5f7]/90 px-2.5 py-1 text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 backdrop-blur-sm shadow-sm border border-white/60"
-          onClick={() => navigate("/")}
-        >
-          GIGSHIELD.
-        </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden items-center gap-6 rounded-full bg-[#f4f5f7]/80 px-6 py-2 font-medium shadow-sm backdrop-blur-md lg:flex border border-white/40">
+      <nav className="mx-auto mt-2 w-[min(96%,92rem)] flex-none rounded-[1.75rem] border border-white/10 bg-black/25 px-3 py-3 backdrop-blur-xl transition-all duration-300 sm:px-6">
+        <div className="flex items-center justify-between gap-3">
           <button
-            onClick={() => handleNavClick("product")}
-            className="text-gray-900 transition-colors hover:text-gray-600 text-sm"
+            className="cursor-pointer rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-lg font-bold tracking-tight text-white sm:text-xl md:text-2xl"
+            onClick={() => navigateTo("/")}
           >
-            {selectLabel(languageMode, "Product", "उत्पाद")}
-          </button>
-          <button
-            onClick={() => handleNavClick("about")}
-            className="text-gray-900 transition-colors hover:text-gray-600 text-sm"
-          >
-            {selectLabel(languageMode, "About", "बारे में")}
-          </button>
-          <button
-            onClick={() => handleNavClick("pricing")}
-            className="text-gray-900 transition-colors hover:text-gray-600 text-sm"
-          >
-            {selectLabel(languageMode, "Pricing", "कीमत")}
+            GIGSHIELD.
           </button>
 
-          <div className="mx-2 h-5 border-l border-gray-300" />
+          <div className="hidden items-center gap-3 lg:flex">
+            <button
+              onClick={() => handleNavClick("about")}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                location.hash === "#about-section"
+                  ? "bg-white/[0.08] text-white"
+                  : "text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+              }`}
+            >
+              {selectLabel(languageMode, "About", "बारे में")}
+            </button>
+            <LanguageToggle
+              languageMode={languageMode}
+              setLanguageMode={setLanguageMode}
+            />
+            {user ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigateTo("/signin");
+                }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:bg-white/[0.08]"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigateTo("/signin")}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-lg transition-all hover:bg-zinc-200 hover:shadow-xl"
+              >
+                {selectLabel(
+                  languageMode,
+                  "Sign in with Google",
+                  "Google से साइन इन",
+                )}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-          <LanguageToggle
-            languageMode={languageMode}
-            setLanguageMode={setLanguageMode}
-          />
-        </div>
-
-        {!user && (
-          <div className="hidden md:flex gap-3">
+          <div className="flex items-center gap-2 lg:hidden">
+            <LanguageToggle
+              languageMode={languageMode}
+              setLanguageMode={setLanguageMode}
+            />
             <button
               type="button"
-              onClick={() => navigate("/signin")}
-              className="rounded-full bg-[#202A36] px-6 py-2.5 font-semibold text-white shadow-lg transition-all hover:bg-[#1a2229] hover:shadow-xl border border-gray-200/70 text-sm"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white"
+              aria-label={menuOpen ? "Close navigation" : "Open navigation"}
             >
-              {selectLabel(
-                languageMode,
-                "Sign in with Google",
-                "Google से साइन इन",
-              )}
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
-        )}
-      </nav>
-
-      <div className="mt-2 px-2 sm:px-4 lg:hidden">
-        <div className="glass-nav mx-auto flex w-full items-center justify-between gap-2 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleNavClick("product")}
-              className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-gray-800"
-            >
-              {selectLabel(languageMode, "Product", "उत्पाद")}
-            </button>
-            <button
-              onClick={() => handleNavClick("pricing")}
-              className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-gray-800"
-            >
-              {selectLabel(languageMode, "Pricing", "कीमत")}
-            </button>
-          </div>
-          <LanguageToggle
-            languageMode={languageMode}
-            setLanguageMode={setLanguageMode}
-          />
         </div>
-        {!user && (
-          <button
-            type="button"
-            onClick={() => navigate("/signin")}
-            className="mt-2 w-full rounded-full bg-[#202A36] px-4 py-2.5 text-sm font-semibold text-white shadow-md"
-          >
-            {selectLabel(languageMode, "Sign in with Google", "Google से साइन इन")}
-          </button>
-        )}
-      </div>
+
+        <div className="mt-3 hidden lg:block">
+          <div className="flex items-center gap-2 overflow-x-auto rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-2">
+            {navItems.map((item) => {
+              const active = location.pathname === item.path;
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => navigateTo(item.path)}
+                  className={`whitespace-nowrap rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.18em] transition ${
+                    active
+                      ? "bg-white text-zinc-950"
+                      : "bg-transparent text-zinc-300 hover:bg-white/[0.08] hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {menuOpen ? (
+          <div className="mt-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-3 lg:hidden">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => handleNavClick("about")}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-xs font-black uppercase tracking-[0.18em] text-zinc-100"
+              >
+                About
+              </button>
+              {navItems.map((item) => {
+                const active = location.pathname === item.path;
+                return (
+                  <button
+                    key={item.path}
+                    type="button"
+                    onClick={() => navigateTo(item.path)}
+                    className={`rounded-2xl border px-4 py-3 text-left text-xs font-black uppercase tracking-[0.18em] transition ${
+                      active
+                        ? "border-white bg-white text-zinc-950"
+                        : "border-white/10 bg-white/[0.03] text-zinc-100"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3">
+              {user ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigateTo("/signin");
+                  }}
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-zinc-100"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigateTo("/signin")}
+                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-zinc-950"
+                >
+                  {selectLabel(languageMode, "Sign in with Google", "Google से साइन इन")}
+                </button>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </nav>
     </div>
   );
 }

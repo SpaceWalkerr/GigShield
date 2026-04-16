@@ -11,6 +11,7 @@ import userProfile from "../data/userProfile.json";
 import { runPayoutSecurityChecks } from "../utils/payoutSecurity";
 import { pushNotification } from "../utils/notifications";
 import { trackEvent } from "../utils/observability";
+import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
 import {
   clearPayoutReceipt,
   getFailureReasonLabel,
@@ -19,14 +20,6 @@ import {
   savePayoutReceipt,
   transitionPayoutLifecycle,
 } from "../utils/payoutReceipt";
-
-const lifecycleFlow = [
-  "pending-verification",
-  "verified",
-  "processing",
-  "settled",
-  "failed",
-];
 
 function getLifecycleLabel(languageMode, status) {
   const labels = {
@@ -69,7 +62,7 @@ function PayoutPage() {
   const session = getSession();
   const strictTokenDefault = import.meta.env.VITE_STRICT_TOKEN_ENFORCEMENT === "true";
   const workerCity = session?.city || userProfile.city;
-  const [strictTokenEnforcement, setStrictTokenEnforcement] = useState(() => {
+  const [strictTokenEnforcement] = useState(() => {
     const stored = localStorage.getItem("gigshieldStrictTokenEnforced");
     if (stored === "true") {
       return true;
@@ -370,32 +363,24 @@ function PayoutPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
-      {/* Dynamic Nav */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
-          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">
-            Payout
-          </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />
-          <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
-            {selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
+    <AppPageShell
+      badge="Payout"
+      backTo="/dashboard"
+      backLabel={selectLabel(languageMode, "Dashboard", "डैशबोर्ड")}
+      title={selectLabel(languageMode, "Receive Funds", "धनराशि प्राप्त करें")}
+      description={selectLabel(
+        languageMode,
+        "Verify the rider, clear security checks, and settle income-loss support instantly.",
+        "राइडर को सत्यापित करें, सुरक्षा जांच पूरी करें और आय-हानि सहायता तुरंत सेटल करें।",
+      )}
+      actions={<LanguageToggle languageMode={languageMode} setLanguageMode={setLanguageMode} />}
+    >
+      <div className="mx-auto max-w-2xl">
         <header className="mb-8 sm:mb-12">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
             {selectLabel(languageMode, "Settlement Console", "सेटलमेंट कंसोल")}
           </p>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter leading-none mb-4 sm:mb-6">
-            {selectLabel(languageMode, "Receive Funds", "धनराशि प्राप्त करें")}
-          </h1>
-          <p className="text-sm font-bold text-gray-500">
+          <p className="text-sm font-medium text-zinc-300">
             {selectLabel(
               languageMode,
               "Verify your identity and confirm the payout request.",
@@ -404,9 +389,11 @@ function PayoutPage() {
           </p>
         </header>
 
-        <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5 mb-8">
-          <p className="kicker">{selectLabel(languageMode, "How to get payout", "भुगतान कैसे पाएं")}</p>
-          <ol className="mt-2 list-decimal pl-5 text-sm font-semibold text-blue-900 space-y-1">
+        <AppSurface className="mb-8 border-cyan-400/20 bg-cyan-400/8 p-4 sm:p-5">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-200">
+            {selectLabel(languageMode, "How to get payout", "भुगतान कैसे पाएं")}
+          </p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm font-semibold text-cyan-50">
             <li>
               {selectLabel(
                 languageMode,
@@ -429,13 +416,15 @@ function PayoutPage() {
               )}
             </li>
           </ol>
-        </section>
+        </AppSurface>
 
         <div className="space-y-12">
           {!receipt ? (
-            <section className="board-soft p-4 sm:p-5">
-              <p className="kicker">{selectLabel(languageMode, "No payout yet", "अभी कोई भुगतान नहीं")}</p>
-              <p className="mt-2 text-sm text-coal-600">
+            <AppSurface className="p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+                {selectLabel(languageMode, "No payout yet", "अभी कोई भुगतान नहीं")}
+              </p>
+              <p className="mt-2 text-sm text-zinc-300">
                 {selectLabel(
                   languageMode,
                   "Go to Dashboard → tap a trigger button to generate a support payout.",
@@ -443,11 +432,14 @@ function PayoutPage() {
                 )}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link to="/dashboard" className="primary-btn">
+                <Link
+                  to="/dashboard"
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-950 transition hover:bg-zinc-200"
+                >
                   {selectLabel(languageMode, "Open Dashboard", "डैशबोर्ड खोलें")}
                 </Link>
               </div>
-            </section>
+            </AppSurface>
           ) : (
             <>
               <SelfieVerificationPanel
@@ -461,7 +453,7 @@ function PayoutPage() {
 
               {(!(selfieVerified || isLifecycleVerified) || !checksCompleted) &&
               (receipt.status === "paid" || receipt.status === "capped") ? (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                <p className="rounded-2xl border border-red-400/20 bg-red-500/10 px-3 py-3 text-xs font-semibold text-red-200">
                   {selectLabel(
                     languageMode,
                     "Complete gesture selfie verification to receive payout.",
@@ -471,31 +463,36 @@ function PayoutPage() {
               ) : null}
 
               {verificationState.status === "idle" ? (
-                <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
-                  <p className="text-xs font-semibold text-amber-700">
+                <AppSurface className="border-amber-400/20 bg-amber-400/10 p-4 sm:p-5">
+                  <p className="text-xs font-semibold text-amber-100">
                     {selectLabel(
                       languageMode,
                       "Complete gesture verification first to view payout receipt details.",
                       "भुगतान रसीद विवरण देखने के लिए पहले जेस्चर सत्यापन पूरा करें।",
                     )}
                   </p>
-                </section>
+                </AppSurface>
               ) : (
-                <section className={`rounded-xl border p-4 sm:p-5 ${getStatusStyles(receipt.status)}`}>
-                  <p className="kicker">{selectLabel(languageMode, "Latest payout receipt", "नवीनतम भुगतान रसीद")}</p>
+                <AppSurface className="border-white/10 p-4 sm:p-5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+                    {selectLabel(languageMode, "Latest payout receipt", "नवीनतम भुगतान रसीद")}
+                  </p>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-coal-500">
+                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
                         {selectLabel(languageMode, "Amount", "राशि")}
                       </p>
-                      <p className="mt-1 text-3xl font-bold">
+                      <p className="mt-1 text-3xl font-bold text-white">
                         {formatCurrency(receipt.payoutAmount ?? 0)}
                       </p>
-                      <p className="mt-1 text-sm text-coal-600">{receipt.reason}</p>
+                      <div className={`mt-3 inline-flex rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] ${getStatusStyles(receipt.status)}`}>
+                        {receipt.status}
+                      </div>
+                      <p className="mt-3 text-sm text-zinc-300">{receipt.reason}</p>
                     </div>
 
-                    <div className="rounded-lg border border-coal-200 bg-white/60 px-3 py-2 text-xs text-coal-700">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-xs text-zinc-300">
                       <p>
                         <span className="font-semibold">{selectLabel(languageMode, "Trigger", "ट्रिगर")}</span>: {" "}
                         {receipt.triggerLabel || receipt.triggerId}
@@ -525,7 +522,7 @@ function PayoutPage() {
                         {receipt.failureReasonCode ? getFailureReasonLabel(receipt.failureReasonCode) : "-"}
                       </p>
                       {receipt.failureReasonCode?.startsWith("POLICY_") ? (
-                        <p className="mt-1 inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">
+                        <p className="mt-1 inline-flex rounded-full border border-red-400/20 bg-red-500/10 px-2 py-1 text-[11px] font-semibold text-red-200">
                           {selectLabel(languageMode, "Policy exclusion", "पॉलिसी अपवाद")}
                         </p>
                       ) : null}
@@ -547,36 +544,36 @@ function PayoutPage() {
                       type="button"
                       onClick={handleReceive}
                       disabled={!canReceive || isProcessing}
-                      className="primary-btn"
+                      className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-950 transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
                     >
                       {isProcessing
                         ? selectLabel(languageMode, "Processing...", "प्रोसेसिंग...")
                         : selectLabel(languageMode, "Receive payout", "भुगतान प्राप्त करें")}
                     </button>
                     {receipt.receivedAt ? (
-                      <Link to="/payout/received" className="secondary-btn">
+                      <Link to="/payout/received" className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]">
                         {selectLabel(languageMode, "Open received page", "प्राप्त पेज खोलें")}
                       </Link>
                     ) : null}
                     {canRetry ? (
-                      <button type="button" onClick={handleRetryFailedPayout} className="secondary-btn">
+                      <button type="button" onClick={handleRetryFailedPayout} className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]">
                         {selectLabel(languageMode, "Retry failed payout", "विफल भुगतान पुनः प्रयास")}
                       </button>
                     ) : null}
-                    <Link to="/payout/history" className="secondary-btn">
+                    <Link to="/payout/history" className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]">
                       {selectLabel(languageMode, "View payout history", "भुगतान इतिहास देखें")}
                     </Link>
-                    <button type="button" onClick={handleClear} className="secondary-btn">
+                    <button type="button" onClick={handleClear} className="inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-100 transition hover:border-white/20 hover:bg-white/[0.06]">
                       {selectLabel(languageMode, "Clear receipt", "रसीद हटाएं")}
                     </button>
                   </div>
-                </section>
+                </AppSurface>
               )}
             </>
           )}
         </div>
       </div>
-    </main>
+    </AppPageShell>
   );
 }
 

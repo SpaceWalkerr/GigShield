@@ -10,8 +10,8 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
   const isWorkingNow = activity.movementStatus === "Active";
   const movementClasses =
     isWorkingNow
-      ? "bg-green-100 text-green-600 border-green-200"
-      : "bg-gray-100 text-gray-500 border-gray-200";
+      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+      : "border-white/10 bg-white/[0.03] text-zinc-400";
 
   return (
     <Card
@@ -29,18 +29,18 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
           { label: selectLabel(languageMode, "Orders Completed Today", "आज पूरे किए गए ऑर्डर"), value: activity.ordersCompletedToday },
           { label: selectLabel(languageMode, "Last Seen Working", "अंतिम बार काम करते हुए"), value: formatTime(lastActiveTime) }
         ].map((item, i) => (
-          <div key={i} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-            <dt className="text-xs font-bold uppercase tracking-widest text-gray-400">
+          <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
+            <dt className="text-xs font-bold uppercase tracking-widest text-zinc-500">
               {item.label}
             </dt>
-            <dd className="text-sm font-extrabold text-gray-900">
+            <dd className="text-sm font-extrabold text-white">
               {item.value}
             </dd>
           </div>
         ))}
 
-        <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-          <dt className="text-xs font-bold uppercase tracking-widest text-gray-400">
+        <div className="flex items-center justify-between border-t border-white/10 pt-4">
+          <dt className="text-xs font-bold uppercase tracking-widest text-zinc-500">
             {selectLabel(languageMode, "Working Right Now", "अभी काम कर रहे हैं")}
           </dt>
           <dd>

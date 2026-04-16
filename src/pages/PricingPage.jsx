@@ -1,12 +1,16 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState } from "react";
-import { ArrowRight, Check, Zap, ShieldCheck, Clock } from "lucide-react";
-import LanguageToggle from "../components/LanguageToggle";
+import { ArrowRight, Check } from "lucide-react";
 import planDetails from "../data/planDetails.json";
 import { formatCurrency } from "../utils/format";
 import { calculateWeeklyPremium, supportedRiskLevels } from "../utils/pricing";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
+import {
+  MarketingPageShell,
+  MarketingSection,
+  SurfaceCard,
+} from "@/components/ui/marketing-page-shell";
 
 const planHighlights = {
   basic: [
@@ -38,28 +42,24 @@ const faqs = [
 function PricingPage() {
   const [platformCount, setPlatformCount] = useState(2);
   const [riskLevel, setRiskLevel] = useState("Medium");
-  const { languageMode, setLanguageMode } = useSiteLanguage();
-  const navigate = useNavigate();
-
+  const { languageMode } = useSiteLanguage();
   return (
-    <div className="min-h-screen bg-[#f4f5f7] font-sans">
-
-
-      {/* Hero */}
-      <section className="px-6 py-20 sm:px-12 lg:px-24 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">{selectLabel(languageMode, "Plans and Pricing", "योजनाएं और कीमत")}</p>
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-tight">
-          {selectLabel(languageMode, "Pick your", "चुनें अपनी")}<br />
-          <span className="text-gray-400">{selectLabel(languageMode, "protection level.", "सुरक्षा योजना।")}</span>
-        </h1>
-        <p className="mt-6 text-lg text-gray-600 max-w-2xl leading-relaxed">
-          {selectLabel(languageMode, "Every plan includes weekly-priced parametric payouts for major disruptions. Scale coverage based on work hours and risk appetite.", "हर योजना में बड़े व्यवधानों के लिए साप्ताहिक पैरामेट्रिक भुगतान शामिल है।")}
-        </p>
-      </section>
-
-      {/* Calculator */}
-      <section className="px-6 sm:px-12 lg:px-24 pb-12 max-w-6xl mx-auto">
-        <div className="bg-white/60 backdrop-blur-sm border border-white/60 rounded-3xl p-6 shadow-sm">
+    <MarketingPageShell
+      eyebrow={selectLabel(languageMode, "Plans and Pricing", "योजनाएं और कीमत")}
+      title={selectLabel(languageMode, "Pick your protection level", "अपनी सुरक्षा योजना चुनें")}
+      highlight=""
+      description={selectLabel(languageMode, "Every plan includes weekly-priced parametric payouts for major disruptions. Scale protection based on work hours, platform count, and risk appetite.", "हर योजना में साप्ताहिक पैरामेट्रिक भुगतान शामिल है और सुरक्षा काम के घंटों और जोखिम के अनुसार बढ़ती है।")}
+      primaryAction={{ to: "/get-protected", label: selectLabel(languageMode, "Start Weekly Cover", "साप्ताहिक कवर शुरू करें") }}
+      secondaryAction={{ to: "/product", label: selectLabel(languageMode, "See Product", "उत्पाद देखें") }}
+      stats={[
+        { label: "Basic", value: "₹79", detail: "Entry weekly protection for riders with lower exposure." },
+        { label: "Standard", value: "₹129", detail: "Balanced weekly plan for most active urban riders." },
+        { label: "Pro", value: "₹179", detail: "24x7 higher-cap cover for heavy weekly exposure." },
+        { label: "Model", value: "Weekly", detail: "Aligned with weekly rider cash flow, not monthly billing." },
+      ]}
+    >
+      <MarketingSection title={selectLabel(languageMode, "Dynamic weekly premium calculator", "डायनेमिक साप्ताहिक प्रीमियम कैलकुलेटर")} caption="Pricing engine">
+        <SurfaceCard>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-5">{selectLabel(languageMode, "Adjust Premium Estimate", "प्रीमियम अनुमान बदलें")}</p>
           <div className="grid sm:grid-cols-2 gap-8">
             <div>
@@ -78,11 +78,11 @@ function PricingPage() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </SurfaceCard>
+      </MarketingSection>
 
-      <section className="px-6 sm:px-12 lg:px-24 pb-12 max-w-6xl mx-auto">
-        <div className="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm">
+      <MarketingSection title={selectLabel(languageMode, "Why weekly pricing fits the worker", "साप्ताहिक कीमत वर्कर के लिए क्यों सही है")} caption="Pricing rationale">
+        <SurfaceCard>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">
             {selectLabel(languageMode, "Why Weekly Pricing", "साप्ताहिक कीमत क्यों")}
           </p>
@@ -93,11 +93,10 @@ function PricingPage() {
               "गिग वर्कर्स आमतौर पर अपनी नकदी प्रवाह साप्ताहिक आधार पर संभालते हैं, इसलिए GigShield की कीमत भी उनकी कमाई और निकासी चक्र के उसी साप्ताहिक रिदम पर रखी गई है।",
             )}
           </p>
-        </div>
-      </section>
+        </SurfaceCard>
+      </MarketingSection>
 
-      {/* Plans */}
-      <section className="px-6 sm:px-12 lg:px-24 pb-20 max-w-6xl mx-auto">
+      <MarketingSection title={selectLabel(languageMode, "Choose your weekly plan", "अपनी साप्ताहिक योजना चुनें")} caption="Plans">
         <div className="grid lg:grid-cols-3 gap-6">
           {planDetails.map(plan => {
             const isRec = plan.id === "standard";
@@ -132,11 +131,9 @@ function PricingPage() {
             );
           })}
         </div>
-      </section>
+      </MarketingSection>
 
-      {/* FAQ */}
-      <section className="px-6 sm:px-12 lg:px-24 pb-24 max-w-6xl mx-auto">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">{selectLabel(languageMode, "Common Questions", "सामान्य प्रश्न")}</p>
+      <MarketingSection title={selectLabel(languageMode, "Common questions", "सामान्य प्रश्न")} caption="FAQ">
         <div className="grid sm:grid-cols-2 gap-x-12 gap-y-8">
           {faqs.map((f, i) => (
             <div key={i}>
@@ -150,19 +147,8 @@ function PricingPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-[#1a2229] mx-6 sm:mx-12 lg:mx-24 mb-12 rounded-3xl px-8 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-white">{selectLabel(languageMode, "Start your protection today.", "आज से सुरक्षा शुरू करें।")}</h2>
-          <p className="text-gray-400 text-sm mt-2">{selectLabel(languageMode, "No paperwork. Cancel anytime.", "कोई कागजी कार्रवाई नहीं। कभी भी रद्द करें।")}</p>
-        </div>
-        <button onClick={() => navigate("/signin")} className="flex items-center gap-2 bg-white text-[#1a2229] rounded-2xl px-6 py-3 font-bold text-sm hover:bg-gray-100 transition flex-shrink-0">
-          {selectLabel(languageMode, "Get Protected", "सुरक्षा शुरू करें")}<ArrowRight className="w-4 h-4" />
-        </button>
-      </section>
-    </div>
+      </MarketingSection>
+    </MarketingPageShell>
   );
 }
 

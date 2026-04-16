@@ -243,30 +243,132 @@ export async function downloadReceiptPdf(receipt) {
     return;
   }
 
-  const { jsPDF } = await import("jspdf");
-  const doc = new jsPDF();
+  const popup = window.open("", "_blank", "width=900,height=700");
+  if (!popup) {
+    return;
+  }
 
-  const lines = [
-    "GigShield Payout Receipt",
-    "",
-    `Payout ID: ${receipt.payoutId || "N/A"}`,
-    `Lifecycle Status: ${receipt.lifecycleStatus || "N/A"}`,
-    `Amount: ${receipt.payoutAmount ?? 0}`,
-    `Trigger: ${receipt.triggerLabel || receipt.triggerId || "N/A"}`,
-    `Plan: ${receipt.planName || receipt.planId || "N/A"}`,
-    `Created At: ${receipt.createdAt || "N/A"}`,
-    `Updated At: ${receipt.lifecycleUpdatedAt || "N/A"}`,
-    `Received At: ${receipt.receivedAt || "N/A"}`,
-    "",
-    `Reason: ${receipt.reason || "N/A"}`,
-    receipt.failureReason ? `Failure Reason: ${receipt.failureReason}` : "",
-  ].filter(Boolean);
+  const rows = [
+    ["Payout ID", receipt.payoutId || "N/A"],
+    ["Lifecycle Status", receipt.lifecycleStatus || "N/A"],
+    ["Amount", String(receipt.payoutAmount ?? 0)],
+    ["Trigger", receipt.triggerLabel || receipt.triggerId || "N/A"],
+    ["Plan", receipt.planName || receipt.planId || "N/A"],
+    ["Created At", receipt.createdAt || "N/A"],
+    ["Updated At", receipt.lifecycleUpdatedAt || "N/A"],
+    ["Received At", receipt.receivedAt || "N/A"],
+    ["Reason", receipt.reason || "N/A"],
+    ["Failure Reason", receipt.failureReason || "N/A"],
+  ];
 
-  let y = 20;
-  lines.forEach((line) => {
-    doc.text(String(line), 16, y);
-    y += 8;
-  });
+  const escapedRows = rows
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td>${String(label)}</td>
+          <td>${String(value)}</td>
+        </tr>`,
+    )
+    .join("");
 
-  doc.save(`gigshield-receipt-${receipt.payoutId || "latest"}.pdf`);
+  popup.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>GigShield Receipt ${receipt.payoutId || ""}</title>
+        <style>
+          body {
+            margin: 0;
+            padding: 32px;
+            background: #0f1116;
+            color: #f5f5f5;
+            font-family: "Segoe UI", Arial, sans-serif;
+          }
+          .sheet {
+            max-width: 760px;
+            margin: 0 auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            background: #151821;
+            padding: 28px;
+          }
+          .eyebrow {
+            color: #7dd3fc;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+          }
+          h1 {
+            margin: 14px 0 6px;
+            font-size: 34px;
+            line-height: 1;
+          }
+          p {
+            color: #cbd5e1;
+            line-height: 1.7;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 24px;
+          }
+          td {
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            vertical-align: top;
+          }
+          td:first-child {
+            width: 220px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+          }
+          td:last-child {
+            color: #f8fafc;
+            font-weight: 600;
+          }
+          .print-note {
+            margin-top: 22px;
+            color: #94a3b8;
+            font-size: 12px;
+          }
+          @media print {
+            body {
+              background: white;
+              color: black;
+              padding: 0;
+            }
+            .sheet {
+              border: none;
+              border-radius: 0;
+              background: white;
+              color: black;
+              box-shadow: none;
+            }
+            p, td:last-child { color: #111827; }
+            td:first-child, .print-note { color: #475569; }
+          }
+        </style>
+      </head>
+      <body>
+        <section class="sheet">
+          <div class="eyebrow">GigShield Payout Receipt</div>
+          <h1>${receipt.payoutId || "Latest receipt"}</h1>
+          <p>Use your browser's print dialog to save this receipt as a PDF.</p>
+          <table>
+            <tbody>
+              ${escapedRows}
+            </tbody>
+          </table>
+          <div class="print-note">GigShield parametric income protection record</div>
+        </section>
+      </body>
+    </html>
+  `);
+  popup.document.close();
+  popup.focus();
+  popup.print();
 }

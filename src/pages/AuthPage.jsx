@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ShieldCheck, CloudRain, Wallet } from "lucide-react";
 import LanguageToggle from "../components/LanguageToggle";
 import planDetails from "../data/planDetails.json";
 import userProfile from "../data/userProfile.json";
@@ -12,14 +13,11 @@ import {
 import { useSiteLanguage } from "../utils/siteLanguage";
 import { saveSession } from "../utils/session";
 import { supabase } from "../utils/supabase";
+import { AuthPageShell, AuthPanel } from "../components/ui/auth-page-shell";
 
 const platformOptions = ["Zomato", "Swiggy", "Blinkit", "Zepto"];
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 const validPlanIds = new Set(planDetails.map((plan) => plan.id));
-const adminEmailAllowlist = (import.meta.env.VITE_ADMIN_EMAILS || "")
-  .split(",")
-  .map((value) => value.trim().toLowerCase())
-  .filter(Boolean);
 
 function createPremiumHistoryEntry({ reason, breakdown }) {
   return {
@@ -37,7 +35,7 @@ function createPremiumHistoryEntry({ reason, breakdown }) {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { languageMode, setLanguageMode } = useSiteLanguage();
+  const { languageMode } = useSiteLanguage();
   const [searchParams] = useSearchParams();
   const requestedPlanId = searchParams.get("plan");
   const requestedRiskLevel = searchParams.get("risk");
@@ -121,40 +119,37 @@ function AuthPage() {
   };
 
   return (
-    <main className="frame-shell flex min-h-screen items-center py-6 sm:py-8">
-      <section className="board animate-enter w-full overflow-hidden rounded-3xl">
-        <div className="top-strip">
-          {selectLabel(
-            languageMode,
-            "Link your delivery platforms once and switch between protected accounts instantly.",
-            "अपने डिलीवरी प्लेटफॉर्म एक बार जोड़ें और सुरक्षित खातों के बीच तुरंत बदलें।",
-          )}
-        </div>
-
-        <header className="flex items-center justify-between border-b border-coal-200 px-4 py-4 sm:px-6">
-          <div className="bg-coal-900 px-3 py-1">
-            <p className="hero-title text-2xl leading-none text-white sm:text-3xl">
-              GIGSHIELD.
-            </p>
-          </div>
-          <LanguageToggle
-            languageMode={languageMode}
-            setLanguageMode={setLanguageMode}
-          />
-          <Link to="/" className="secondary-btn">
-            {selectLabel(languageMode, "Back to Landing", "मुखपृष्ठ पर जाएं")}
-          </Link>
-        </header>
-
-        <div className="grid gap-4 px-4 py-6 sm:px-6 lg:grid-cols-5 lg:gap-6">
-          <article className="board-soft p-4 lg:col-span-2">
-            <p className="kicker">{selectLabel(languageMode, "Unified Access", "एकीकृत एक्सेस")}</p>
-            <h1 className="hero-title mt-3 text-4xl leading-[0.9] sm:text-5xl">
+    <AuthPageShell
+      eyebrow={selectLabel(languageMode, "Unified Access", "एकीकृत एक्सेस")}
+      title={selectLabel(languageMode, "One login for every protected gig.", "हर सुरक्षित गिग के लिए एक लॉगिन।")}
+      description={selectLabel(languageMode, "Link the delivery apps you work on, tune the weekly premium preview, and move straight into the live protection dashboard.", "जिन डिलीवरी ऐप्स पर आप काम करते हैं उन्हें जोड़ें, साप्ताहिक प्रीमियम प्रीव्यू ट्यून करें और सीधे लाइव प्रोटेक्शन डैशबोर्ड में जाएं।")}
+      asideItems={[
+        {
+          title: selectLabel(languageMode, "Weekly pricing", "साप्ताहिक प्राइसिंग"),
+          detail: `${formatCurrency(premiumBreakdown.adjustedPremium)} / ${selectLabel(languageMode, "week", "सप्ताह")}`,
+          icon: <Wallet className="size-5" />,
+        },
+        {
+          title: selectLabel(languageMode, "Trigger coverage", "ट्रिगर कवरेज"),
+          detail: selectLabel(languageMode, "Coverage responds to rain, AQI spikes, outages, and disruption conditions only.", "कवरेज केवल बारिश, AQI स्पाइक, आउटेज और डिसरप्शन स्थितियों पर प्रतिक्रिया देता है।"),
+          icon: <CloudRain className="size-5" />,
+        },
+        {
+          title: selectLabel(languageMode, "Income-safe design", "आय सुरक्षित डिज़ाइन"),
+          detail: selectLabel(languageMode, "Strictly focused on lost earnings protection, not health, life, accident, or repair cover.", "सख्ती से खोई हुई कमाई की सुरक्षा पर केंद्रित, स्वास्थ्य, जीवन, दुर्घटना या रिपेयर कवर पर नहीं।"),
+          icon: <ShieldCheck className="size-5" />,
+        },
+      ]}
+    >
+      <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
+          <article className="lg:col-span-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{selectLabel(languageMode, "Platform Linker", "प्लेटफ़ॉर्म लिंक")}</p>
+            <h1 className="mt-3 text-4xl font-black leading-[0.9] tracking-[-0.05em] text-white sm:text-5xl">
               {selectLabel(languageMode, "Sign in once.", "एक बार साइन इन करें।")}
               <br />
               {selectLabel(languageMode, "Protect all gigs.", "सभी गिग्स सुरक्षित करें।")}
             </h1>
-            <p className="mt-4 text-sm text-coal-600">
+            <p className="mt-4 text-sm leading-7 text-zinc-300">
               {selectLabel(
                 languageMode,
                 "Use one GigShield account to manage workers who operate on multiple platforms like Zomato, Swiggy, and Blinkit.",
@@ -172,8 +167,8 @@ function AuthPage() {
                     onClick={() => togglePlatform(platform)}
                     className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${
                       selected
-                        ? "border-coal-900 bg-coal-900 text-white"
-                        : "border-coal-200 bg-white text-coal-700 hover:bg-coal-100"
+                        ? "border-cyan-300/30 bg-white/[0.08] text-white"
+                        : "border-white/10 bg-white/[0.03] text-zinc-300 hover:border-white/20 hover:bg-white/[0.06]"
                     }`}
                   >
                     <span>{platform}</span>
@@ -188,15 +183,15 @@ function AuthPage() {
             </div>
           </article>
 
-          <section className="board-soft p-4 sm:p-5 lg:col-span-3">
-            <div className="mb-4 inline-flex rounded-full border border-gray-200 bg-white/80 p-1">
+          <section className="space-y-6 lg:col-span-3">
+            <div className="inline-flex rounded-full border border-white/10 bg-white/[0.04] p-1">
               <button
                 type="button"
                 onClick={() => setMode("signin")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   mode === "signin"
-                    ? "bg-coal-900 text-white"
-                    : "text-coal-600 hover:bg-coal-100"
+                    ? "bg-white text-zinc-950"
+                    : "text-zinc-400 hover:bg-white/[0.06]"
                 }`}
               >
                 {selectLabel(languageMode, "Sign In", "साइन इन")}
@@ -206,15 +201,15 @@ function AuthPage() {
                 onClick={() => setMode("signup")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   mode === "signup"
-                    ? "bg-coal-900 text-white"
-                    : "text-coal-600 hover:bg-coal-100"
+                    ? "bg-white text-zinc-950"
+                    : "text-zinc-400 hover:bg-white/[0.06]"
                 }`}
               >
                 {selectLabel(languageMode, "Sign Up", "साइन अप")}
               </button>
             </div>
 
-            <div className="space-y-6">
+            <AuthPanel className="space-y-6 rounded-[2rem]">
               {/* Google Sign-In button */}
               <button
                 type="button"
@@ -236,7 +231,7 @@ function AuthPage() {
                     setIsLoading(false);
                   }
                 }}
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-white disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white px-4 py-4 text-sm font-semibold text-zinc-900 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.35)] transition hover:bg-zinc-100 disabled:opacity-50"
               >
                 <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -250,14 +245,14 @@ function AuthPage() {
               </button>
 
               {authError && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                   {authError}
                 </div>
               )}
 
-              <div className="board p-4">
-                <p className="kicker">{selectLabel(languageMode, "Dynamic Premium", "डायनेमिक प्रीमियम")}</p>
-                <p className="mt-2 text-2xl font-bold text-coal-900">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{selectLabel(languageMode, "Dynamic Premium", "डायनेमिक प्रीमियम")}</p>
+                <p className="mt-2 text-2xl font-bold text-white">
                   {formatCurrency(premiumBreakdown.adjustedPremium)} / week
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -268,8 +263,8 @@ function AuthPage() {
                       onClick={() => handleRiskChange(level)}
                       className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                         riskLevel === level
-                          ? "bg-coal-900 text-white"
-                          : "border border-coal-300 bg-white text-coal-700 hover:bg-coal-100"
+                          ? "bg-white text-zinc-950"
+                          : "border border-white/10 bg-white/[0.03] text-zinc-300 hover:border-white/20"
                       }`}
                     >
                       {selectLabel(languageMode, `${level} risk`, `${level} जोखिम`)}
@@ -278,13 +273,13 @@ function AuthPage() {
                 </div>
               </div>
 
-              <div className="board p-4">
-                <p className="kicker">{selectLabel(languageMode, "Selected Plan", "चयनित योजना")}</p>
-                <p className="mt-2 text-sm font-semibold text-coal-900">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{selectLabel(languageMode, "Selected Plan", "चयनित योजना")}</p>
+                <p className="mt-2 text-sm font-semibold text-white">
                   {selectedPlan.name} | {selectedPlan.coverageHours}
                 </p>
-                <p className="kicker mt-4">{selectLabel(languageMode, "Linked Platforms", "जुड़े प्लेटफॉर्म")}</p>
-                <p className="mt-2 text-sm font-semibold text-coal-900">
+                <p className="mt-4 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">{selectLabel(languageMode, "Linked Platforms", "जुड़े प्लेटफॉर्म")}</p>
+                <p className="mt-2 text-sm font-semibold text-white">
                   {selectedPlatforms.length > 0
                     ? selectedPlatforms.join(", ")
                     : selectLabel(languageMode, "Select platforms on the left", "बाएँ से प्लेटफ़ॉर्म चुनें")}
@@ -313,16 +308,15 @@ function AuthPage() {
                     localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
                     navigate(`/dashboard?plan=${selectedPlanId}`);
                   }}
-                  className="secondary-btn w-full justify-center py-3"
+                  className="inline-flex w-full justify-center rounded-2xl bg-white px-4 py-4 text-[11px] font-black uppercase tracking-[0.25em] text-zinc-950 transition hover:bg-zinc-200"
                 >
                   {selectLabel(languageMode, "Continue as Demo User", "डेमो उपयोगकर्ता के रूप में जारी रखें")}
                 </button>
               </div>
-            </div>
+            </AuthPanel>
           </section>
         </div>
-      </section>
-    </main>
+    </AuthPageShell>
   );
 }
 

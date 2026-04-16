@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchPhase3OpsSnapshot } from "../utils/phase3Analytics";
+import { AppPageShell, AppSurface } from "@/components/ui/app-page-shell";
 
 export default function TrustCenterPage() {
   const [metrics, setMetrics] = useState({
@@ -28,57 +29,34 @@ export default function TrustCenterPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#f4f5f7] pb-24 text-gray-900">
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-extrabold tracking-tight">GIGSHIELD.</Link>
-          <span className="bg-gray-100 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-200">
-            Trust Center
-          </span>
-        </div>
-        <Link to="/dashboard" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors">
-          Dashboard
-        </Link>
-      </nav>
-
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <header className="mb-8">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-2">Public Metrics</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tighter leading-none">Platform trust and transparency</h1>
-        </header>
-
+    <AppPageShell
+      badge="Trust Center"
+      title="Platform trust and transparency"
+      description="Public-facing operating metrics for payout reliability, settlement speed, fraud blocked value, and audit visibility."
+    >
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <article className="bg-white border border-gray-200 rounded-3xl p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Uptime</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-gray-900">{metrics.uptimePct}%</p>
-          </article>
-          <article className="bg-white border border-gray-200 rounded-3xl p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Payout Success Rate</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-gray-900">{metrics.payoutSuccessRatePct}%</p>
-          </article>
-          <article className="bg-white border border-gray-200 rounded-3xl p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Median Settlement</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-gray-900">{metrics.medianSettlementMins} min</p>
-          </article>
-          <article className="bg-white border border-gray-200 rounded-3xl p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Fraud Blocked</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-gray-900">₹{metrics.fraudBlockedAmount}</p>
-          </article>
-          <article className="bg-white border border-gray-200 rounded-3xl p-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Audit Runs</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-gray-900">{metrics.auditsCompleted}</p>
-          </article>
+          {[
+            ["Uptime", `${metrics.uptimePct}%`],
+            ["Payout Success Rate", `${metrics.payoutSuccessRatePct}%`],
+            ["Median Settlement", `${metrics.medianSettlementMins} min`],
+            ["Fraud Blocked", `₹${metrics.fraudBlockedAmount}`],
+            ["Audit Runs", `${metrics.auditsCompleted}`],
+          ].map(([label, value]) => (
+            <AppSurface key={label}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{label}</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-white">{value}</p>
+            </AppSurface>
+          ))}
         </section>
 
-        <section className="mt-8 bg-white border border-gray-200 rounded-3xl p-6">
-          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Audit Notes</p>
-          <ul className="space-y-2 text-sm text-gray-700 font-medium">
+        <AppSurface className="mt-8">
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Audit Notes</p>
+          <ul className="space-y-2 text-sm font-medium text-zinc-300">
             <li>Policy decisions are rule-traceable and logged in payout timeline.</li>
             <li>Predictive decisions include factor-level confidence scores.</li>
             <li>Daily payout caps and verification gates are enforced before settlement.</li>
           </ul>
-        </section>
-      </div>
-    </main>
+        </AppSurface>
+    </AppPageShell>
   );
 }
