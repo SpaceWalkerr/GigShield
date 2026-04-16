@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: gigshield-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install --include=dev
+    startCommand: npm start
+    envVars:
+      - key: GROQ_API_KEY
+        scope: all
+      - key: WEATHER_API_KEY
+        scope: all
+      - key: PORT
+        value: "10000"
+        scope: all
+      - key: NODE_ENV
+        value: production
+        scope: all

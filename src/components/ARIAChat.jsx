@@ -3,7 +3,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import CookieByteBot from "./CookieByteBot";
 import { getApiUrl } from "../utils/api";
 
-
 // ─── Suggested quick questions ─────────────────────────────────────────────────
 const QUICK_QUESTIONS = [
   "How do I know if my claim was triggered?",
@@ -17,7 +16,9 @@ const QUICK_QUESTIONS = [
 function Bubble({ msg }) {
   const isUser = msg.role === "user";
   return (
-    <div className={`flex gap-2.5 items-end ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+    <div
+      className={`flex gap-2.5 items-end ${isUser ? "flex-row-reverse" : "flex-row"}`}
+    >
       {/* Avatar */}
       {!isUser && (
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/5 overflow-hidden border border-white/10">
@@ -55,8 +56,8 @@ function TypingDots() {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export default function ARIAChat({ session, riskLevel }) {
-  const [open, setOpen]       = useState(false);
-  const [input, setInput]     = useState("");
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -64,12 +65,12 @@ export default function ARIAChat({ session, riskLevel }) {
     },
   ]);
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
-  const [unread, setUnread]   = useState(0);
+  const [error, setError] = useState(null);
+  const [unread, setUnread] = useState(0);
 
-  const bottomRef   = useRef(null);
-  const inputRef    = useRef(null);
-  const panelRef    = useRef(null);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+  const panelRef = useRef(null);
 
   // Scroll to bottom on new message
   useEffect(() => {
@@ -84,48 +85,65 @@ export default function ARIAChat({ session, riskLevel }) {
     }
   }, [open]);
 
-  const sendMessage = useCallback(async (text) => {
-    const trimmed = (text || input).trim();
-    if (!trimmed || loading) return;
+  const sendMessage = useCallback(
+    async (text) => {
+      const trimmed = (text || input).trim();
+      if (!trimmed || loading) return;
 
-    const userMsg = { role: "user", content: trimmed };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setLoading(true);
-    setError(null);
+      const userMsg = { role: "user", content: trimmed };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setLoading(true);
+      setError(null);
 
-    try {
-      const allMessages = [...messages, userMsg];
-      const res = await fetch(getApiUrl("/api/chat"), {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: allMessages.map(({ role, content }) => ({ role, content })),
-          workerName: session?.name,
-          riskLevel,
-        }),
-      });
-
-      const text = await res.text();
-      let data;
       try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("CookieByte JSON Parse Error:", text);
-        throw new Error("I received a malformed response. Please try again in a moment. 🤖");
+        const allMessages = [...messages, userMsg];
+        const res = await fetch(getApiUrl("/api/chat"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: allMessages.map(({ role, content }) => ({
+              role,
+              content,
+            })),
+            workerName: session?.name,
+            riskLevel,
+          }),
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("CookieByte JSON Parse Error:", text);
+          throw new Error(
+            "I received a malformed response. Please try again in a moment. 🤖",
+          );
+        }
+
+        if (!res.ok)
+          throw new Error(
+            data?.error || "CookieByte is unavailable right now.",
+          );
+        if (!data?.reply)
+          throw new Error(
+            "I had trouble generating a reply. Please try again.",
+          );
+
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.reply },
+        ]);
+        if (!open) setUnread((n) => n + 1);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-
-      if (!res.ok) throw new Error(data?.error || "CookieByte is unavailable right now.");
-      if (!data?.reply) throw new Error("I had trouble generating a reply. Please try again.");
-
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
-      if (!open) setUnread((n) => n + 1);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [input, loading, messages, open, riskLevel, session]);
+    },
+    [input, loading, messages, open, riskLevel, session],
+  );
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -156,8 +174,18 @@ export default function ARIAChat({ session, riskLevel }) {
 
           {open && (
             <div className="absolute -top-2 -right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white border border-zinc-200 shadow-xl">
-               <svg className="h-4 w-4 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="h-4 w-4 text-zinc-950"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
           )}
@@ -189,17 +217,26 @@ export default function ARIAChat({ session, riskLevel }) {
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
           </div>
           <div>
-            <p className="text-sm font-black text-white tracking-tight">CookieByte</p>
-            <p className="text-[10px] text-white/70 font-medium">Automated Rider Insurance Assistant · Online</p>
+            <p className="text-sm font-black text-white tracking-tight">
+              CookieByte
+            </p>
+            <p className="text-[10px] text-white/70 font-medium">
+              Automated Rider Insurance Assistant · Online
+            </p>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">Live</span>
+            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">
+              Live
+            </span>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 space-y-4 overflow-y-auto bg-[#0b0d11] p-4" style={{ minHeight: 0 }}>
+        <div
+          className="flex-1 space-y-4 overflow-y-auto bg-[#0b0d11] p-4"
+          style={{ minHeight: 0 }}
+        >
           {messages.map((msg, i) => (
             <Bubble key={i} msg={msg} />
           ))}
@@ -215,7 +252,9 @@ export default function ARIAChat({ session, riskLevel }) {
         {/* Quick questions — only show when few messages */}
         {messages.length <= 2 && !loading && (
           <div className="flex flex-shrink-0 flex-col gap-1.5 border-t border-white/10 bg-[#0f1116] px-4 pb-3 pt-3">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">Quick questions</p>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              Quick questions
+            </p>
             <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
               {QUICK_QUESTIONS.map((q) => (
                 <button
@@ -247,8 +286,18 @@ export default function ARIAChat({ session, riskLevel }) {
             disabled={!input.trim() || loading}
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 shadow-md transition-all hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <svg className="h-4 w-4 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <svg
+              className="h-4 w-4 text-zinc-950"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </div>
