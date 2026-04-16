@@ -17,6 +17,7 @@ import { fetchPhase3OpsSnapshot } from "../utils/phase3Analytics";
 import { fetchModerationActions, persistAnomalyEvents, saveModerationAction } from "../utils/phase3Persistence";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
 import { useHydratedSession } from "../hooks/useHydratedSession";
+import { fetchOperationsInsights } from "../services/backend/operationsInsightsService";
 
 function AdminOperationsPage() {
   const { languageMode, setLanguageMode } = useSiteLanguage();
@@ -30,6 +31,8 @@ function AdminOperationsPage() {
     anomalyAlerts: [],
     moderationQueue: [],
   });
+  const [recentDisruptions, setRecentDisruptions] = useState([]);
+  const [recentAutomationScans, setRecentAutomationScans] = useState([]);
 
   const flaggedQueue = useMemo(
     () => history.filter((item) => item.lifecycleStatus === "failed" || item.failureReasonCode),
@@ -131,6 +134,11 @@ function AdminOperationsPage() {
       setPhase3Snapshot(snapshot);
       await persistAnomalyEvents(snapshot.anomalyAlerts, { workerId: session?.workerId });
 
+      const insights = await fetchOperationsInsights({ city: session?.city });
+      if (!alive || !insights) return;
+      setRecentDisruptions(insights.recentDisruptions || []);
+      setRecentAutomationScans(insights.recentAutomationScans || []);
+
       const recentActions = await fetchModerationActions({ limit: 20 });
       if (!alive) return;
       setModerationActions(recentActions);
@@ -141,7 +149,7 @@ function AdminOperationsPage() {
     return () => {
       alive = false;
     };
-  }, [history.length, session?.workerId]);
+  }, [history.length, session?.city, session?.workerId]);
 
   const moderationQueueVisible = useMemo(
     () => phase3Snapshot.moderationQueue.filter((item) => !dismissedModerationIds.includes(item.id)),
@@ -329,6 +337,47 @@ function AdminOperationsPage() {
                           Escalate
                         </button>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </AppSurface>
+          </section>
+
+          <section className="grid gap-8 lg:grid-cols-2">
+            <AppSurface className="p-8">
+              <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Recent Disruptions</p>
+              <div className="space-y-3">
+                {recentDisruptions.length === 0 ? (
+                  <p className="text-xs font-bold italic text-zinc-500">No recent disruption records.</p>
+                ) : (
+                  recentDisruptions.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-black text-white">{item.label}</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{item.severity}</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-zinc-300">{item.city} · {item.status}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </AppSurface>
+
+            <AppSurface className="p-8">
+              <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Automation Scan Memory</p>
+              <div className="space-y-3">
+                {recentAutomationScans.length === 0 ? (
+                  <p className="text-xs font-bold italic text-zinc-500">No automation scans recorded.</p>
+                ) : (
+                  recentAutomationScans.map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-black text-white">{item.riskLevel} risk</p>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">{item.confidence}%</span>
+                      </div>
+                      <p className="text-[11px] font-medium text-zinc-300">{item.city} · {item.trigger}</p>
+                      <p className="mt-1 text-[11px] font-medium text-zinc-400">{item.explanation}</p>
                     </div>
                   ))
                 )}
