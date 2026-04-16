@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
+import CookieByteBot from "./CookieByteBot";
+
 // ─── Suggested quick questions ─────────────────────────────────────────────────
 const QUICK_QUESTIONS = [
   "How do I know if my claim was triggered?",
@@ -16,8 +18,8 @@ function Bubble({ msg }) {
     <div className={`flex gap-2.5 items-end ${isUser ? "flex-row-reverse" : "flex-row"}`}>
       {/* Avatar */}
       {!isUser && (
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 shadow-md">
-          <span className="text-[10px] font-black text-white">CB</span>
+        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/5 overflow-hidden border border-white/10">
+          <CookieByteBot />
         </div>
       )}
       <div
@@ -37,8 +39,8 @@ function Bubble({ msg }) {
 function TypingDots() {
   return (
     <div className="flex gap-2.5 items-end">
-      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 shadow-md">
-        <span className="text-[10px] font-black text-white">CB</span>
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/5 overflow-hidden border border-white/10">
+        <CookieByteBot />
       </div>
       <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-white/10 bg-white/[0.05] px-4 py-3 shadow-sm">
         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]" />
@@ -102,8 +104,17 @@ export default function ARIAChat({ session, riskLevel }) {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "CookieByte is unavailable right now.");
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("CookieByte JSON Parse Error:", text);
+        throw new Error("I received a malformed response. Please try again in a moment. 🤖");
+      }
+
+      if (!res.ok) throw new Error(data?.error || "CookieByte is unavailable right now.");
+      if (!data?.reply) throw new Error("I had trouble generating a reply. Please try again.");
 
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
       if (!open) setUnread((n) => n + 1);
@@ -124,34 +135,36 @@ export default function ARIAChat({ session, riskLevel }) {
   return (
     <>
       {/* ── Floating Button ────────────────────────────────────────────────── */}
-      <button
-        id="aria-chat-toggle"
-        onClick={() => setOpen((v) => !v)}
-        className={`fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-95 ${
-          open
-            ? "bg-white rotate-0 scale-90"
-            : "bg-gradient-to-br from-cyan-400 to-emerald-400 hover:scale-110"
-        }`}
-        aria-label="Open CookieByte chat"
-      >
-        {open ? (
-            <svg className="h-5 w-5 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <>
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            {unread > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white animate-bounce">
-                {unread}
-              </span>
-            )}
-          </>
-        )}
-      </button>
+      <div className="fixed bottom-6 right-6 z-[9999] group">
+        <button
+          id="aria-chat-toggle"
+          onClick={() => setOpen((v) => !v)}
+          className={`relative w-24 h-24 rounded-full transition-all duration-500 active:scale-95 ${
+            open ? "scale-90" : "hover:scale-110"
+          }`}
+          aria-label="Open CookieByte chat"
+        >
+          {/* 3D Robot as the button */}
+          <div className="absolute inset-0 z-0 bg-white/5 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-colors" />
+          <div className="relative z-10 h-full w-full pointer-events-none">
+            <CookieByteBot />
+          </div>
+
+          {open && (
+            <div className="absolute -top-2 -right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white border border-zinc-200 shadow-xl">
+               <svg className="h-4 w-4 text-zinc-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+          )}
+
+          {unread > 0 && !open && (
+            <span className="absolute -right-2 top-4 z-20 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white animate-bounce ring-4 ring-black/40">
+              {unread}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* ── Chat Panel ─────────────────────────────────────────────────────── */}
       <div

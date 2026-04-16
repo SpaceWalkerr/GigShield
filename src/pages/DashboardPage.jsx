@@ -4,11 +4,11 @@ import { useSearchParams } from "react-router-dom";
 import { MapPin, Fingerprint, Clock, Plus, Check } from "lucide-react";
 import ActivityPanel from "../components/ActivityPanel";
 import AutomationPanel from "../components/AutomationPanel";
-import ARIAChat from "../components/ARIAChat";
 import EarningsSnapshot from "../components/EarningsSnapshot";
 import FraudDetectionIndicator from "../components/FraudDetectionIndicator";
 import IncomeRadarPanel from "../components/IncomeRadarPanel";
 import PlanSummary from "../components/PlanSummary";
+import WeatherRadarMap from "../components/WeatherRadarMap";
 import TriggerSimulationPanel from "../components/TriggerSimulationPanel";
 import activityData from "../data/activityData.json";
 import fraudScores from "../data/fraudScores.json";
@@ -151,7 +151,7 @@ function getWeeklyTrend(history) {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { session } = useHydratedSession();
+  const { session, setSession } = useHydratedSession();
   const { languageMode } = useSiteLanguage();
 
   // Core States
@@ -645,10 +645,22 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* ── Weather Surveillance Map ─────────────────────────────────────── */}
+        <section className="mb-12">
+          <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+            {selectLabel(languageMode, "Live Weather Surveillance", "लाइव मौसम निगरानी")}
+          </p>
+          <WeatherRadarMap 
+            latitude={session?.latitude || 28.6139} 
+            longitude={session?.longitude || 77.209} 
+            city={session?.city || "New Delhi"} 
+          />
+        </section>
+
         {/* ── n8n Automation Panel ─────────────────────────────────────── */}
         <section className="mb-12">
           <p className="mb-6 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{selectLabel(languageMode, "Live Risk Engine", "लाइव जोखिम इंजन")}</p>
-          <AutomationPanel session={session} />
+          <AutomationPanel session={session} setSession={setSession} />
         </section>
 
         <section className="mb-12">
@@ -989,8 +1001,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      {/* ── ARIA Floating Chat ─────────────────────────────────────────── */}
-      <ARIAChat session={session} riskLevel={displayRiskLevel} />
+      </div>
     </main>
   );
 }

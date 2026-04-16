@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Compass, Radar, CloudRain, Wallet, ShieldCheck } from "lucide-react";
 import {
   MarketingPageShell,
@@ -7,6 +7,10 @@ import {
 } from "@/components/ui/marketing-page-shell";
 import { selectLabel } from "../utils/i18n";
 import { useSiteLanguage } from "../utils/siteLanguage";
+import { saveSession } from "../utils/session";
+import userProfile from "../data/userProfile.json";
+import planDetails from "../data/planDetails.json";
+import { calculateWeeklyPremium } from "../utils/pricing";
 
 const demoSteps = [
   {
@@ -55,9 +59,38 @@ const demoSteps = [
     icon: ShieldCheck,
   },
 ];
-
 export default function JudgeDemoPage() {
+  const navigate = useNavigate();
   const { languageMode } = useSiteLanguage();
+
+  const handleLiveDemoAccess = (e, path) => {
+    e.preventDefault();
+    // Automatically create a demo session for judges to bypass the login wall
+    const selectedPlan = planDetails[0];
+    const premiumData = calculateWeeklyPremium({
+      basePremium: selectedPlan.weeklyPremium,
+      platformCount: 2,
+      riskLevel: "Medium",
+    });
+
+    saveSession({
+      isAuthenticated: true,
+      mode: "demo",
+      name: userProfile.name,
+      email: "demo@gigshield.app",
+      city: userProfile.city,
+      workerId: "demo-worker",
+      platforms: ["Zomato", "Swiggy"],
+      selectedPlanId: selectedPlan.id,
+      riskLevel: "Medium",
+      calculatedWeeklyPremium: premiumData.adjustedPremium,
+      premiumBreakdown: premiumData,
+      premiumHistory: [],
+      signedInAt: new Date().toISOString(),
+    });
+
+    navigate(path || "/dashboard");
+  };
 
   return (
     <MarketingPageShell
@@ -70,7 +103,10 @@ export default function JudgeDemoPage() {
         "यह पेज GigShield को जल्दी और स्पष्ट रूप से दिखाने का सबसे अच्छा तरीका है। इसमें जज के लिए सरल क्रम है: राइडर जोखिम, प्रिडिक्टिव गाइडेंस, ट्रिगर ऑटोमेशन, भुगतान प्रमाण और फ्रॉड-अवेयर ऑपरेशंस।",
       )}
       primaryAction={{ to: "/income-radar", label: selectLabel(languageMode, "Start With Income Radar", "इनकम रडार से शुरू करें") }}
-      secondaryAction={{ to: "/dashboard", label: selectLabel(languageMode, "Jump To Live Demo", "लाइव डेमो खोलें") }}
+      secondaryAction={{ 
+        onClick: (e) => handleLiveDemoAccess(e, "/dashboard"),
+        label: selectLabel(languageMode, "Jump To Live Demo", "लाइव डेमो खोलें") 
+      }}
       stats={[
         { label: "Narrative", value: "5 steps", detail: "A tight flow for demo day instead of random page hopping." },
         { label: "Standout", value: "Income Radar", detail: "Lead with the strongest differentiator first." },
@@ -94,12 +130,12 @@ export default function JudgeDemoPage() {
                 </div>
                 <h3 className="mt-5 text-lg font-bold text-white">{item.title}</h3>
                 <p className="mt-3 flex-1 text-sm leading-7 text-zinc-300">{item.detail}</p>
-                <Link
-                  to={item.to}
+                <button
+                  onClick={(e) => handleLiveDemoAccess(e, item.to)}
                   className="mt-5 inline-flex h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] px-4 text-[11px] font-black uppercase tracking-[0.18em] text-white transition hover:bg-white/[0.08]"
                 >
                   {item.cta}
-                </Link>
+                </button>
               </SurfaceCard>
             );
           })}

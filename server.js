@@ -280,8 +280,13 @@ app.post('/api/automation/risk-check', async (req, res) => {
     return res.status(200).json({ success: true, data: result });
 
   } catch (err) {
-    console.error('[GigShield] Unexpected error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    console.error('[GigShield] Unexpected error in risk-check:', err);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error', 
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
@@ -328,6 +333,24 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'messages array is required' });
     }
 
+    // Mock Response if no API key is present — keeps the demo fully functional
+    if (!GROQ_API_KEY || GROQ_API_KEY === 'YOUR_GROQ_API_KEY_HERE') {
+      const userLastMsg = messages[messages.length - 1]?.content?.toLowerCase() || "";
+      let reply = `I'm currently in 'offline mode' (missing API key), but I can still tell you that GigShield is India's first parametric protection for riders like you! 🛡️`;
+      
+      if (userLastMsg.includes("rain") || userLastMsg.includes("weather")) {
+        reply = "GigShield uses real-time weather data to trigger automatic payouts during heavy rain. No paperwork needed! 🌧️💰";
+      } else if (userLastMsg.includes("plan") || userLastMsg.includes("cost")) {
+        reply = "We have Basic (₹89), Standard (₹129), and Pro (₹189) weekly plans to fit every rider's needs. ⚡";
+      } else if (userLastMsg.includes("payout") || userLastMsg.includes("money")) {
+        reply = "Payouts are sent to your linked wallet as soon as a trigger (like extreme heat or rain) is confirmed by our risk engine! 💸";
+      }
+
+      // Artificial delay for realism
+      await new Promise(r => setTimeout(r, 800));
+      return res.status(200).json({ reply });
+    }
+
     // Inject live context as a system note
     const contextNote = workerName
       ? `\n\n[Current user context: Rider name = ${workerName}, Current risk level = ${riskLevel || 'unknown'}. Personalize your response if relevant.]`
@@ -355,7 +378,8 @@ app.post('/api/chat', async (req, res) => {
     if (!groqRes.ok) {
       const errText = await groqRes.text();
       console.error('[ARIA] Groq error:', errText);
-      return res.status(502).json({ error: 'AI service unavailable. Please try again.' });
+      // Fallback for quota/auth errors
+      return res.status(200).json({ reply: "I'm having a little trouble connecting to my brain right now, but GigShield is still active! 🛡️ Need help with a payout? Send us a mail at support@gigshield.app." });
     }
 
     const data = await groqRes.json();
@@ -368,7 +392,7 @@ app.post('/api/chat', async (req, res) => {
 
   } catch (err) {
     console.error('[CookieByte] Unexpected error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(200).json({ reply: "CookieByte is resting right now. For emergency support, check your dashboard's automation panel! ⚡" });
   }
 });
 

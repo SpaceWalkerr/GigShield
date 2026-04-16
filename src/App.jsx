@@ -100,6 +100,8 @@ function ProtectedRoute({ children, session, sessionReady }) {
   return children;
 }
 
+import ARIAChat from "./components/ARIAChat";
+
 function App() {
   return (
     <BrowserRouter>
@@ -259,6 +261,7 @@ function AppShell() {
           </Suspense>
         </ErrorBoundary>
       </div>
+      <ARIAChat session={session} />
     </>
   );
 }

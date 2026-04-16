@@ -6,23 +6,31 @@
  * Endpoint: POST http://127.0.0.1:3001/api/automation/risk-check
  */
 
+import { checkRiskWithFallback } from '../utils/riskEngine';
+
 export async function checkGigShieldRisk(workerPayload) {
-  const response = await fetch('/api/automation/risk-check', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(workerPayload),
-  });
+  try {
+    const response = await fetch('/api/automation/risk-check', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(workerPayload),
+    });
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`Server error ${response.status}${text ? ': ' + text : ''}`);
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      console.warn(`[API] Backend returned ${response.status}. Falling back to local engine.`);
+      return await checkRiskWithFallback(workerPayload);
+    }
+
+    const json = await response.json();
+    if (!json.success) {
+      console.warn(`[API] Backend unsuccessful. Falling back to local engine.`);
+      return await checkRiskWithFallback(workerPayload);
+    }
+
+    return json.data;
+  } catch (err) {
+    console.warn(`[API] Fetch failed (${err.message}). Falling back to local engine.`);
+    return await checkRiskWithFallback(workerPayload);
   }
-
-  const json = await response.json();
-
-  if (!json.success) {
-    throw new Error(json.error || 'The risk engine returned an unsuccessful response.');
-  }
-
-  return json.data;
 }
