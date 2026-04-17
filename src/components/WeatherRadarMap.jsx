@@ -89,9 +89,9 @@ export default function WeatherRadarMap({ initialLatitude = 28.6139, initialLong
   }, [position, isLocating]);
 
   const nearbyLocations = [
-    { name: cityName, temp: weatherData ? `${weatherData.temperature.toFixed(1)}°C` : "--", cond: weatherData?.condition || "Scanning", color: "bg-emerald-500" },
-    { name: "Sector Pulse", temp: weatherData ? `${(weatherData.temperature + 1.2).toFixed(1)}°C` : "--", cond: "Thermal Drift", color: "bg-amber-500" },
-    { name: "Nearby Hub", temp: weatherData ? `${(weatherData.temperature - 0.8).toFixed(1)}°C` : "--", cond: "Cooler Patch", color: "bg-cyan-500" },
+    { name: cityName, temp: weatherData?.temperature !== undefined ? `${Number(weatherData.temperature).toFixed(1)}°C` : "--", cond: weatherData?.condition || "Scanning", color: "bg-emerald-500" },
+    { name: "Sector Pulse", temp: weatherData?.temperature !== undefined ? `${(Number(weatherData.temperature) + 1.2).toFixed(1)}°C` : "--", cond: "Thermal Drift", color: "bg-amber-500" },
+    { name: "Nearby Hub", temp: weatherData?.temperature !== undefined ? `${(Number(weatherData.temperature) - 0.8).toFixed(1)}°C` : "--", cond: "Cooler Patch", color: "bg-cyan-500" },
   ];
 
   return (
@@ -179,7 +179,7 @@ export default function WeatherRadarMap({ initialLatitude = 28.6139, initialLong
             <div className="rounded-3xl border border-cyan-400/20 bg-cyan-400/5 p-5">
                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-cyan-300">Surface Temp</p>
                <div className="mt-2 flex items-baseline gap-2">
-                 <p className="text-4xl font-black tracking-tighter text-white">{weatherData ? weatherData.temperature.toFixed(1) : "--"}°C</p>
+                 <p className="text-4xl font-black tracking-tighter text-white">{weatherData?.temperature !== undefined ? Number(weatherData.temperature).toFixed(1) : "--"}°C</p>
                  <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest">{weatherData?.condition || "Scan..."}</span>
                </div>
             </div>

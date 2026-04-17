@@ -167,10 +167,14 @@ function getWeeklyTrend(history) {
   return days;
 }
 
-export default function DashboardPage() {
+export default function DashboardPage({ session: propSession, setSession: propSetSession }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { session, setSession } = useHydratedSession();
+  const hookSession = useHydratedSession();
+  
+  // Pivot: Use props if available (passed from App), otherwise fall back to hook data
+  const session = propSession || hookSession.session;
+  const setSession = propSetSession || hookSession.setSession;
   const { languageMode } = useSiteLanguage();
 
   // Core States
@@ -630,14 +634,16 @@ export default function DashboardPage() {
   );
 
   const coverageActive = selectedPlatforms.length > 0;
-  const weeklyPaidAmount = weeklyTrend.reduce(
-    (sum, day) => sum + Number(day.paidAmount || 0),
+  const weeklyPaidAmount = (weeklyTrend || []).reduce(
+    (sum, day) => sum + Number(day?.paidAmount || 0),
     0,
   );
-  const earningsProtectedThisWeek =
+
+  const weeklyEarningsProtected =
     dashboardMetrics?.supportThisWeek ||
     weeklyPaidAmount ||
-    userProfile.earningsProtectedThisWeek;
+    userProfile.earningsProtectedThisWeek ||
+    0;
   const weeklySupportCap = dailyPayoutCap * 7;
   const weeklySupportLeft = Math.max(0, weeklySupportCap - weeklyPaidAmount);
   const emergencyActive = Boolean(latestTrigger);
@@ -1212,7 +1218,7 @@ export default function DashboardPage() {
 
             <div className="grid md:grid-cols-2 gap-8">
               <EarningsSnapshot
-                earningsProtectedThisWeek={earningsProtectedThisWeek}
+                earningsProtectedThisWeek={weeklyEarningsProtected}
                 lastPayoutAmount={lastPayoutAmount}
                 languageMode={languageMode}
               />

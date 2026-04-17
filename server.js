@@ -454,7 +454,6 @@ app.post('/api/chat', async (req, res) => {
         model: GROQ_MODEL,
         messages: groqMessages,
         max_tokens: 300,
-        temperature: 0.7,
       }),
     });
 

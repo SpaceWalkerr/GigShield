@@ -161,6 +161,7 @@ function AppShell() {
           >
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/judge-demo" element={<JudgeDemoPage setSession={setSession} />} />
               <Route path="/product" element={<ProductPage />} />
               <Route path="/income-radar" element={<IncomeRadarPage />} />
               <Route path="/pricing" element={<PricingPage />} />
@@ -168,7 +169,7 @@ function AppShell() {
               <Route path="/fraud-guard" element={<FraudGuardPage />} />
               <Route path="/get-protected" element={<GetProtected />} />
               <Route path="/signin" element={<SignInPage setSession={setSession} />} />
-              <Route path="/signup" element={<SignUpPage setSession={setSession} />} />
+              <Route path="/signup" element={<SignUpPage session={session} setSession={setSession} />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
@@ -177,7 +178,7 @@ function AppShell() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute session={session} sessionReady={sessionReady}>
-                    <DashboardPage />
+                    <DashboardPage session={session} setSession={setSession} />
                   </ProtectedRoute>
                 }
               />

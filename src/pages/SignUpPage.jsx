@@ -33,6 +33,36 @@ function SignUpPage({ setSession }) {
   const [password, setPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const handleDemoMode = () => {
+    const premiumData = calculateWeeklyPremium({
+      basePremium: selectedPlan.weeklyPremium,
+      platformCount: 2,
+      riskLevel: "Medium",
+    });
+
+    const demoSession = {
+      isAuthenticated: true,
+      mode: "demo",
+      name: userProfile.name,
+      email: "demo@gigshield.app",
+      city: userProfile.city,
+      workerId: "demo-worker",
+      platforms: ["Zomato", "Swiggy"],
+      selectedPlanId,
+      riskLevel: "Medium",
+      calculatedWeeklyPremium: premiumData.adjustedPremium,
+      premiumBreakdown: premiumData,
+      premiumHistory: [],
+      signedInAt: new Date().toISOString(),
+    };
+    
+    import('../utils/session').then(({ saveSession }) => {
+      saveSession(demoSession);
+      if (setSession) setSession(demoSession);
+      localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
+      navigate(`/dashboard?plan=${selectedPlanId}`);
+    });
+  };
   if (isSuccess) {
     return (
       <AuthPageShell
@@ -121,10 +151,14 @@ function SignUpPage({ setSession }) {
                 className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-semibold text-white placeholder:text-zinc-500 focus:border-cyan-300/30 focus:outline-none"
               />
             </label>
-            <button
+             <button
               type="button"
               disabled={isLoading || !email || !password}
               onClick={async () => {
+                if (password.length < 6) {
+                  setAuthError("Password must be at least 6 characters.");
+                  return;
+                }
                 setIsLoading(true);
                 setAuthError(null);
                 try {
@@ -140,7 +174,13 @@ function SignUpPage({ setSession }) {
                     setIsSuccess(true);
                   }
                 } catch (err) {
-                  setAuthError(err.message || "Email sign-up failed.");
+                  console.error("[SignUp] Error:", err);
+                  const msg = err.message || "Email sign-up failed.";
+                  if (msg.includes("422")) {
+                    setAuthError("Sign-up failed. Password might be too weak or the email is already in use.");
+                  } else {
+                    setAuthError(msg);
+                  }
                 } finally {
                   setIsLoading(false);
                 }

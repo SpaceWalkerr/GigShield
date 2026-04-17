@@ -80,6 +80,7 @@ export async function hydrateSessionFromSupabase() {
       name:
         profile?.full_name ||
         authUser.user_metadata?.full_name ||
+        authUser.user_metadata?.display_name ||
         authUser.email?.split("@")[0] ||
         "Rider",
       email: authUser.email || "",
@@ -145,6 +146,7 @@ export async function signUpWithEmail({ email, password, fullName }) {
     options: {
       data: {
         full_name: fullName,
+        display_name: fullName,
         role: "worker",
       },
     },
@@ -154,12 +156,19 @@ export async function signUpWithEmail({ email, password, fullName }) {
     throw error;
   }
 
+  // If we got a session immediately (autologin), hydrate it
   if (data?.session) {
     const hydrated = await hydrateSessionFromSupabase();
     return hydrated || getSession();
   }
 
-  return data;
+  // Otherwise return the data (user might need email verification)
+  return {
+    ...data,
+    name: fullName,
+    email: email,
+    isAuthenticated: false, // Wait for hydration or verification
+  };
 }
 
 export async function signUpWithGoogle({ planId } = {}) {

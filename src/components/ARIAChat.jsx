@@ -222,11 +222,22 @@ export default function ARIAChat({ session, riskLevel }) {
               Automated Rider Insurance Assistant · Online
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest">
-              Live
-            </span>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-[10px] text-white/60 font-bold uppercase tracking-widest hidden sm:inline-block">
+                Live
+              </span>
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+              aria-label="Close Chat"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
