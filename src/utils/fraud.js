@@ -25,3 +25,4 @@ export function getRiskBadgeClasses(riskLevel) {
 export function requiresVerification(riskLevel) {
   return riskLevel === "High";
 }
+

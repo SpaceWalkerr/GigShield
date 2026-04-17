@@ -225,3 +225,4 @@ export default function WeatherRadarMap({ initialLatitude = 28.6139, initialLong
     </div>
   );
 }
+

@@ -6,7 +6,7 @@ import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
 import { selectLabel } from "../utils/i18n";
 import { calculateWeeklyPremium } from "../utils/pricing";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { signInWithEmail, signInWithGoogle } from "../services/backend/sessionService";
 import { AuthPageShell, AuthPanel } from "../components/ui/auth-page-shell";
 
@@ -181,3 +181,4 @@ function SignInPage({ setSession }) {
 }
 
 export default SignInPage;
+

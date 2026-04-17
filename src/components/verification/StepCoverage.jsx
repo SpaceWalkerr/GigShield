@@ -209,3 +209,4 @@ export default function StepCoverage({ formData, updateField, onActivate, isLoad
     </div>
   );
 }
+

@@ -50,3 +50,4 @@ function EarningsSnapshot({
 }
 
 export default EarningsSnapshot;
+

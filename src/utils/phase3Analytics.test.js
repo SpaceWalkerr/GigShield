@@ -50,3 +50,4 @@ describe("phase3 analytics", () => {
     expect(queue[0].riskScore).toBeGreaterThan(44);
   });
 });
+

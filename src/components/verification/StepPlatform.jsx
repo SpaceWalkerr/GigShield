@@ -96,3 +96,4 @@ export default function StepPlatform({ formData, updateField, onNext }) {
     </div>
   );
 }
+

@@ -38,3 +38,4 @@ export async function checkGigShieldRisk(workerPayload) {
     return await checkRiskWithFallback(workerPayload);
   }
 }
+

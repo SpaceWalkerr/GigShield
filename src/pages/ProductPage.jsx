@@ -1,6 +1,6 @@
 import { Zap, ShieldCheck, Eye, ScanFace, LayoutDashboard, ArrowRight, CloudRain, Thermometer, Wind, WifiOff, Radar, Compass } from "lucide-react";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import {
   MarketingPageShell,
   MarketingSection,
@@ -167,3 +167,4 @@ function ProductPage() {
 }
 
 export default ProductPage;
+

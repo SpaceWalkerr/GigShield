@@ -60,3 +60,4 @@ function ActivityPanel({ activity, lastActiveTime, languageMode }) {
 }
 
 export default ActivityPanel;
+

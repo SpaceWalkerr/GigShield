@@ -389,3 +389,4 @@ export async function downloadReceiptPdf(receipt) {
   popup.focus();
   popup.print();
 }
+

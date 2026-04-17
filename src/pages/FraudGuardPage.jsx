@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronRight, Activity, ScanFace, Lock, TrendingDown, CheckCircle2 } from "lucide-react";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import {
   MarketingPageShell,
   MarketingSection,
@@ -130,3 +130,4 @@ function FraudGuardPage() {
 }
 
 export default FraudGuardPage;
+

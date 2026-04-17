@@ -121,3 +121,4 @@ export function getPayoutForTrigger(triggerEvents, triggerId, planId, options = 
 export function applyTriggerToEarnings(currentAmount, payoutAmount) {
   return currentAmount + payoutAmount;
 }
+

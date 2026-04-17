@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppPageShell, AppSurface } from "../components/ui/app-page-shell";
 import { useHydratedSession } from "../hooks/useHydratedSession";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { selectLabel } from "../utils/i18n";
 import {
   clearNotificationHistory,
@@ -542,3 +542,4 @@ export default function ProfilePage() {
     </AppPageShell>
   );
 }
+

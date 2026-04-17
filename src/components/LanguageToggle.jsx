@@ -44,3 +44,4 @@ function LanguageToggle({ languageMode, setLanguageMode }) {
 }
 
 export default LanguageToggle;
+

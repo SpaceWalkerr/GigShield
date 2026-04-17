@@ -426,3 +426,4 @@ export function deriveLiveSignalsFromComposite({ triggerId, compositeSignals }) 
     historical,
   };
 }
+

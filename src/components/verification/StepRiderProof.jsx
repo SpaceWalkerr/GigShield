@@ -162,3 +162,4 @@ export default function StepRiderProof({ formData, updateField, onNext }) {
     </div>
   );
 }
+

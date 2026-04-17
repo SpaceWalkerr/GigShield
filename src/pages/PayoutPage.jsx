@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LanguageToggle from "../components/LanguageToggle";
 import SelfieVerificationPanel from "../components/SelfieVerificationPanel";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
 import { getAuthToken } from "../utils/session";
@@ -671,3 +671,4 @@ function PayoutPage() {
 }
 
 export default PayoutPage;
+

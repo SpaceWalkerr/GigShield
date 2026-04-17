@@ -192,3 +192,4 @@ export async function generateAutomaticClaimsFromSweeps({ syncedScans = [] } = {
     claims: insertedClaims || [],
   };
 }
+

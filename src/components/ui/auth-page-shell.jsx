@@ -66,3 +66,4 @@ export function AuthPanel({ className, children }) {
     </div>
   );
 }
+

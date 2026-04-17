@@ -39,6 +39,7 @@ const TeamProtectionPage = lazy(() => import("./pages/TeamProtectionPage"));
 const TrustCenterPage = lazy(() => import("./pages/TrustCenterPage"));
 const AdminOperationsPage = lazy(() => import("./pages/AdminOperationsPage"));
 const GetProtected = lazy(() => import("./pages/GetProtected"));
+const JudgeDemoPage = lazy(() => import("./pages/JudgeDemoPage"));
 
 // Simple Error Boundary for Page Routes
 class ErrorBoundary extends React.Component {
@@ -375,3 +376,4 @@ function WorkerNotificationBridge({ session, sessionReady }) {
 }
 
 export default App;
+

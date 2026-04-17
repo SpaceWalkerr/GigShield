@@ -18,7 +18,7 @@ import userProfile from "../data/userProfile.json";
 import { formatCurrency } from "../utils/format";
 import { calculateWeeklyPremium, getRiskMultiplier } from "../utils/pricing";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { getRiskLevelFromScore } from "../utils/fraud";
 import { getDailyPayoutCap, getPayoutForTrigger } from "../utils/payout";
 import {
@@ -1654,3 +1654,4 @@ export default function DashboardPage({ session: propSession, setSession: propSe
     </main>
   );
 }
+

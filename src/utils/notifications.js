@@ -64,3 +64,4 @@ export function clearNotificationHistory() {
   localStorage.removeItem(notificationHistoryStorageKey);
   return [];
 }
+

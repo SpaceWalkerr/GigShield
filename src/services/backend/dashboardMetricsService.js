@@ -143,3 +143,4 @@ export async function fetchDashboardMetrics({ city } = {}) {
     return null;
   }
 }
+

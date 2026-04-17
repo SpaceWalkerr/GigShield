@@ -24,3 +24,4 @@ export function appendOverrideLog(entry) {
   });
   localStorage.setItem(overrideLogStorageKey, JSON.stringify(current.slice(0, 300)));
 }
+

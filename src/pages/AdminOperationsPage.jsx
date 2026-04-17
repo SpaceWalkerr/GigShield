@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LanguageToggle from "../components/LanguageToggle";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { selectLabel } from "../utils/i18n";
 
 import {
@@ -912,3 +912,4 @@ function AdminOperationsPage() {
 }
 
 export default AdminOperationsPage;
+

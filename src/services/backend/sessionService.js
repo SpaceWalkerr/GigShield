@@ -179,3 +179,4 @@ export async function signOutSession() {
   await supabase.auth.signOut();
   clearSession();
 }
+

@@ -3,7 +3,7 @@ import { CloudRain, Wind, WifiOff, MapPinOff, ArrowRight, ChevronRight, Zap, Clo
 import triggerEvents from "../data/triggerEvents.json";
 import { formatCurrency } from "../utils/format";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import {
   MarketingPageShell,
   MarketingSection,
@@ -136,3 +136,4 @@ function TriggerPage() {
 }
 
 export default TriggerPage;
+

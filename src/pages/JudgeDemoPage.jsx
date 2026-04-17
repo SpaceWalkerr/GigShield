@@ -6,7 +6,7 @@ import {
   SurfaceCard,
 } from "@/components/ui/marketing-page-shell";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { saveSession } from "../utils/session";
 import userProfile from "../data/userProfile.json";
 import planDetails from "../data/planDetails.json";
@@ -180,3 +180,4 @@ export default function JudgeDemoPage({ setSession }) {
     </MarketingPageShell>
   );
 }
+

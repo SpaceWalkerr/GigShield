@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useEffect } from "react";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
 import { getFailureReasonLabel, getPayoutHistory, hydratePayoutHistory } from "../utils/payoutReceipt";
@@ -187,3 +187,4 @@ function PayoutHistoryPage() {
 }
 
 export default PayoutHistoryPage;
+

@@ -32,3 +32,4 @@ describe("payout utils", () => {
     expect(result.payoutAmount).toBe(50);
   });
 });
+

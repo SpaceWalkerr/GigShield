@@ -169,22 +169,25 @@ function toCamelCaseHinglish(text) {
 }
 
 export function selectLabel(languageMode, english, hindi, hinglish) {
-  const resolvedHindi = hindi ?? english;
-
   if (languageMode === languageModes.HINDI) {
-    return resolvedHindi;
+    return hindi ?? english;
   }
 
   if (languageMode === languageModes.HINGLISH) {
-    const resolvedHinglish =
-      hinglish ?? transliterateHindiToHinglish(String(resolvedHindi ?? ""));
-
-    if (typeof resolvedHinglish !== "string") {
-      return resolvedHinglish;
+    if (hinglish) {
+      return hinglish;
     }
-
-    return toCamelCaseHinglish(resolvedHinglish);
+    if (hindi) {
+      const transliterated = transliterateHindiToHinglish(hindi);
+      if (typeof transliterated === "string") {
+        return toCamelCaseHinglish(transliterated);
+      }
+      return transliterated;
+    }
+    // If neither Hindi nor Hinglish is provided, return English directly.
+    return english;
   }
 
   return english;
 }
+

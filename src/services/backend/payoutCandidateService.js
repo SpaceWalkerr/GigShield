@@ -129,3 +129,4 @@ export async function generatePayoutCandidatesFromClaims({ claimIds = [] } = {})
     payouts: insertedPayouts || [],
   };
 }
+

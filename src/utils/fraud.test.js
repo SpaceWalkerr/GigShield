@@ -14,3 +14,4 @@ describe("fraud utils", () => {
     expect(requiresVerification("High")).toBe(true);
   });
 });
+

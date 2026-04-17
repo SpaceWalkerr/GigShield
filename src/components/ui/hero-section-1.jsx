@@ -331,3 +331,4 @@ export function HeroSection() {
     </main>
   );
 }
+

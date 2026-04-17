@@ -136,3 +136,4 @@ export async function checkRiskWithFallback(payload) {
 
   throw new Error('Local engine failed to fetch weather and backend is unreachable.');
 }
+

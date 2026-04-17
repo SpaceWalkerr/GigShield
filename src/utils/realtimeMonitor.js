@@ -23,3 +23,4 @@ export function startRealtimeTriggerMonitor({ city, platforms, onSnapshot, inter
     }
   };
 }
+

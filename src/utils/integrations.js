@@ -43,3 +43,4 @@ export async function getCompositeDisruptionSignals({ city, platforms }) {
     degradedCount,
   };
 }
+

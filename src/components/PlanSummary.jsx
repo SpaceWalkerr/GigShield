@@ -62,3 +62,4 @@ function PlanSummary({ selectedPlan, coverageActive, languageMode }) {
 }
 
 export default PlanSummary;
+

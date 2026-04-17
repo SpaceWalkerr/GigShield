@@ -56,3 +56,4 @@ export default function StepProgress({ currentStep, totalSteps }) {
     </div>
   );
 }
+

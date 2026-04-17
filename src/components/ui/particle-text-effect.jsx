@@ -313,3 +313,4 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }) {
     </div>
   );
 }
+

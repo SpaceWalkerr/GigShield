@@ -56,3 +56,4 @@ export function hasRole(requiredRole) {
 export function getAuthToken() {
   return getSession()?.authToken || "";
 }
+

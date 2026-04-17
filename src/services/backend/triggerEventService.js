@@ -139,3 +139,4 @@ export async function expireStaleTriggerEvents({ maxAgeHours = 4 } = {}) {
     expiredCount: Array.isArray(data) ? data.length : 0,
   };
 }
+

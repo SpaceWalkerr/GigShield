@@ -5,7 +5,7 @@ import planDetails from "../data/planDetails.json";
 import { formatCurrency } from "../utils/format";
 import { calculateWeeklyPremium, supportedRiskLevels } from "../utils/pricing";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import {
   MarketingPageShell,
   MarketingSection,
@@ -278,3 +278,4 @@ function PricingPage() {
 }
 
 export default PricingPage;
+

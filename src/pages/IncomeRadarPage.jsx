@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/marketing-page-shell";
 import { buildIncomeRadar } from "../utils/incomeRadar";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { fetchLatestIncomeRadarSnapshot } from "../services/backend/incomeRadarService";
 
 const cityOptions = ["New Delhi", "Mumbai", "Bengaluru"];
@@ -159,3 +159,4 @@ export default function IncomeRadarPage() {
     </MarketingPageShell>
   );
 }
+

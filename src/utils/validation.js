@@ -23,3 +23,4 @@ export function validateCity(city) {
 export function validateRiderId(id) {
   return id.trim().length >= 3;
 }
+

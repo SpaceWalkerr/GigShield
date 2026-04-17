@@ -89,3 +89,4 @@ export async function getCommunityHeatmapRows(options = {}) {
     return buildFallbackRows();
   }
 }
+

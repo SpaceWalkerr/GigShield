@@ -79,3 +79,4 @@ export function computeReputationProfile(options = {}) {
           : "Build consistency this week to unlock faster approvals and higher predictive advances.",
   };
 }
+

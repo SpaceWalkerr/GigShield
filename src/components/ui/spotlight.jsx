@@ -42,3 +42,4 @@ export function Spotlight({ className, fill = "white" }) {
     </svg>
   );
 }
+

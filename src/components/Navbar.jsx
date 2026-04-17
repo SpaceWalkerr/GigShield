@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight, Menu, X } from "lucide-react";
 import LanguageToggle from "./LanguageToggle";
 import { selectLabel } from "../utils/i18n";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { supabase } from "../utils/supabase";
 import { signOutSession } from "../services/backend/sessionService";
 
@@ -208,3 +208,4 @@ export default function Navbar() {
     </div>
   );
 }
+

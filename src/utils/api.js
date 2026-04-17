@@ -16,3 +16,4 @@ export const getApiUrl = (path) => {
   if (!VITE_API_URL) return path; // Use relative path (proxied) in dev
   return `${VITE_API_URL}${cleanPath(path)}`;
 };
+

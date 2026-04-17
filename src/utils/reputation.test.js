@@ -26,3 +26,4 @@ describe("reputation utils", () => {
     expect(profile.settlementRatePct).toBeGreaterThan(0);
   });
 });
+

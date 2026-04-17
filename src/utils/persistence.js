@@ -30,3 +30,4 @@ export async function persistWorkerState(key, value, fallback) {
     return { ok: false, backend: false, error: "Backend persistence unavailable" };
   }
 }
+

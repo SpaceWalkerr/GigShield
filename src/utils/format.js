@@ -12,3 +12,4 @@ export function formatTime(isoDateTime) {
     minute: "2-digit",
   });
 }
+

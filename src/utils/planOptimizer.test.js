@@ -40,3 +40,4 @@ describe("plan optimizer", () => {
     expect(["standard", "pro"]).toContain(recommendation.recommendedPlan.id);
   });
 });
+

@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import LandingPage from "./LandingPage";
 
 // Mock the language utils
-vi.mock("../utils/siteLanguage", () => ({
+vi.mock("../utils/siteLanguage.jsx", () => ({
   useSiteLanguage: () => ({
     languageMode: "en",
     setLanguageMode: vi.fn(),
@@ -59,3 +59,4 @@ describe("LandingPage Component", () => {
     expect(screen.getByText(/View Weekly Plans/)).toBeDefined();
   });
 });
+

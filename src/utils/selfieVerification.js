@@ -139,3 +139,4 @@ async function fetchWttr({ lat, lon, timeoutMs }) {
     window.clearTimeout(timer);
   }
 }
+

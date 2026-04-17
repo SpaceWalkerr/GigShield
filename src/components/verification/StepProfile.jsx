@@ -209,3 +209,4 @@ export default function StepProfile({ formData, updateField, onNext }) {
     </div>
   );
 }
+

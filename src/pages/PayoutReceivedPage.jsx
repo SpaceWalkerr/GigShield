@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import LanguageToggle from "../components/LanguageToggle";
-import { useSiteLanguage } from "../utils/siteLanguage";
+import { useSiteLanguage } from "../utils/siteLanguage.jsx";
 import { selectLabel } from "../utils/i18n";
 import { formatCurrency } from "../utils/format";
 import {
@@ -83,3 +83,4 @@ function PayoutReceivedPage() {
 }
 
 export default PayoutReceivedPage;
+
