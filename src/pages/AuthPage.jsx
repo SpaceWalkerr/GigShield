@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import planDetails from "../data/planDetails.json";
 import userProfile from "../data/userProfile.json";
-
 const validPlanIds = new Set(planDetails.map((plan) => plan.id));
 const selectedPlanStorageKey = "gigshieldSelectedPlanId";
 

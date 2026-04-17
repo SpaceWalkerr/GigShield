@@ -107,7 +107,16 @@ export async function fetchLatestIncomeRadarSnapshot(options = {}) {
       query = query.eq("city", city);
     }
 
-    const { data, error } = await query.maybeSingle();
+    let data, error;
+    try {
+      const response = await query.maybeSingle();
+      data = response.data;
+      error = response.error;
+    } catch (err) {
+      console.warn("[IncomeRadar] Fetch failed:", err.message);
+      return null;
+    }
+
     if (error || !data) {
       return null;
     }

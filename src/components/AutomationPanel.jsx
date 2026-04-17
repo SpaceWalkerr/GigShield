@@ -114,8 +114,8 @@ export default function AutomationPanel({ session, setSession }) {
       }
     } catch { /* use fallback */ }
 
-    // Synchronize global session with real-time browser location
-    if (setSession && (lat !== 28.6139 || lon !== 77.209)) {
+    // Synchronize global session with real-time browser location (only if moved)
+    if (setSession && (Math.abs(lat - (session?.latitude || 0)) > 0.001 || Math.abs(lon - (session?.longitude || 0)) > 0.001)) {
        setSession(prev => ({ ...prev, latitude: lat, longitude: lon }));
     }
 
@@ -146,7 +146,6 @@ export default function AutomationPanel({ session, setSession }) {
 
       // ── Risk Toast Notification ─────────────────────────────────────
       const level = (result.riskLevel || "low").toLowerCase();
-      toast.dismiss(); // clear previous
       
       const textConfig = {
         low:    "Low Risk — Safe to deliver. Coverage active.",
@@ -156,6 +155,7 @@ export default function AutomationPanel({ session, setSession }) {
       const text = textConfig[level] || textConfig.low;
       
       const config = {
+        toastId: `risk-${level}`, // Prevent duplicate toasts for same level
         autoClose: 5000,
         className: "!rounded-xl !shadow-lg !font-sans !text-[13px] !font-semibold text-gray-700",
       };
@@ -172,13 +172,14 @@ export default function AutomationPanel({ session, setSession }) {
       console.error("[AutomationPanel] Check failed:", err);
       setError(err.message || "Could not connect to the risk engine.");
       toast.error("Risk engine unavailable. Check your connection.", {
+        toastId: "engine-error",
         className: "!rounded-xl !shadow-lg !font-sans !text-[13px] !font-semibold text-gray-700",
         autoClose: 5000,
       });
     } finally {
       setLoading(false);
     }
-  }, [session, setSession]);
+  }, [session?.workerId, session?.name, session?.city, session?.platforms, setSession, session?.latitude, session?.longitude]);
 
   useEffect(() => {
     let alive = true;
@@ -200,8 +201,10 @@ export default function AutomationPanel({ session, setSession }) {
     };
   }, [session?.workerId]);
 
-  // Auto-fetch on mount
-  useEffect(() => { performCheck(); }, [performCheck]);
+  // Auto-fetch on mount only (or when worker identity changes)
+  useEffect(() => { 
+    performCheck(); 
+  }, [performCheck]);
 
   const cfg = riskCfg(data?.riskLevel);
 

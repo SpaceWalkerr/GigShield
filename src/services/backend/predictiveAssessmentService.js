@@ -133,7 +133,8 @@ export async function fetchPredictiveAssessmentsFromBackend(options = {}) {
     }
 
     return data.map(mapRowToAssessment);
-  } catch {
+  } catch (err) {
+    console.warn("[PredictiveService] Sync fetch failed:", err.message);
     return [];
   }
 }

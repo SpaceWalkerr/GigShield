@@ -8,9 +8,11 @@ function RobotBody() {
   
   // Animation for slight head tilt/movement
   useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    group.current.rotation.y = Math.sin(t * 0.5) * 0.1;
-    group.current.position.y = Math.sin(t * 1.5) * 0.05;
+    const t = state.elapsedTime || state.clock.getElapsedTime();
+    if (group.current) {
+      group.current.rotation.y = Math.sin(t * 0.5) * 0.1;
+      group.current.position.y = Math.sin(t * 1.5) * 0.05;
+    }
   });
 
   return (

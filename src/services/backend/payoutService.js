@@ -175,7 +175,8 @@ export async function fetchPayoutHistoryFromBackend({ limit = 100 } = {}) {
     }
 
     return data.map(mapRowToReceipt);
-  } catch {
+  } catch (err) {
+    console.warn("[PayoutService] Sync fetch failed:", err.message);
     return [];
   }
 }

@@ -8,6 +8,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useHydratedSession } from "./hooks/useHydratedSession";
+import { getRouterBasename } from "./utils/authRedirect";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -104,7 +105,7 @@ import ARIAChat from "./components/ARIAChat";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={getRouterBasename()}>
       <AppShell />
     </BrowserRouter>
   );
@@ -112,7 +113,7 @@ function App() {
 
 function AppShell() {
   const location = useLocation();
-  const { session, sessionReady } = useHydratedSession();
+  const { session, sessionReady, setSession } = useHydratedSession();
 
   useEffect(() => {
     const lenis = new Lenis();
@@ -160,8 +161,8 @@ function AppShell() {
               <Route path="/triggers" element={<TriggerPage />} />
               <Route path="/fraud-guard" element={<FraudGuardPage />} />
               <Route path="/get-protected" element={<GetProtected />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/signin" element={<SignInPage setSession={setSession} />} />
+              <Route path="/signup" element={<SignUpPage setSession={setSession} />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
 

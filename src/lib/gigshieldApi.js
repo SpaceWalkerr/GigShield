@@ -7,18 +7,20 @@
  */
 
 import { checkRiskWithFallback } from '../utils/riskEngine';
-
+import { getApiUrl } from '../utils/api';
 export async function checkGigShieldRisk(workerPayload) {
   try {
-    const response = await fetch('/api/automation/risk-check', {
-      method:  'POST',
+    const response = await fetch(getApiUrl('/api/automation/risk-check'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(workerPayload),
+      body: JSON.stringify(workerPayload),
     });
 
     if (!response.ok) {
-      await response.text().catch(() => '');
-      console.warn(`[API] Backend returned ${response.status}. Falling back to local engine.`);
+      const text = await response.text().catch(() => "");
+      console.warn(
+        `[API] Backend returned ${response.status}. Falling back to local engine.`,
+      );
       return await checkRiskWithFallback(workerPayload);
     }
 
@@ -30,7 +32,9 @@ export async function checkGigShieldRisk(workerPayload) {
 
     return json.data;
   } catch (err) {
-    console.warn(`[API] Fetch failed (${err.message}). Falling back to local engine.`);
+    console.warn(
+      `[API] Fetch failed (${err.message}). Falling back to local engine.`,
+    );
     return await checkRiskWithFallback(workerPayload);
   }
 }

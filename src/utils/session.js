@@ -9,8 +9,12 @@ export function saveSession(sessionData) {
     ...sessionData,
   };
 
+  // Always save locally first so the UI responds immediately
+  localStorage.setItem(sessionStorageKey, JSON.stringify(enriched));
+
+  // Sync with backend if enabled (fire and forget)
   persistWorkerState(sessionStorageKey, enriched, () => {
-    localStorage.setItem(sessionStorageKey, JSON.stringify(enriched));
+    // Already saved, no specific fallback needed here
   });
 }
 
