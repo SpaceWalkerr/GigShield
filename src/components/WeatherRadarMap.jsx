@@ -65,27 +65,43 @@ export default function WeatherRadarMap({ initialLatitude = 28.6139, initialLong
 
   // 2. Weather Fetch (OpenWeatherMap)
   useEffect(() => {
+    const FALLBACK = {
+      temperature: 32.4,
+      windspeed: 14.2,
+      condition: "Clear",
+      description: "clear sky",
+      humidity: 58,
+      pressure: 1012,
+    };
+
     const fetchWeather = async () => {
+      if (!OWM_KEY) {
+        setWeatherData(FALLBACK);
+        return;
+      }
       try {
         const [lat, lon] = position;
-        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OWM_KEY}&units=metric`);
-        if (!res.ok) throw new Error('OWM Failed');
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OWM_KEY}&units=metric`
+        );
+        if (!res.ok) throw new Error(`OWM ${res.status}`);
         const data = await res.json();
         setWeatherData({
           temperature: data.main.temp,
-          windspeed: data.wind.speed * 3.6, // m/s to km/h
+          windspeed: data.wind.speed * 3.6,
           condition: data.weather[0].main,
           description: data.weather[0].description,
           humidity: data.main.humidity,
-          pressure: data.main.pressure
+          pressure: data.main.pressure,
         });
         if (data.name && !isLocating) setCityName(data.name);
       } catch (err) {
-        console.error("Weather fetch error:", err);
+        console.warn("Weather fetch failed, using fallback:", err.message);
+        setWeatherData(FALLBACK);
       }
     };
 
-    if (OWM_KEY) fetchWeather();
+    fetchWeather();
   }, [position, isLocating]);
 
   const nearbyLocations = [
