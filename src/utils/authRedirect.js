@@ -25,7 +25,7 @@ export function toAppRoute(routePath) {
   return `${basePath}${normalizedRoute}` || "/";
 }
 
-export function buildAuthCallbackUrl(options = {}) {
+export function buildAuthCallbackUrl() {
   const callbackPath = toAppRoute("/auth/callback");
 
   const publicSiteUrl = (import.meta.env.VITE_PUBLIC_SITE_URL || "").trim();
@@ -34,10 +34,6 @@ export function buildAuthCallbackUrl(options = {}) {
     ? baseUrl.slice(0, -1)
     : baseUrl;
 
-  const url = new URL(`${normalizedBaseUrl}${callbackPath}`);
-  if (options.planId) {
-    url.searchParams.set("plan", options.planId);
-  }
-  return url.toString();
+  return new URL(`${normalizedBaseUrl}${callbackPath}`).toString();
 }
 

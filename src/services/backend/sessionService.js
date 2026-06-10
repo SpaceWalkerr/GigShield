@@ -195,7 +195,9 @@ export async function signUpWithEmail({ email, password, fullName }) {
 
   // If we got a session immediately (autologin), hydrate it
   if (data?.session) {
-    const hydrated = await hydrateSessionFromSupabase({ authSession: data.session });
+    const hydrated = await hydrateSessionFromSupabase({
+      authSession: data.session,
+    });
     return hydrated || getSession();
   }
 
