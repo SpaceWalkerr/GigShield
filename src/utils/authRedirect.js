@@ -36,4 +36,3 @@ export function buildAuthCallbackUrl() {
 
   return new URL(`${normalizedBaseUrl}${callbackPath}`).toString();
 }
-

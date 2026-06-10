@@ -33,36 +33,6 @@ function SignUpPage({ setSession }) {
   const [password, setPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleDemoMode = () => {
-    const premiumData = calculateWeeklyPremium({
-      basePremium: selectedPlan.weeklyPremium,
-      platformCount: 2,
-      riskLevel: "Medium",
-    });
-
-    const demoSession = {
-      isAuthenticated: true,
-      mode: "demo",
-      name: userProfile.name,
-      email: "demo@gigshield.app",
-      city: userProfile.city,
-      workerId: "demo-worker",
-      platforms: ["Zomato", "Swiggy"],
-      selectedPlanId,
-      riskLevel: "Medium",
-      calculatedWeeklyPremium: premiumData.adjustedPremium,
-      premiumBreakdown: premiumData,
-      premiumHistory: [],
-      signedInAt: new Date().toISOString(),
-    };
-    
-    import('../utils/session').then(({ saveSession }) => {
-      saveSession(demoSession);
-      if (setSession) setSession(demoSession);
-      localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
-      navigate(`/dashboard?plan=${selectedPlanId}`);
-    });
-  };
   if (isSuccess) {
     return (
       <AuthPageShell
@@ -209,7 +179,7 @@ function SignUpPage({ setSession }) {
                 setAuthError(null);
                 localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
                 try {
-                  await signUpWithGoogle({ planId: selectedPlanId });
+                  await signUpWithGoogle();
                 } catch (err) {
                   setAuthError(err.message || "Google sign-up failed.");
                 }

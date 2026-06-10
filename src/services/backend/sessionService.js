@@ -157,13 +157,13 @@ export async function signInWithEmail({ email, password }) {
   return hydrated || getSession();
 }
 
-export async function signInWithGoogle({ planId } = {}) {
+export async function signInWithGoogle() {
   const { buildAuthCallbackUrl } = await import("../../utils/authRedirect");
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: buildAuthCallbackUrl({ planId }),
+      redirectTo: buildAuthCallbackUrl(),
       queryParams: {
         access_type: "offline",
         prompt: "select_account",
@@ -210,8 +210,8 @@ export async function signUpWithEmail({ email, password, fullName }) {
   };
 }
 
-export async function signUpWithGoogle({ planId } = {}) {
-  return signInWithGoogle({ planId });
+export async function signUpWithGoogle() {
+  return signInWithGoogle();
 }
 
 export async function signOutSession() {

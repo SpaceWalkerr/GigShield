@@ -157,7 +157,7 @@ function SignInPage({ setSession }) {
                 setAuthError(null);
                 localStorage.setItem(selectedPlanStorageKey, selectedPlanId);
                 try {
-                  await signInWithGoogle({ planId: selectedPlanId });
+                  await signInWithGoogle();
                 } catch (err) {
                   setAuthError(err.message || "Google sign-in failed.");
                 }
