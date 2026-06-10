@@ -1,59 +1,46 @@
 import { useEffect, useState } from "react";
-import { clearSession, getSession } from "../utils/session";
-import { supabase } from "../utils/supabase";
-import { hydrateSessionFromSupabase } from "../services/backend/sessionService";
+import planDetails from "../data/planDetails.json";
+import userProfile from "../data/userProfile.json";
+import { calculateWeeklyPremium } from "../utils/pricing";
+import { getSession, saveSession } from "../utils/session";
+
+function buildDirectSession() {
+  const selectedPlanId = userProfile.selectedPlanId || planDetails[0].id;
+  const selectedPlan = planDetails.find((plan) => plan.id === selectedPlanId) ?? planDetails[0];
+  const premiumData = calculateWeeklyPremium({
+    basePremium: selectedPlan.weeklyPremium,
+    platformCount: 2,
+    riskLevel: "Medium",
+  });
+
+  return {
+    isAuthenticated: true,
+    mode: "direct",
+    role: "worker",
+    authToken: "direct-login-token",
+    name: userProfile.name || "Rider",
+    email: "demo@gigshield.app",
+    phone: "",
+    city: userProfile.city || "New Delhi",
+    workerId: userProfile.id || "worker-001",
+    selectedPlanId,
+    calculatedWeeklyPremium: premiumData.adjustedPremium,
+    signedInAt: new Date().toISOString(),
+    workPattern: "",
+    weeklyEarningsBand: "",
+    preferredZones: [],
+    platforms: Array.isArray(userProfile.platforms) ? userProfile.platforms : [],
+  };
+}
 
 export function useHydratedSession() {
-  const [session, setSession] = useState(() => getSession());
-  const [sessionReady, setSessionReady] = useState(false);
+  const [session, setSession] = useState(() => getSession() || buildDirectSession());
 
   useEffect(() => {
-    let alive = true;
+    if (!getSession()) {
+      saveSession(session);
+    }
+  }, [session]);
 
-    const syncSession = async () => {
-      const nextSession = await hydrateSessionFromSupabase().catch(() =>
-        getSession(),
-      );
-      if (!alive) {
-        return;
-      }
-
-      setSession(nextSession || getSession());
-      setSessionReady(true);
-    };
-
-    syncSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, authSession) => {
-      if (!alive) {
-        return;
-      }
-
-      if (!authSession?.user) {
-        clearSession();
-        setSession(null);
-        setSessionReady(true);
-        return;
-      }
-
-      const nextSession = await hydrateSessionFromSupabase({
-        authSession,
-      }).catch(() => getSession());
-      if (!alive) {
-        return;
-      }
-
-      setSession(nextSession || getSession());
-      setSessionReady(true);
-    });
-
-    return () => {
-      alive = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { session, sessionReady, setSession };
+  return { session, sessionReady: true, setSession };
 }

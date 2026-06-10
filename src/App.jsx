@@ -18,10 +18,6 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
-const AuthPage = lazy(() => import("./pages/AuthPage"));
-const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
-const SignInPage = lazy(() => import("./pages/SignInPage"));
-const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -93,18 +89,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-function ProtectedRoute({ children, session, sessionReady }) {
-  if (!sessionReady) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
-        <div className="h-10 w-10 rounded-full border-4 border-white/15 border-t-cyan-300 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!session?.isAuthenticated) {
-    return <Navigate replace to="/signin" />;
-  }
+function ProtectedRoute({ children }) {
   return children;
 }
 
@@ -169,10 +154,10 @@ function AppShell() {
               <Route path="/triggers" element={<TriggerPage />} />
               <Route path="/fraud-guard" element={<FraudGuardPage />} />
               <Route path="/get-protected" element={<GetProtected />} />
-              <Route path="/signin" element={<SignInPage setSession={setSession} />} />
-              <Route path="/signup" element={<SignUpPage session={session} setSession={setSession} />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/signin" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/auth/callback" element={<Navigate to="/dashboard" replace />} />
 
               {/* Protected Routes */}
               <Route
