@@ -36,7 +36,7 @@ export function useHydratedSession() {
         return;
       }
 
-      const nextSession = await hydrateSessionFromSupabase().catch(() => getSession());
+      const nextSession = await hydrateSessionFromSupabase({ authSession }).catch(() => getSession());
       if (!alive) {
         return;
       }

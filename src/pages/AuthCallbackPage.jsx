@@ -41,7 +41,9 @@ export default function AuthCallbackPage() {
 
       localStorage.setItem("gigshieldSelectedPlanId", selectedPlanId);
 
-      const hydrated = await hydrateSessionFromSupabase();
+      const hydrated = await hydrateSessionFromSupabase({
+        authSession: session,
+      });
       const resolvedRole = adminEmailAllowlist.includes(
         (session.user.email || "").toLowerCase(),
       )
@@ -92,4 +94,3 @@ export default function AuthCallbackPage() {
     </div>
   );
 }
-
