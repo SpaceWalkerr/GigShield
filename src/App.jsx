@@ -1,5 +1,11 @@
 import React, { lazy, Suspense, useEffect, useRef } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NotificationStack from "./components/NotificationStack";
@@ -29,7 +35,9 @@ const FraudGuardPage = lazy(() => import("./pages/FraudGuardPage"));
 const PayoutPage = lazy(() => import("./pages/PayoutPage"));
 const PayoutReceivedPage = lazy(() => import("./pages/PayoutReceivedPage"));
 const PayoutHistoryPage = lazy(() => import("./pages/PayoutHistoryPage"));
-const PredictiveHistoryPage = lazy(() => import("./pages/PredictiveHistoryPage"));
+const PredictiveHistoryPage = lazy(
+  () => import("./pages/PredictiveHistoryPage"),
+);
 const CommunityHeatmapPage = lazy(() => import("./pages/CommunityHeatmapPage"));
 const TeamProtectionPage = lazy(() => import("./pages/TeamProtectionPage"));
 const TrustCenterPage = lazy(() => import("./pages/TrustCenterPage"));
@@ -147,17 +155,32 @@ function AppShell() {
           >
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/judge-demo" element={<JudgeDemoPage setSession={setSession} />} />
+              <Route
+                path="/judge-demo"
+                element={<JudgeDemoPage setSession={setSession} />}
+              />
               <Route path="/product" element={<ProductPage />} />
               <Route path="/income-radar" element={<IncomeRadarPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/triggers" element={<TriggerPage />} />
               <Route path="/fraud-guard" element={<FraudGuardPage />} />
               <Route path="/get-protected" element={<GetProtected />} />
-              <Route path="/signin" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/auth/callback" element={<Navigate to="/dashboard" replace />} />
+              <Route
+                path="/signin"
+                element={<Navigate to="/dashboard" replace />}
+              />
+              <Route
+                path="/signup"
+                element={<Navigate to="/dashboard" replace />}
+              />
+              <Route
+                path="/auth"
+                element={<Navigate to="/dashboard" replace />}
+              />
+              <Route
+                path="/auth/callback"
+                element={<Navigate to="/dashboard" replace />}
+              />
 
               {/* Protected Routes */}
               <Route
@@ -192,6 +215,8 @@ function AppShell() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/auth" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/auth/callback" element={<Navigate to="/dashboard" replace />} />
               <Route
                 path="/payout-history"
                 element={
@@ -295,7 +320,10 @@ function WorkerNotificationBridge({ session, sessionReady }) {
         seenIdsRef.current.add(key);
 
         pushNotification({
-          type: claim.status === "paid" || claim.status === "approved" ? "success" : "info",
+          type:
+            claim.status === "paid" || claim.status === "approved"
+              ? "success"
+              : "info",
           category: "claims",
           title:
             claim.status === "approved"
@@ -361,4 +389,3 @@ function WorkerNotificationBridge({ session, sessionReady }) {
 }
 
 export default App;
-
